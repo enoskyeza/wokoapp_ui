@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import GuardianFieldset from '@/components/Forms/GuardianForm';
 import ParticipantFieldset from '@/components/Forms/ParticipantForm';
+import Link from "next/link";
 
 interface Participant {
     firstName: string;
@@ -95,18 +96,19 @@ const RegistrationForm: React.FC = () => {
             <GuardianFieldset/>
 
             {/* Participants Fieldset */}
-            <fieldset className="border border-gray-300 rounded-lg p-6 mb-6">
+            <fieldset className="border-t border-gray-300 rounded-lg p-0 pt-6 mb-8">
                 <legend className="text-xl font-semibold text-blue-700 px-2">
                     Participants Information
                 </legend>
 
                 {/* Note about participants */}
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 mb-6">
                     Note: All added participants should be under the same guardian.
                 </p>
 
                 {participants.map((participant, index) => (
-                    <div key={index} className="relative mb-4">
+                    <div key={index} className={`relative mb-6 ${participants.length > 1 ? 'border-b border-gray-200 mb-8 pb-2' : ''}`
+                    }>
                         <ParticipantFieldset
                             key={index}
                             participant={participant}
@@ -135,12 +137,12 @@ const RegistrationForm: React.FC = () => {
             </fieldset>
 
             {/* Payment Fieldset */}
-            <fieldset className="border border-gray-300 rounded-lg p-6 mb-6">
+            <fieldset className="border-t border-gray-300 rounded-lg p-0 pt-6 mt-8 mb-6">
                 <legend className="text-xl font-semibold text-blue-700 px-2">
                     Payment Information
                 </legend>
 
-                <div className="mb-4">
+                <div className="mx-6 mb-4">
                     {/*<label className="block text-gray-700 font-medium mb-2">*/}
                     {/*    Payment Method <span className="text-sm text-red-500">*</span>*/}
                     {/*</label>*/}
@@ -184,13 +186,16 @@ const RegistrationForm: React.FC = () => {
                 </div>
             </fieldset>
 
+            <div className="flex items-center justify-end gap-4">
+                <Link href={`/`} className="hover:text-red-500 cursor-pointer hover:underline">Cancel</Link>
             {/* Submit Button */}
             <button
                 type="submit"
-                className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
+                className="w-fit px-6 bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
             >
                 Register
             </button>
+            </div>
         </form>
     );
 };
