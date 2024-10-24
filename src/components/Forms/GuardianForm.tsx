@@ -2,7 +2,7 @@ import React from 'react';
 
 const GuardianFieldset = () => {
     return (
-        <fieldset className="border border-gray-300 rounded-lg p-6 mb-6">
+        <fieldset className="border-t border-gray-300 rounded-lg p-0 pt-6 mb-6">
             <legend className="text-xl font-semibold text-blue-700 px-2">
                 Guardian Information
             </legend>

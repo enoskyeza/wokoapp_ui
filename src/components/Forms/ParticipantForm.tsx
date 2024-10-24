@@ -16,7 +16,7 @@ interface Props {
 }
 
 const ParticipantFieldset: React.FC<Props> = ({participant, index, onChange}) => (
-    <fieldset className="border border-gray-300 rounded-lg p-6 mb-6">
+    <fieldset className="p-0 mb-6">
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* First Name */}
