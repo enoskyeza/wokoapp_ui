@@ -19,6 +19,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^11.11.9",
     "next": "15.0.1",
+    "next-pwa": "^5.6.0",
     "react": "^18.3.1",
     "react-apexcharts": "^1.4.1",
     "react-chartjs-2": "^5.2.0",
@@ -28,6 +29,7 @@
     "tabbable": "^6.2.0"
   },
   "devDependencies": {
+    "@types/next-pwa": "^5.6.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
