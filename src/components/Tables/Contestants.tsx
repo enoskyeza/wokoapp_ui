@@ -189,12 +189,12 @@ function Contestants() {
                     onChange={(e) => setFilters({...filters, startDate: e.target.value})}
                     className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"
                 />
-                <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-                    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"
-                />
+                {/*<input*/}
+                {/*    type="date"*/}
+                {/*    value={filters.endDate}*/}
+                {/*    onChange={(e) => setFilters({...filters, endDate: e.target.value})}*/}
+                {/*    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"*/}
+                {/*/>*/}
             </div>
 
             {/* Table */}
