@@ -179,7 +179,7 @@ function Contestants() {
             </div>
 
             {/* ... (filters code can remain the same) */}
-            <div className="flex flex-wrap sm:justify-end mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-wrap sm:justify-end px-6 mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
 
                 <FilterMenu filters={filters} setFilters={setFilters}/>
 
