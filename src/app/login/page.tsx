@@ -1,5 +1,6 @@
 'use client'
 import React, {useState} from 'react';
+import Link from "next/link";
 
 const LoginPage: React.FC = () => {
     const [role, setRole] = useState<'staff' | 'judge'>('staff'); // Default role set to 'staff'
@@ -138,12 +139,18 @@ const LoginPage: React.FC = () => {
                     </div>
 
                     {/* Submit Button */}
-                    <button
-                        type="submit"
-                        className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
+                    {/*<button*/}
+                    {/*    type="submit"*/}
+                    {/*    className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
+                    {/*>*/}
+                    {/*    Login*/}
+                    {/*</button>*/}
+                    <Link
+                        href={'/dashboard'}
+                        className="block w-full bg-blue-700 text-white text-center py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
                     >
                         Login
-                    </button>
+                    </Link>
                 </form>
             </div>
         </div>
