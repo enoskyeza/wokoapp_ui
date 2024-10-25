@@ -173,7 +173,7 @@ function Contestants() {
     return (
         <div className="bg-white shadow-lg rounded-lg border border-stroke col-span-full xl:col-span-8 mt-12">
             <div className="m-6">
-                <h5 className="text-xl font-semibold text-black dark:text-white">
+                <h5 className="text-xl font-semibold text-black">
                     Contestants
                 </h5>
             </div>

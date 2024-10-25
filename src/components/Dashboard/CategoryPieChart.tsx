@@ -65,10 +65,10 @@ const AgeCategoryPieChart: React.FC = () => {
         {/*      id=""*/}
         {/*      className="relative z-20 inline-flex appearance-none bg-transparent py-1 pl-3 pr-8 text-sm font-medium outline-none"*/}
         {/*    >*/}
-        {/*      <option value="" className="dark:bg-boxdark">*/}
+        {/*      <option value="" >*/}
         {/*        Monthly*/}
         {/*      </option>*/}
-        {/*      <option value="" className="dark:bg-boxdark">*/}
+        {/*      <option value="" >*/}
         {/*        Yearly*/}
         {/*      </option>*/}
         {/*    </select>*/}
@@ -106,7 +106,7 @@ const AgeCategoryPieChart: React.FC = () => {
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+            <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> All Categories </span>
               <span> 12 </span>
             </p>
@@ -115,7 +115,7 @@ const AgeCategoryPieChart: React.FC = () => {
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+            <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 3 - 7 Years </span>
               <span> 34% </span>
             </p>
@@ -124,7 +124,7 @@ const AgeCategoryPieChart: React.FC = () => {
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+            <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 8 - 12 Years </span>
               <span> 45% </span>
             </p>
@@ -133,7 +133,7 @@ const AgeCategoryPieChart: React.FC = () => {
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
-            <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
+            <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 13 - 17 Years </span>
               <span> 12% </span>
             </p>
