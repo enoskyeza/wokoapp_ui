@@ -50,14 +50,14 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
     return (
         <>
             <div
-                className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+                className="bg-[#2440F7] sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
                 <button
                     type="button"
                     onClick={() => setSideBar(true)}
                     className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
                 >
                     <span className="sr-only">Open sidebar</span>
-                    <Bars3Icon aria-hidden="true" className="h-6 w-6"/>
+                    <Bars3Icon aria-hidden="true" className="text-white h-6 w-6"/>
                 </button>
 
                 {/* Separator */}
@@ -70,14 +70,14 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
                         </label>
                         <MagnifyingGlassIcon
                             aria-hidden="true"
-                            className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
+                            className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-200"
                         />
                         <input
                             id="search-field"
                             name="search"
                             type="search"
                             placeholder="Search..."
-                            className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                            className="bg-[#2440F7] block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-200 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
                         />
                     </form>
                     <div className="flex items-center gap-x-4 lg:gap-x-6">
@@ -86,7 +86,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
                             className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
                         >
                             <span className="sr-only">View notifications</span>
-                            <BellIcon aria-hidden="true" className="h-6 w-6"/>
+                            <BellIcon aria-hidden="true" className="text-white h-6 w-6"/>
                         </button>
                         {/*<div className="-m-2.5 p-2.5 -mt-0.5">*/}
                         {/*    <NotificationBell />*/}
@@ -123,7 +123,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
                                 <span className="hidden lg:flex lg:items-center">
                   <span
                       aria-hidden="true"
-                      className="ml-4 text-sm font-semibold leading-6 text-gray-900"
+                      className="ml-4 text-sm font-semibold leading-6 text-white"
                   >
                     {auth ? auth.username : "User"}
                   </span>
