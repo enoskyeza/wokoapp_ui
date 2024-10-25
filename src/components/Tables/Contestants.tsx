@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import FilterMenu from "@/components/Forms/FilterMenu";
 
 
-interface Participant {
+export type Participant = {
     contestant: string;
     id: string;
     age: number;
@@ -16,7 +16,7 @@ interface Participant {
 }
 
 
-const participants: Participant[] = [
+export const participants: Participant[] = [
     {
         contestant: 'Alice Johnson',
         id: 'TF23001',
@@ -151,6 +151,7 @@ const participants: Participant[] = [
     },
 ];
 
+
 function Contestants() {
     const [filters, setFilters] = useState({
         ageCategory: '',
@@ -170,13 +171,15 @@ function Contestants() {
     });
 
     return (
-        <div className="col-span-full xl:col-span-8 bg-white shadow-sm rounded-xl mt-8">
-            <header className="px-5 py-4 ">
-                <h2 className="font-semibold text-gray-800">Contestants</h2>
-            </header>
+        <div className="bg-white shadow-lg rounded-lg border border-stroke col-span-full xl:col-span-8 mt-12">
+            <div className="m-6">
+                <h5 className="text-xl font-semibold text-black dark:text-white">
+                    Contestants
+                </h5>
+            </div>
 
             {/* ... (filters code can remain the same) */}
-            <div className="flex flex-wrap justify-end mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-wrap sm:justify-end mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
 
                 <FilterMenu filters={filters} setFilters={setFilters}/>
 
@@ -195,11 +198,11 @@ function Contestants() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto"> {/* Added for horizontal scrolling if needed */}
+            <div className="overflow-x-auto "> {/* Added for horizontal scrolling if needed */}
                 <table className="table-auto w-full">
                     {/* Table header */}
                     <thead className="text-xs uppercase text-gray-400 bg-gray-50 rounded-sm">
-                    <tr>
+                        <tr>
                         <th className="p-2">
                             <div className="font-semibold text-left"></div>
                             {/* Empty for checkbox column */}
@@ -240,7 +243,7 @@ function Contestants() {
                     ) : (
                         participants.map((participant) => (
                             <tr key={participant.id}>
-                                <td className="p-2">
+                                <td className="p-2 pl-6">
                                     <input type="checkbox" className="form-checkbox h-4 w-4 text-blue-600"/>
                                 </td>
                                 <td className="p-2">
