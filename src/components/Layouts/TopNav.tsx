@@ -50,7 +50,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
     return (
         <>
             <div
-                className="bg-[#2440F7] sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+                className="bg-theme-primary sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
                 <button
                     type="button"
                     onClick={() => setSideBar(true)}
@@ -77,7 +77,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
                             name="search"
                             type="search"
                             placeholder="Search..."
-                            className="bg-[#2440F7] block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-200 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
+                            className="bg-theme-primary block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-200 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
                         />
                     </form>
                     <div className="flex items-center gap-x-4 lg:gap-x-6">
