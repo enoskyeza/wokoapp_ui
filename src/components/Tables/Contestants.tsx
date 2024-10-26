@@ -1,6 +1,8 @@
 'use client'
 import React, {useState} from 'react';
 import FilterMenu from "@/components/Forms/FilterMenu";
+import {DateRangePicker} from "@nextui-org/date-picker";
+import Link from "next/link";
 
 
 export type Participant = {
@@ -161,6 +163,8 @@ function Contestants() {
         ageCategories: [] as string[],
     });
 
+
+
     const filteredParticipants = participants.filter((participant) => {
         const matchesAgeCategory = filters.ageCategory ? participant.ageCategory === filters.ageCategory : true;
         const matchesGender = filters.gender ? participant.gender === filters.gender : true;
@@ -182,36 +186,41 @@ function Contestants() {
             <div className="flex flex-wrap sm:justify-end px-6 mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
 
                 <FilterMenu filters={filters} setFilters={setFilters}/>
+                <DateRangePicker
+                    variant='bordered'
+                    // label="Select date"
+                    className=" max-w-xs"
+                />
 
-                <input
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-                    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"
-                />
-                <input
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-                    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"
-                />
+                {/*<input*/}
+                {/*    type="date"*/}
+                {/*    value={filters.startDate}*/}
+                {/*    onChange={(e) => setFilters({...filters, startDate: e.target.value})}*/}
+                {/*    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"*/}
+                {/*/>*/}
+                {/*<input*/}
+                {/*    type="date"*/}
+                {/*    value={filters.endDate}*/}
+                {/*    onChange={(e) => setFilters({...filters, endDate: e.target.value})}*/}
+                {/*    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"*/}
+                {/*/>*/}
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto "> {/* Added for horizontal scrolling if needed */}
                 <table className="table-auto w-full">
                     {/* Table header */}
-                    <thead className="text-xs uppercase text-gray-400 bg-gray-50 rounded-sm">
-                        <tr>
+                    <thead className="text-xs uppercase text-gray-100 bg-gray-900 rounded-sm">
+                    <tr>
                         <th className="p-2">
-                            <div className="font-semibold text-left"></div>
+                            <div className="font-semibold text-right">#</div>
                             {/* Empty for checkbox column */}
                         </th>
                         <th className="p-2">
-                            <div className="font-semibold text-center">ID</div>
+                            <div className="font-semibold text-left">Contestant</div>
                         </th>
                         <th className="p-2">
-                            <div className="font-semibold text-left">Contestant</div>
+                            <div className="font-semibold text-center">ID</div>
                         </th>
                         <th className="p-2">
                             <div className="font-semibold text-center">Age</div>
@@ -241,20 +250,23 @@ function Contestants() {
                             </td>
                         </tr>
                     ) : (
-                        participants.map((participant) => (
+                        participants.map((participant, index) => (
                             <tr key={participant.id}>
-                                <td className="p-2 pl-6">
-                                    <input type="checkbox" className="form-checkbox h-4 w-4 text-blue-600"/>
-                                </td>
-                                <td className="p-2">
-                                    <div className="text-center">{participant.id}</div>
+                                {/*<td className="p-2 pl-6">*/}
+                                {/*    <input type="checkbox" className="form-checkbox h-4 w-4 text-blue-600"/>*/}
+                                {/*</td>*/}
+                                <td className="p-2 ">
+                                    <div className="text-right">{index + 1}</div>
                                 </td>
                                 <td className="p-2">
                                     <div className="flex items-center">
-                                        <div className="text-gray-800">
+                                        <Link href='#' className="text-gray-800 cursor-pointer hover:text-blue-400">
                                             {participant.contestant}
-                                        </div>
+                                        </Link>
                                     </div>
+                                </td>
+                                <td className="p-2">
+                                    <div className="text-center">{participant.id}</div>
                                 </td>
                                 <td className="p-2">
                                     <div className="text-center">{participant.age}</div>
@@ -270,15 +282,15 @@ function Contestants() {
                                 </td>
                                 <td className="p-2">
                                     <div className="text-center">
-                      <span
-                          className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${
-                              participant.paymentStatus === 'PAID'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                          }`}
-                      >
-                        {participant.paymentStatus}
-                      </span>
+                                        <span
+                                            className={`my-1 px-3 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-sm ring-[1.5px] ring-offset-1 ${
+                                                participant.paymentStatus === 'PAID'
+                                                    ? 'ring-green-600 text-green-600 px-4'
+                                                    : 'ring-yellow-500 text-yellow-600'
+                                            }`}
+                                        >
+                                            {participant.paymentStatus === 'PAID' ? 'Paid' : 'Pending'}
+                                        </span>
                                     </div>
                                 </td>
                             </tr>

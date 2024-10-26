@@ -61,9 +61,10 @@ const FilterMenu = ({ filters, setFilters }: FilterProps) => {
       <button
         type="button"
         onClick={toggleFilterMenu}
-        className="inline-flex justify-center w-full px-4 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
+        className="inline-flex items-center gap-2 justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:bg-gray-50"
       >
-        <FunnelIcon className="h-5 w-5 text-gray-500" />
+        <FunnelIcon className="h-4 w-4 text-gray-500" />
+        <span className="font-medium">Filter</span>
       </button>
 
       {isMenuOpen && (
@@ -111,18 +112,18 @@ const FilterMenu = ({ filters, setFilters }: FilterProps) => {
           </div>
 
           {/* Apply and Clear Buttons */}
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-center space-x-2">
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300"
+              className="flex-grow px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-md hover:bg-gray-300"
             >
-              Clear Filters
+              Clear
             </button>
             <button
               onClick={applyFilters}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+              className="flex-grow px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
             >
-              Apply Filters
+              Apply
             </button>
           </div>
         </div>
