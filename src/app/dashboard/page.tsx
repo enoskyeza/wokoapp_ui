@@ -10,6 +10,7 @@ const AgeCategoryChart = dynamic(() => import("@/components/Dashboard/CategoryPi
 
 const DashboardPage = () => {
     return (
+
         <DashboardLayout>
             {/*<h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>*/}
 
