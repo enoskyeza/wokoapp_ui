@@ -3,6 +3,7 @@ import GuardianFieldset from '@/components/Forms/GuardianForm';
 import ParticipantFieldset from '@/components/Forms/ParticipantForm';
 import Link from "next/link";
 import SuccessModalDialog from "@/components/utils/RegisterSuccessModal";
+import {registerContestant} from "@/actions/register";
 
 interface Participant {
     firstName: string;
@@ -11,6 +12,10 @@ interface Participant {
     age: number;
     gender: 'M' | 'F';
     school: string;
+}
+
+interface ErrorMessages {
+    [key: string]: string;
 }
 
 const RegistrationForm: React.FC = () => {
@@ -25,7 +30,8 @@ const RegistrationForm: React.FC = () => {
         school: ''
     }]);
     const [paymentMethod, setPaymentMethod] = useState('');
-    const [errors, setErrors] = useState<{ paymentMethod?: string }>({});
+
+    const [errors, setErrors] = useState<ErrorMessages>({});
 
     const addParticipant = () => {
         setParticipants([...participants, {
@@ -58,42 +64,17 @@ const RegistrationForm: React.FC = () => {
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        const newErrors: { paymentMethod?: string } = {};
 
-        // Validate payment method
-        if (!paymentMethod) {
-            newErrors.paymentMethod = 'Please select a payment method.';
+        const formData = new FormData(event.target as HTMLFormElement);
+        const result = await registerContestant(formData)
+
+        if(result.success) {
+            setIsModalOpen(true)
+            setErrors({})
+        } else  {
+            const error:ErrorMessages = result.errors as ErrorMessages
+            setErrors(error)
         }
-
-        setErrors(newErrors);
-
-        console.log('Form Submitted: ', participants, paymentMethod);
-        setIsModalOpen(true);
-
-        // if (Object.keys(newErrors).length === 0) {
-        //     // Process the registration (send data to the backend)
-        //     try {
-        //         const response = await fetch('/api/register', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //             },
-        //             body: JSON.stringify({participants, paymentMethod}), // Add other form data here
-        //         });
-        //
-        //         if (response.ok) {
-        //             // Successful registration - handle redirect or message
-        //             console.log('Form Submitted: ', );
-        //             setIsModalOpen(true);
-        //         } else {
-        //             // Handle registration error
-        //             const data = await response.json();
-        //             console.error('Registration failed:', data.message);
-        //         }
-        //     } catch (error) {
-        //         console.error('An error occurred during registration:', error);
-        //     }
-        // }
     };
 
     return (
@@ -193,12 +174,14 @@ const RegistrationForm: React.FC = () => {
                                 December 2024.
                             </p>
                         </div>
-                        {errors.paymentMethod && (
-                            <p className="text-red-500 text-xs italic">{errors.paymentMethod}</p>
-                        )}
                     </div>
                 </fieldset>
 
+
+                {/* Display general errors */}
+                {errors.general && (
+                    <p className="text-red-500 text-xs italic">{errors.general}</p>
+                )}
 
                 <div className="flex items-center justify-end gap-4">
                     <Link href={`/`} className="hover:text-red-500 cursor-pointer hover:underline">Cancel</Link>
@@ -211,6 +194,7 @@ const RegistrationForm: React.FC = () => {
                     </button>
                 </div>
             </form>
+
             {/* Modal Component */}
             {isModalOpen && (
                 <SuccessModalDialog

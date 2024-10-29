@@ -24,7 +24,7 @@ type InterfaceProps = {
 function SuccessModalDialog({isOpen,setIsOpen, participants, eventLink}: InterfaceProps) {
 
   return (
-    <Dialog open={isOpen} onClose={setIsOpen}>
+    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogTitle>
                     <p className="text-center text-lg font-semibold text-green-600">Successfully Registered!</p>
       </DialogTitle>
