@@ -2,8 +2,8 @@
 import axios, {AxiosError} from 'axios';
 
 export const registerContestant = async (formData: FormData) => {
-    // const prodUrl = 'https://kyeza.pythonanywhere.com/register/parents/'
-    const devUrl = 'http://127.0.0.1:8000/register/parents/'
+    const prodUrl = 'https://kyeza.pythonanywhere.com/register/parents/'
+    // const devUrl = 'http://127.0.0.1:8000/register/parents/'
     // Guardian data
     const guardianData = {
         first_name: formData.get('guardian_first_name') as string,
@@ -41,7 +41,7 @@ export const registerContestant = async (formData: FormData) => {
     // console.log('Form Submitted(Sever):', requestData);
 
     try {
-        const response = await axios.post(devUrl, requestData);
+        const response = await axios.post(prodUrl, requestData);
         return {success: true, data: response.data};
     } catch (error) {
         const axiosError = error as AxiosError;
