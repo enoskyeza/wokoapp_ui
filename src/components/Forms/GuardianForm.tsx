@@ -17,7 +17,7 @@ const GuardianFieldset = () => {
                     <input
                         type="text"
                         id="first_name"
-                        name="first_name"
+                        name="guardian_first_name"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter first name"
                         required
@@ -32,7 +32,7 @@ const GuardianFieldset = () => {
                     <input
                         type="text"
                         id="last_name"
-                        name="last_name"
+                        name="guardian_last_name"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter last name"
                         required
@@ -47,7 +47,7 @@ const GuardianFieldset = () => {
                     <input
                         type="text"
                         id="profession"
-                        name="profession"
+                        name="guardian_profession"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter profession"
                     />
@@ -61,7 +61,7 @@ const GuardianFieldset = () => {
                     <input
                         type="text"
                         id="address"
-                        name="address"
+                        name="guardian_address"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter address"
                     />
@@ -75,7 +75,7 @@ const GuardianFieldset = () => {
                     <input
                         type="email"
                         id="email"
-                        name="email"
+                        name="guardian_email"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter email address"
                         required
@@ -90,7 +90,7 @@ const GuardianFieldset = () => {
                     <input
                         type="tel"
                         id="phone_number"
-                        name="phone_number"
+                        name="guardian_phone_number"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter phone number"
                         maxLength={13}
