@@ -47,8 +47,12 @@ const options: ApexOptions = {
   ],
 };
 
-const AgeCategoryPieChart: React.FC = () => {
-  const series = [65, 34, 56];
+type InterfaceProps = {
+  stats: {total:number; junior:number; intermediate:number, senior:number}
+}
+
+const AgeCategoryPieChart: React.FC<InterfaceProps> = ({stats}) => {
+  const series = [stats.junior, stats.intermediate, stats.senior];
 
   return (
     <div className="bg-white shadow-lg rounded-lg p-4 col-span-12 border border-stroke px-5 pb-5 pt-7.5 sm:px-7.5 xl:col-span-5">
@@ -108,34 +112,34 @@ const AgeCategoryPieChart: React.FC = () => {
             <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-primary"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> All Categories </span>
-              <span> 12 </span>
+              <span> {stats.total} </span>
             </p>
           </div>
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#00C49F]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 3 - 7 Years </span>
-              <span> 34% </span>
+              <span> {stats.junior > 0 ? Math.floor((stats.junior/stats.total)*100) : 0}% </span>
             </p>
           </div>
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#FFBB28]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 8 - 12 Years </span>
-              <span> 45% </span>
+              <span> {stats.intermediate > 0 ? Math.floor((stats.intermediate/stats.total)*100) : 0}% </span>
             </p>
           </div>
         </div>
         <div className="w-full px-8 sm:w-1/2">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#FF8042]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black">
               <span> 13 - 17 Years </span>
-              <span> 12% </span>
+              <span> {stats.senior > 0 ? Math.floor((stats.senior/stats.total)*100) : 0}% </span>
             </p>
           </div>
         </div>
