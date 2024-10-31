@@ -12,13 +12,16 @@ const RegisterPage = () => {
         <div>
           <div className="flex justify-center">
             <Image
-                src="/wokober_logo.png"
+                src="/theme-logo.png"
                 alt="Wokober Logo"
-                width={150}
+                width={200}
                 height={60}
                 priority
             />
           </div>
+          <h2 className="mt-4 text-center text-2xl font-extrabold text-yellow-300">
+            Nurturing My Child&apos;s Creativity, Their Limitless Future.
+          </h2>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-white">
             Participants&apos; Register
           </h2>
