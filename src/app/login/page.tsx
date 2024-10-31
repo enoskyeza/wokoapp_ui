@@ -1,53 +1,75 @@
 'use client'
 import React, {useState} from 'react';
-import Link from "next/link";
+import { useRouter } from 'next/navigation';
+// import Link from "next/link";
 
 const LoginPage: React.FC = () => {
+    const router = useRouter();
+
     const [role, setRole] = useState<'staff' | 'judge'>('staff'); // Default role set to 'staff'
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
+    const [errors, setErrors] = useState<{ username?: string; password?: string; login?:string }>({});
 
-    const handleLogin = async (event: React.FormEvent) => {
+        // Mock credentials
+    const mockUsername = 'staff';
+    const mockPassword = 'tf-Staff-24';
+
+    // Function to handle login
+    const handleMockLogin = async (event: React.FormEvent) => {
         event.preventDefault();
-        const newErrors: { username?: string; password?: string } = {};
+        // Clear any previous errors
+        setErrors({});
 
-        if (!username.trim()) {
-            newErrors.username = 'Username is required';
-        }
-
-        if (!password.trim()) {
-            newErrors.password = 'Password is required';
-        }
-
-        setErrors(newErrors);
-
-        if (Object.keys(newErrors).length === 0) {
-            // If no errors, proceed with login
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({username, password, role}),
-                });
-
-                if (response.ok) {
-                    // Successful login - handle redirect based on userType (this is handled on the backend)
-                    console.log('Login successful!');
-                } else {
-                    // Handle login error (e.g., display error message)
-                    const data = await response.json();
-                    console.error('Login failed:', data.message);
-                    // You might want to set an error state to display the message to the user
-                }
-            } catch (error) {
-                console.error('An error occurred during login:', error);
-                // Handle unexpected errors
-            }
+        // Check if the username and password match the mock credentials
+        if (username === mockUsername && password === mockPassword) {
+            router.push('/dashboard'); // Redirect to the dashboard
+        } else {
+            // Set an error message for failed login
+            setErrors({ login: 'Invalid username or password' });
         }
     };
+
+    // const handleLogin = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     const newErrors: { username?: string; password?: string } = {};
+    //
+    //     if (!username.trim()) {
+    //         newErrors.username = 'Username is required';
+    //     }
+    //
+    //     if (!password.trim()) {
+    //         newErrors.password = 'Password is required';
+    //     }
+    //
+    //     setErrors(newErrors);
+    //
+    //     if (Object.keys(newErrors).length === 0) {
+    //         // If no errors, proceed with login
+    //         try {
+    //             const response = await fetch('/api/login', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify({username, password, role}),
+    //             });
+    //
+    //             if (response.ok) {
+    //                 // Successful login - handle redirect based on userType (this is handled on the backend)
+    //                 console.log('Login successful!');
+    //             } else {
+    //                 // Handle login error (e.g., display error message)
+    //                 const data = await response.json();
+    //                 console.error('Login failed:', data.message);
+    //                 // You might want to set an error state to display the message to the user
+    //             }
+    //         } catch (error) {
+    //             console.error('An error occurred during login:', error);
+    //             // Handle unexpected errors
+    //         }
+    //     }
+    // };
 
     // const handleLogin = (e: React.FormEvent) => {
     //   e.preventDefault();
@@ -72,7 +94,7 @@ const LoginPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">Login</h2>
 
                 {/* Form */}
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleMockLogin}>
                     {/* Email Input */}
                     <div className="mb-4">
                         <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
@@ -138,19 +160,21 @@ const LoginPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Submit Button */}
-                    {/*<button*/}
-                    {/*    type="submit"*/}
-                    {/*    className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
-                    {/*>*/}
-                    {/*    Login*/}
-                    {/*</button>*/}
-                    <Link
-                        href={'/dashboard'}
-                        className="block w-full bg-blue-700 text-white text-center py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
+                     {/*Submit Button*/}
+                    {errors.login && <p className="error text-red-500 text-sm text-center pb-2">{errors.login}</p>}
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
                     >
                         Login
-                    </Link>
+                    </button>
+                    {/*<Link*/}
+                    {/*    href={'/dashboard'}*/}
+                    {/*    className="block w-full bg-blue-700 text-white text-center py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
+                    {/*>*/}
+                    {/*    Login*/}
+                    {/*</Link>*/}
                 </form>
             </div>
         </div>
