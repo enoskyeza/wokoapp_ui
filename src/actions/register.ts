@@ -4,6 +4,7 @@ import axios, {AxiosError} from 'axios';
 export const registerContestant = async (formData: FormData) => {
     const prodUrl = 'https://kyeza.pythonanywhere.com/register/parents/'
     // const devUrl = 'http://127.0.0.1:8000/register/parents/'
+
     // Guardian data
     const guardianData = {
         first_name: formData.get('guardian_first_name') as string,

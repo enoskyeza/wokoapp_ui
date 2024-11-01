@@ -118,7 +118,6 @@ const ParticipantFieldset: React.FC<Props> = ({participant, index, onChange}) =>
                     onChange={(e) => onChange(index, 'school', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                     placeholder="Enter school name"
-                    required
                 />
             </div>
 

@@ -25,10 +25,20 @@ const RegistrationForm: React.FC = () => {
         firstName: '',
         lastName: '',
         email: '',
-        age: 1,
+        age: 3,
         gender: 'M',
         school: ''
     }]);
+
+    const [submittedParticipants, setSubmittedParticipants] = useState<Participant[]>([{
+        firstName: '',
+        lastName: '',
+        email: '',
+        age: 3,
+        gender: 'M',
+        school: ''
+    }]);
+
     const [paymentMethod, setPaymentMethod] = useState('cash');
 
     const [errors, setErrors] = useState<ErrorMessages>({});
@@ -38,7 +48,7 @@ const RegistrationForm: React.FC = () => {
             firstName: '',
             lastName: '',
             email: '',
-            age: 1,
+            age: 3,
             gender: 'M',
             school: ''
         }]);
@@ -65,14 +75,25 @@ const RegistrationForm: React.FC = () => {
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
 
-        const formData = new FormData(event.target as HTMLFormElement);
+        const form = event.target as HTMLFormElement;
+        const formData = new FormData(form);
         const result = await registerContestant(formData)
 
-        if(result.success) {
+        if (result.success) {
+            setSubmittedParticipants(participants)
             setIsModalOpen(true)
             setErrors({})
-        } else  {
-            const error:ErrorMessages = result.errors as ErrorMessages
+            setParticipants([{
+                firstName: '',
+                lastName: '',
+                email: '',
+                age: 3,
+                gender: 'M',
+                school: ''
+            }])
+            form.reset();
+        } else {
+            const error: ErrorMessages = result.errors as ErrorMessages
             setErrors(error)
         }
     };
@@ -200,7 +221,7 @@ const RegistrationForm: React.FC = () => {
                 <SuccessModalDialog
                     isOpen={isModalOpen}
                     setIsOpen={setIsModalOpen}
-                    participants={participants}
+                    participants={submittedParticipants}
                     eventLink={'app.wokober.com/register'}
                 />
             )}
