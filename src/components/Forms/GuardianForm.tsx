@@ -39,48 +39,6 @@ const GuardianFieldset = () => {
                     />
                 </div>
 
-                {/* Profession */}
-                <div className="mb-4">
-                    <label htmlFor="profession" className="block text-gray-700 font-medium mb-2">
-                        Profession
-                    </label>
-                    <input
-                        type="text"
-                        id="profession"
-                        name="guardian_profession"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
-                        placeholder="Enter profession"
-                    />
-                </div>
-
-                {/* Address */}
-                <div className="mb-4">
-                    <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
-                        Address
-                    </label>
-                    <input
-                        type="text"
-                        id="address"
-                        name="guardian_address"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
-                        placeholder="Enter address"
-                    />
-                </div>
-
-                {/* Email */}
-                <div className="mb-4">
-                    <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                        Email <span className="text-sm text-red-500">*</span>
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="guardian_email"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
-                        placeholder="Enter email address"
-                        required
-                    />
-                </div>
 
                 {/* Phone Number */}
                 <div className="mb-4">
@@ -96,6 +54,49 @@ const GuardianFieldset = () => {
                         maxLength={13}
                         minLength={10}
                         required
+                    />
+                </div>
+
+                {/* Address */}
+                <div className="mb-4">
+                    <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
+                        Address <span className="text-sm text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="address"
+                        name="guardian_address"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                        placeholder="Enter address"
+                    />
+                </div>
+
+                {/* Email */}
+                <div className="mb-4">
+                    <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+                        Email
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="guardian_email"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                        placeholder="Enter email address"
+                        required
+                    />
+                </div>
+
+                {/* Profession */}
+                <div className="mb-4">
+                    <label htmlFor="profession" className="block text-gray-700 font-medium mb-2">
+                        Profession
+                    </label>
+                    <input
+                        type="text"
+                        id="profession"
+                        name="guardian_profession"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                        placeholder="Enter profession"
                     />
                 </div>
             </div>

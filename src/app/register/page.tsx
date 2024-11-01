@@ -2,8 +2,6 @@
 'use client';
 import RegistrationForm from '@/components/Forms/RegistrationForm';
 import Image from 'next/image';
-// import WokoberLogo from '/wokober_logo.png'
-// import RegisterForm from "@/components/Forms/RegisterForm";
 
 const RegisterPage = () => {
   return (

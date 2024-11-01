@@ -6,7 +6,7 @@ const LandingPage: React.FC = () => {
     return (
         <div
             style={{backgroundImage: "url('/bg.jpg')", backgroundSize: "cover", backgroundRepeat: "no-repeat"}}
-            className="min-h-screen bg-gray-100 flex flex-col items-center justify-center"
+            className="min-h-screen bg-theme-primary flex flex-col items-center justify-center"
         >
 
 
@@ -26,8 +26,8 @@ const LandingPage: React.FC = () => {
                 <p className="text-lg text-white text-center max-w-xl mb-8 mx-auto">
                     The biggest <span className="text-yellow-500 font-semibold">Toy and Innovation</span> event of the
                     year.
-                    Happening on <span className="text-yellow-500 font-semibold">13-14, Dec</span> at <span
-                    className="text-yellow-500 font-semibold">Elephanted Commons, Gulu City.</span>
+                    Happening on <span className="text-yellow-500 font-semibold">13th-14th, Dec</span> at <span
+                    className="text-yellow-500 font-semibold">Elephante Commons, Gulu City.</span>
                 </p>
 
                 {/* Action Buttons */}
