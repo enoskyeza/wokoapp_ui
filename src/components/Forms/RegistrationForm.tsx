@@ -29,7 +29,7 @@ const RegistrationForm: React.FC = () => {
         gender: 'M',
         school: ''
     }]);
-    const [paymentMethod, setPaymentMethod] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('cash');
 
     const [errors, setErrors] = useState<ErrorMessages>({});
 

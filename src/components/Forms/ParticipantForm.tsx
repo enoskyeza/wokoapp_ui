@@ -108,7 +108,7 @@ const ParticipantFieldset: React.FC<Props> = ({participant, index, onChange}) =>
             {/* School */}
             <div className="sm:col-span-2">
                 <label htmlFor={`participant-school-${index}`} className="block text-gray-700 font-medium mb-2">
-                    School <span className="text-sm text-red-500">*</span>
+                    School
                 </label>
                 <input
                     type="text"
