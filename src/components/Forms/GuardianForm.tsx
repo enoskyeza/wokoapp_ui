@@ -68,6 +68,7 @@ const GuardianFieldset = () => {
                         name="guardian_address"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter address"
+                        required
                     />
                 </div>
 
@@ -82,7 +83,6 @@ const GuardianFieldset = () => {
                         name="guardian_email"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                         placeholder="Enter email address"
-                        required
                     />
                 </div>
 
