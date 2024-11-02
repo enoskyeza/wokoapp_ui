@@ -19,7 +19,7 @@ const LandingPage: React.FC = () => {
 
                 {/* Title Section */}
                 <h1 className="text-4xl font-bold text-white text-center mb-12">
-                    WOKOBER <br/> <span className="text-yellow-500">TOY & INNOVATION</span> FESTIVAL 2024
+                    WOKOBER <br/> <span className="text-yellow-300">TOY & INNOVATION</span> FESTIVAL 2024
                 </h1>
 
                 {/* Welcome Message */}
@@ -29,11 +29,14 @@ const LandingPage: React.FC = () => {
                     Happening on <span className="text-yellow-500 font-semibold">13th-14th, Dec</span> at <span
                     className="text-yellow-500 font-semibold">Elephante Commons, Gulu City.</span>
                 </p>
+                <p className="text-lg text-white text-center max-w-xl mb-8 mx-auto">
+                    Registration fee for participants: <span className="text-yellow-500 font-semibold">20,000UGX</span>
+                </p>
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
                     <Link href="/register">
-                        <p className="w-full md:w-auto text-center bg-yellow-500 text-black py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:scale-105">
+                        <p className="w-full md:w-auto text-center bg-yellow-300 text-black py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:scale-105">
                             Register a Participant
                         </p>
                     </Link>
