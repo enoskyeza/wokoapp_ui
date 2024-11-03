@@ -50,6 +50,7 @@ function Contestants({participants}: {participants: Participant[]}) {
                     variant='bordered'
                     // label="Select date"
                     className=" max-w-xs"
+                    aria-label="Select date range"
                 />
 
                 {/*<input*/}
