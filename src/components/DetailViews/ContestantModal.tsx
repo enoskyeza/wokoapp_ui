@@ -6,7 +6,6 @@ import {Participant, Parent} from "@/types";
 import {approvePayment} from "@/actions/approvePayment";
 import Image from "next/image";
 import participantImg from '/public/contestant.jpg';
-import axios from "axios";
 
 type InterfaceProps = {
     isOpen: boolean;
@@ -19,8 +18,8 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
     const [parent, setParent] = useState<Parent | null>(null);
     const [processing, setProcessing] = useState<boolean>(false);
 
-    const devUrl = `http://127.0.0.1:8000/register/parents/${participant.parent}`
-    // const prodUrl = `https://kyeza.pythonanywhere.com/register/parents/${participant.parent}`
+    // const devUrl = `http://127.0.0.1:8000/register/parents/${participant.parent}`
+    const prodUrl = `https://kyeza.pythonanywhere.com/register/parents/${participant.parent}`
 
     const handlePaymentApproval = async () => {
         setProcessing(true);
@@ -33,7 +32,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
 
     useEffect(() => {
         const fetchParent = async () => {
-            const res = await fetch(devUrl);
+            const res = await fetch(prodUrl);
             const data = await res.json();
             setParent(data);
         };
