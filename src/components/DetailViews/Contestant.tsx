@@ -1,30 +1,10 @@
-// components/ContestantDetails.tsx
-'use client';
-import React from 'react';
-
-interface Contestant {
-    firstName: string;
-    lastName: string;
-    id: string;
-    age: number;
-    gender: 'M' | 'F';
-    school: string;
-    paymentStatus: 'PAID' | 'NOT_PAID';
-    parent: {
-        firstName: string;
-        lastName: string;
-        profession: string;
-        address: string;
-        email: string;
-        phoneNumber: string;
-    };
-}
-
-
+import Image from 'next/image';
+import contestantImg from '/public/contestant.jpg';
+import Link from "next/link";
 
 const ContestantDetails = () => {
-
-    const contestant:Contestant = {
+    // Sample data for illustration
+    const contestant = {
         id: 'TF23001',
         firstName: 'Jane',
         lastName: 'Doe',
@@ -33,124 +13,94 @@ const ContestantDetails = () => {
         gender: 'F',
         paymentStatus: 'NOT_PAID',
         parent: {
-            firstName: 'John',
-            lastName: 'Doe',
+            name: 'John Doe',
             profession: 'Engineer',
             email: 'jondoe@example.com',
             phoneNumber: '+256 755 678901',
             address: 'Gulu City, Uganda',
-        }
+        },
+        toys: [
+            {id: 1, name: 'Toy Car'},
+            {id: 2, name: 'Doll House'},
+            {id: 3, name: 'Action Figure'},
+            {id: 4, name: 'Puzzle'},
+        ],
     };
 
     return (
-        <div className="space-y-6">
-            {/* Top Card */}
-            <div className="bg-white shadow-lg rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Contestant Details</h2>
-                <div className="flex flex-col md:flex-row gap-6">
-                    {/* Left Section - Image */}
-                    <div className="w-full md:w-1/3">
-                        <img src="/contestant.jpg" alt="Contestant" className="rounded-lg"/>
+        <div className="max-w-5xl mx-auto px-6 space-y-6">
+            {/* Top Card - Contestant Details */}
+            <div className="bg-white shadow-lg rounded-lg p-6 ">
+                <h2 className="text-xl font-semibold mb-4">Contestant Details</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="flex items-start justify-center">
+                        <Image
+                            src={contestantImg}
+                            alt="Contestant"
+                            className="rounded-md shadow-md object-cover"
+                            width={150}
+                            height={150}
+                        />
                     </div>
-
-                    {/* Right Section - Details */}
-                    <div className="w-full md:w-2/3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Name:</label>
-                                <p className="text-lg text-gray-900">
-                                    {contestant.firstName} {contestant.lastName}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">ID No:</label>
-                                <p className="text-lg text-gray-900">{contestant.id}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Age:</label>
-                                <p className="text-lg text-gray-900">{contestant.age}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">School:</label>
-                                <p className="text-lg text-gray-900">{contestant.school}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Gender:</label>
-                                <p className="text-lg text-gray-900">{contestant.gender}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Payment Status:</label>
-                                <p className="text-lg text-gray-900">
-                  <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          contestant.paymentStatus === 'PAID'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                      }`}
-                  >
-                    {contestant.paymentStatus}
-                  </span>
-                                </p>
-                            </div>
+                    <div className="sm:col-span-2 pl-4">
+                        <div className="space-y-2">
+                            <p><strong>Name:</strong> {contestant.firstName} {contestant.lastName}</p>
+                            <p><strong>ID No:</strong> {contestant.id}</p>
+                            <p><strong>Age:</strong> {contestant.age}</p>
+                            <p><strong>School:</strong> {contestant.school}</p>
+                            <p><strong>Gender:</strong> {contestant.gender === 'M' ? 'Male' : 'Female'}</p>
+                            <p className="flex items-center">
+                                <strong>Payment Status:</strong>
+                                <span className={`ml-2 px-2 py-1 text-xs rounded-md font-semibold ${
+                                    contestant.paymentStatus === 'PAID' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
+                                }`}>
+                                {contestant.paymentStatus === 'PAID' ? 'Paid' : 'Pending'}
+                            </span>
+                            </p>
                         </div>
-
-                        {/* Approve Payment Button (if not paid) */}
-                        {contestant.paymentStatus === 'NOT_PAID' && (
-                            <button
-                                className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                Approve Payment
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Lower Cards */}
-            <div className="flex flex-col md:flex-row gap-6">
-                {/* Lower Left Card - Parent Details */}
-                <div className="bg-white shadow-lg rounded-lg p-6 w-full md:w-1/2">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Parent Details</h3>
-                    <div className="grid grid-cols-1 gap-2">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Name:</label>
-                            <p className="text-lg text-gray-900">
-                                {contestant.parent.firstName} {contestant.parent.lastName}
-                            </p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Profession:</label>
-                            <p className="text-lg text-gray-900">{contestant.parent.profession}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Address:</label>
-                            <p className="text-lg text-gray-900">{contestant.parent.address}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Email:</label>
-                            <p className="text-lg text-gray-900">{contestant.parent.email}</p>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Phone Number:</label>
-                            <p className="text-lg text-gray-900">{contestant.parent.phoneNumber}</p>
-                        </div>
-                    </div>
+            {/* Lower Left Card - Parent Details */}
+            <div className="bg-white shadow-lg rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Parent Details</h2>
+                <div className="space-y-2">
+                    <p><strong>Name:</strong> {contestant.parent.name}</p>
+                    <p><strong>Profession:</strong> {contestant.parent.profession}</p>
+                    <p><strong>Email:</strong> {contestant.parent.email}</p>
+                    <p><strong>Phone:</strong> {contestant.parent.phoneNumber}</p>
+                    <p><strong>Address:</strong> {contestant.parent.address}</p>
                 </div>
+            </div>
 
-                {/* Lower Right Card - Toy Gallery */}
-                <div className="bg-white shadow-lg rounded-lg p-6 w-full md:w-1/2">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Toy Gallery</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {/* Sample toy images */}
-                        {Array.from({length: 6}).map((_, index) => (
-                            <img
-                                key={index}
-                                src={`/toy-${index + 1}.jpg`} // Replace with actual toy image paths
-                                alt={`Toy ${index + 1}`}
-                                className="rounded-lg"
-                            />
-                        ))}
-                    </div>
+            {/* Lower Right Card - Toy Gallery */}
+            <div className="bg-white shadow-lg rounded-lg p-6">
+                <h2 className="text-xl font-semibold mb-4">Toy Details</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {contestant.toys.map((toy) => (
+                        <div
+                            key={toy.id}
+                            className="bg-gray-100 rounded-lg p-4 flex items-center justify-center text-center text-sm font-medium text-gray-700"
+                        >
+                            {toy.name}
+                        </div>
+                    ))}
                 </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-4 pt-4">
+                <Link href={'/dashboard'} className="underline cursor-pointer hover:text-red-500">Go back</Link>
+                <button
+                    className="w-full sm:w-auto bg-blue-300 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-blue-500 transition-colors">
+                    Update Details
+                </button>
+                {contestant.paymentStatus === 'NOT_PAID' && (
+                    <button
+                        className="w-full sm:w-auto bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-green-700 transition-colors">
+                        Approve Payment
+                    </button>
+                )}
             </div>
         </div>
     );
