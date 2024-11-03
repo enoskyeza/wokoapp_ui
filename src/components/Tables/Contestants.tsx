@@ -2,12 +2,16 @@
 import React, {useState} from 'react';
 import FilterMenu from "@/components/Forms/FilterMenu";
 import {DateRangePicker} from "@nextui-org/date-picker";
-import Link from "next/link";
+// import Link from "next/link";
 import {Participant} from "@/types";
+import ContestantModalDialog from "@/components/DetailViews/ContestantModal";
 
 
 
 function Contestants({participants}: {participants: Participant[]}) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+
     const [filters, setFilters] = useState({
         ageCategory: '',
         gender: '',
@@ -15,8 +19,6 @@ function Contestants({participants}: {participants: Participant[]}) {
         endDate: '',
         ageCategories: [] as string[],
     });
-
-
 
     const filteredParticipants = participants.filter((participant) => {
         const matchesAgeCategory = filters.ageCategory ? participant.age_category === filters.ageCategory : true;
@@ -26,6 +28,12 @@ function Contestants({participants}: {participants: Participant[]}) {
             (!filters.endDate || new Date(participant.created_at) <= new Date(filters.endDate));
         return matchesAgeCategory && matchesGender && matchesDateRange;
     });
+
+    const handleSelectParticipant = (participant:Participant) => {
+        setIsModalOpen(true);
+        setSelectedParticipant(participant);
+        console.log(participant.first_name, participant.last_name);
+    }
 
     return (
         <div className="bg-white shadow-lg rounded-lg border border-stroke col-span-full xl:col-span-8 mt-12">
@@ -112,12 +120,18 @@ function Contestants({participants}: {participants: Participant[]}) {
                                 </td>
                                 <td className="p-2">
                                     <div className="flex items-center">
-                                        <Link
-                                            href={'/contestant/id'}
+                                        {/*<Link*/}
+                                        {/*    href={`/contestant/${participant.id}`}*/}
+                                        {/*    className="text-gray-800 cursor-pointer hover:text-blue-400"*/}
+                                        {/*>*/}
+                                        {/*    {`${participant.first_name} ${participant.last_name}`}*/}
+                                        {/*</Link>*/}
+                                        <p
+                                            onClick={() => (handleSelectParticipant(participant))}
                                             className="text-gray-800 cursor-pointer hover:text-blue-400"
                                         >
                                             {`${participant.first_name} ${participant.last_name}`}
-                                        </Link>
+                                        </p>
                                     </div>
                                 </td>
                                 <td className="p-2">
@@ -130,7 +144,7 @@ function Contestants({participants}: {participants: Participant[]}) {
                                     <div className="text-center">{participant.gender}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="text-gray-800">{participant.parent}</div>
+                                    <div className="text-gray-800">{participant.parent_name}</div>
                                 </td>
                                 <td className="p-2">
                                     <div className="text-gray-800">{participant.school}</div>
@@ -154,6 +168,12 @@ function Contestants({participants}: {participants: Participant[]}) {
                     </tbody>
                 </table>
             </div>
+
+
+            {/* Modal Component */}
+            {isModalOpen && selectedParticipant && (
+                <ContestantModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} participant={selectedParticipant} />
+            )}
         </div>
     );
 };
