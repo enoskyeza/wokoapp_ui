@@ -25,9 +25,9 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
         setProcessing(true);
         const res = await approvePayment(participant.id)
         if (res.success) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds
-        setProcessing(false);
-    }
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds
+            setProcessing(false);
+        }
     }
 
     useEffect(() => {
@@ -45,7 +45,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
             </DialogTitle>
             <DialogBody>
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="">
                         <div className="flex items-end gap-3">
                             <Image
                                 src={participantImg}
@@ -54,18 +54,18 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
                                 width={100}
                                 height={100}
                             />
-                            <div className="py-2">
+                            <div className="">
                                 <p className="text-xl font-semibold">{participant.first_name} {participant.last_name}</p>
-                                <p>{participant.identifier}</p>
+                                <p className="text-md font-semibold">{participant.identifier}</p>
                                 <p> {participant.age} Years | {participant.gender === 'M' ? 'Male' : 'Female'}</p>
                                 <span className={`px-2 py-1 text-xs rounded-md font-semibold ${
                                     participant.payment_status === 'paid' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
                                 }`}>
-                                {participant.payment_status === 'paid' ? 'Paid' : 'Pending payment'}
-                            </span>
+                                    {participant.payment_status === 'paid' ? 'Paid' : 'Pending payment'}
+                                </span>
                             </div>
                         </div>
-                        <div className="sm:col-span-2">
+                        <div className="mt-6">
                             <div className="space-y-2 bg-gray-100 p-3 border-l-3 border-green-200 rounded-md">
                                 <p><strong>School:</strong> {participant.school}</p>
                                 <p className="">
