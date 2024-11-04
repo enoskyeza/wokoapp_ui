@@ -17,3 +17,8 @@ Step 3:  Utilizing Custom Hooks and State Management
 getServerSideProps
 
 Imagine you're building a personalized news feed. You need to fetch the latest news articles tailored to the user's preferences every time they visit the page. This is where getServerSideProps comes in. This function runs on the server-side every time a user requests the page. It fetches the latest data and sends it to the page component as props.
+
+getStaticProps
+
+Now, let's say you have a blog with articles that don't change very often. Instead of fetching the same articles repeatedly, you can use getStaticProps. This function also runs on the server-side, but it happens during the build process. It fetches the articles once and generates static HTML pages. This makes your website much faster because the data is already there, ready to be served.
+
