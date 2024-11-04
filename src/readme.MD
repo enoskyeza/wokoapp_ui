@@ -22,3 +22,6 @@ getStaticProps
 
 Now, let's say you have a blog with articles that don't change very often. Instead of fetching the same articles repeatedly, you can use getStaticProps. This function also runs on the server-side, but it happens during the build process. It fetches the articles once and generates static HTML pages. This makes your website much faster because the data is already there, ready to be served.
 
+Analogy Time!
+
+Think of getServerSideProps as a chef who prepares a fresh meal every time you order. getStaticProps is like a bakery that prepares bread in the morning, ready for you to pick up throughout the day.
