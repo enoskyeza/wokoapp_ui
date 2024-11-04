@@ -1,4 +1,5 @@
 Global state
+Revision plan
 
 Step 1:  Data Fetching Methods in Next.js
 * We'll explore getServerSideProps and getStaticProps for fetching data at different stages.
@@ -9,3 +10,5 @@ Step 2:  Leveraging React Context for State Sharing
 * We'll look into patterns like creating a global context provider to make data accessible throughout your application.
 
 Step 3:  Utilizing Custom Hooks and State Management
+* We'll delve into creating custom hooks in React to encapsulate state management logic and make it reusable across your application.
+* We'll see how this approach can help organize and manage state effectively without external libraries.
