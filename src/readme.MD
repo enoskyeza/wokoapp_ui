@@ -1,3 +1,4 @@
 Global state
 
-1.Step 1:  Data Fetching Methods in Next.js
+Step 1:  Data Fetching Methods in Next.js
+Step 2:  Leveraging React Context for State Sharing
