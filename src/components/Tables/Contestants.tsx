@@ -4,6 +4,7 @@ import FilterMenu from "@/components/Forms/FilterMenu";
 import {DateRangePicker} from "@nextui-org/date-picker";
 import ContestantModalDialog from "@/components/DetailViews/ContestantModal";
 import {useParticipantContext} from "@/context/ParticipantContext";
+import {PlusCircleIcon} from "@heroicons/react/24/outline";
 
 
 function Contestants() {
@@ -36,10 +37,14 @@ function Contestants() {
 
     return (
         <div className="bg-white shadow-lg rounded-lg border border-stroke col-span-full xl:col-span-8 mt-12">
-            <div className="m-6">
+            <div className="flex justify-between m-6">
                 <h5 className="text-xl font-semibold text-black">
                     Contestants
                 </h5>
+                <a href={`/register`} className="flex items-center text-white gap-2 bg-theme-primary rounded-md px-2.5 py-1 cursor-pointer hover:bg-blue-500">
+                    <PlusCircleIcon height={20} width={20}/>
+                    <span className="font-semibold">Add</span>
+                </a>
             </div>
 
             <div className="flex flex-wrap sm:justify-end px-6 mb-6 space-y-4 sm:space-y-0 sm:space-x-4">

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import contestantImg from '/public/contestant.jpg';
+import contestantImg from '/public/contestant_boy.jpg';
 import Link from "next/link";
 
 const ContestantDetails = () => {
