@@ -3,8 +3,9 @@ import React, {useState} from 'react'
 import {Dialog, DialogActions, DialogBody, DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
 import Image from "next/image";
-import participantImg from '/public/contestant.jpg';
-import { useParticipantContext } from "@/context/ParticipantContext";
+import participantMale from '/public/contestant_boy.jpg';
+import participantFemale from '/public/contestant_girl.jpg';
+import {useParticipantContext} from "@/context/ParticipantContext";
 
 type InterfaceProps = {
     isOpen: boolean;
@@ -14,8 +15,8 @@ type InterfaceProps = {
 
 function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfaceProps) {
     const [processing, setProcessing] = useState<boolean>(false);
-    const { getParticipantDetailsById, handleApprovePayment } = useParticipantContext();
-    const{ participant, parent } = getParticipantDetailsById(participantId);
+    const {getParticipantDetailsById, handleApprovePayment} = useParticipantContext();
+    const {participant, parent} = getParticipantDetailsById(participantId);
 
     if (!participant) return <div>No participant found.</div>;
 
@@ -40,13 +41,23 @@ function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfacePro
                 <>
                     <div className="">
                         <div className="flex items-end gap-3">
-                            <Image
-                                src={participantImg}
-                                alt="participant"
-                                className="rounded-md shadow-md object-cover"
-                                width={100}
-                                height={100}
-                            />
+                            {participant.gender === 'M' ? (
+                                <Image
+                                    src={participantMale}
+                                    alt="participant"
+                                    className="rounded-md shadow-md object-cover"
+                                    width={100}
+                                    height={100}
+                                />
+                            ) : (
+                                <Image
+                                    src={participantFemale}
+                                    alt="participant"
+                                    className="rounded-md shadow-md object-cover"
+                                    width={100}
+                                    height={100}
+                                />
+                            )}
                             <div className="">
                                 <p className="text-xl font-semibold">{participant.first_name} {participant.last_name}</p>
                                 <p className="text-md font-semibold">{participant.identifier}</p>
