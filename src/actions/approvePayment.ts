@@ -1,17 +1,20 @@
 'use server'
 import axios, {AxiosError} from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://kyeza.pythonanywhere.com/register/contestants'
+  : 'http://127.0.0.1:8000/register/contestants';
+
 export const approvePayment = async (id:number) => {
 
-    const prodUrl = `https://kyeza.pythonanywhere.com/register/contestants/${id}/`
-    // const devUrl = `http://127.0.0.1:8000/register/contestants/${id}/`
+    const url = `${API_URL}/${id}/`
 
     const requestData = {
         payment_status: 'paid'
     };
 
     try {
-        const response = await axios.patch(prodUrl, requestData);
+        const response = await axios.patch(url, requestData);
         console.log('approving payment...',response)
         return {success: true, data: response.data};
     } catch (error) {
