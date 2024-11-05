@@ -1,6 +1,7 @@
 import { ApexOptions } from "apexcharts";
 import React from "react";
 import ReactApexChart from "react-apexcharts";
+import {useParticipantContext} from "@/context/ParticipantContext";
 
 
 const options: ApexOptions = {
@@ -47,11 +48,10 @@ const options: ApexOptions = {
   ],
 };
 
-type InterfaceProps = {
-  stats: {total:number; junior:number; intermediate:number, senior:number}
-}
 
-const AgeCategoryPieChart: React.FC<InterfaceProps> = ({stats}) => {
+const AgeCategoryPieChart: React.FC = () => {
+  const { ageCategoryStats: stats } = useParticipantContext();
+
   const series = [stats.junior, stats.intermediate, stats.senior];
 
   return (
