@@ -1,43 +1,36 @@
 "use client"
-import React, {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import {Dialog, DialogActions, DialogBody, DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
-import {Participant, Parent} from "@/types";
-import {approvePayment} from "@/actions/approvePayment";
 import Image from "next/image";
 import participantImg from '/public/contestant.jpg';
+import { useParticipantContext } from "@/context/ParticipantContext";
 
 type InterfaceProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    participant: Participant;
+    participantId: number;
 }
 
-function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps) {
-
-    const [parent, setParent] = useState<Parent | null>(null);
+function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfaceProps) {
     const [processing, setProcessing] = useState<boolean>(false);
+    const { getParticipantDetailsById, handleApprovePayment } = useParticipantContext();
+    const{ participant, parent } = getParticipantDetailsById(participantId);
 
-    // const devUrl = `http://127.0.0.1:8000/register/parents/${participant.parent}`
-    const prodUrl = `https://kyeza.pythonanywhere.com/register/parents/${participant.parent}`
+    if (!participant) return <div>No participant found.</div>;
 
-    const handlePaymentApproval = async () => {
-        setProcessing(true);
-        const res = await approvePayment(participant.id)
-        if (res.success) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for 2 seconds
-        setProcessing(false);
-    }
-    }
+    const handleApproval = async () => {
+        setProcessing(true); // Disable further actions
+        console.log("Approving payment for", participantId);
 
-    useEffect(() => {
-        const fetchParent = async () => {
-            const res = await fetch(prodUrl);
-            const data = await res.json();
-            setParent(data);
-        };
-        fetchParent();
-    }, []);
+        // Call the global approvePayment function
+        await handleApprovePayment(participantId);
+
+        // Wait for 2 seconds (simulate processing time)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // setProcessing(false); // Re-enable actions after processing
+    };
 
     return (
         <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
@@ -45,7 +38,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
             </DialogTitle>
             <DialogBody>
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="">
                         <div className="flex items-end gap-3">
                             <Image
                                 src={participantImg}
@@ -54,18 +47,18 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
                                 width={100}
                                 height={100}
                             />
-                            <div className="py-2">
+                            <div className="">
                                 <p className="text-xl font-semibold">{participant.first_name} {participant.last_name}</p>
-                                <p>{participant.identifier}</p>
+                                <p className="text-md font-semibold">{participant.identifier}</p>
                                 <p> {participant.age} Years | {participant.gender === 'M' ? 'Male' : 'Female'}</p>
                                 <span className={`px-2 py-1 text-xs rounded-md font-semibold ${
                                     participant.payment_status === 'paid' ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'
                                 }`}>
-                                {participant.payment_status === 'paid' ? 'Paid' : 'Pending payment'}
-                            </span>
+                                    {participant.payment_status === 'paid' ? 'Paid' : 'Pending payment'}
+                                </span>
                             </div>
                         </div>
-                        <div className="sm:col-span-2">
+                        <div className="mt-6">
                             <div className="space-y-2 bg-gray-100 p-3 border-l-3 border-green-200 rounded-md">
                                 <p><strong>School:</strong> {participant.school}</p>
                                 <p className="">
@@ -93,7 +86,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participant}: InterfaceProps
                             className={`sm:w-auto text-white font-semibold text-md px-4 py-2 rounded-md 
                                         shadow-md hover:bg-green-700 transition-colors ${processing ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600'}`}
                             disabled={processing}
-                            onClick={handlePaymentApproval}
+                            onClick={handleApproval}
                         >
                             {processing ? 'Processing...' : 'Approve Payment'}
                         </button>
