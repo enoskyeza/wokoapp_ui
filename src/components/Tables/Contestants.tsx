@@ -2,15 +2,15 @@
 import React, {useState} from 'react';
 import FilterMenu from "@/components/Forms/FilterMenu";
 import {DateRangePicker} from "@nextui-org/date-picker";
-// import Link from "next/link";
-import {Participant} from "@/types";
 import ContestantModalDialog from "@/components/DetailViews/ContestantModal";
+import {useParticipantContext} from "@/context/ParticipantContext";
 
 
+function Contestants() {
+    const { participants } = useParticipantContext();
 
-function Contestants({participants}: {participants: Participant[]}) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+    const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
 
     const [filters, setFilters] = useState({
         ageCategory: '',
@@ -29,10 +29,9 @@ function Contestants({participants}: {participants: Participant[]}) {
         return matchesAgeCategory && matchesGender && matchesDateRange;
     });
 
-    const handleSelectParticipant = (participant:Participant) => {
+    const handleSelectParticipant = (participantId:number) => {
         setIsModalOpen(true);
-        setSelectedParticipant(participant);
-        console.log(participant.first_name, participant.last_name);
+        setSelectedParticipant(participantId);
     }
 
     return (
@@ -52,19 +51,6 @@ function Contestants({participants}: {participants: Participant[]}) {
                     className=" max-w-xs"
                     aria-label="Select date range"
                 />
-
-                {/*<input*/}
-                {/*    type="date"*/}
-                {/*    value={filters.startDate}*/}
-                {/*    onChange={(e) => setFilters({...filters, startDate: e.target.value})}*/}
-                {/*    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"*/}
-                {/*/>*/}
-                {/*<input*/}
-                {/*    type="date"*/}
-                {/*    value={filters.endDate}*/}
-                {/*    onChange={(e) => setFilters({...filters, endDate: e.target.value})}*/}
-                {/*    className="block w-full sm:w-1/4 px-4 py-2 border rounded-lg"*/}
-                {/*/>*/}
             </div>
 
             {/* Table */}
@@ -79,9 +65,6 @@ function Contestants({participants}: {participants: Participant[]}) {
                         </th>
                         <th className="p-2">
                             <div className="font-semibold text-left">Contestant</div>
-                        </th>
-                        <th className="p-2">
-                            <div className="font-semibold text-center">TF No.</div>
                         </th>
                         <th className="p-2">
                             <div className="font-semibold text-center">Age</div>
@@ -121,22 +104,13 @@ function Contestants({participants}: {participants: Participant[]}) {
                                 </td>
                                 <td className="p-2">
                                     <div className="flex items-center">
-                                        {/*<Link*/}
-                                        {/*    href={`/contestant/${participant.id}`}*/}
-                                        {/*    className="text-gray-800 cursor-pointer hover:text-blue-400"*/}
-                                        {/*>*/}
-                                        {/*    {`${participant.first_name} ${participant.last_name}`}*/}
-                                        {/*</Link>*/}
                                         <p
-                                            onClick={() => (handleSelectParticipant(participant))}
+                                            onClick={() => (handleSelectParticipant(participant.id))}
                                             className="text-gray-800 cursor-pointer hover:text-blue-400"
                                         >
                                             {`${participant.first_name} ${participant.last_name}`}
                                         </p>
                                     </div>
-                                </td>
-                                <td className="p-2">
-                                    <div className="text-center">{participant.identifier ? participant.identifier : '-'}</div>
                                 </td>
                                 <td className="p-2">
                                     <div className="text-center">{participant.age}</div>
@@ -173,7 +147,7 @@ function Contestants({participants}: {participants: Participant[]}) {
 
             {/* Modal Component */}
             {isModalOpen && selectedParticipant && (
-                <ContestantModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} participant={selectedParticipant} />
+                <ContestantModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} participantId={selectedParticipant} />
             )}
         </div>
     );
