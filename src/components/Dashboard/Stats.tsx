@@ -1,7 +1,11 @@
 // components/Dashboard/Stats.tsx
 import React from 'react';
+import {useParticipantContext} from "@/context/ParticipantContext";
 
-const DashboardStats = ({stats}:{stats:{total:number; paid:number; unpaid:number}}) => {
+
+const DashboardStats = () => {
+    const { stats } = useParticipantContext();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div className="bg-blue-500 text-white p-6 rounded-lg shadow-md text-center">
