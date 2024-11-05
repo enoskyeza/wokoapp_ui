@@ -1,9 +1,11 @@
 'use server'
 import axios, {AxiosError} from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://kyeza.pythonanywhere.com/register/parents/'
+  : 'http://127.0.0.1:8000/register/parents/';
+
 export const registerContestant = async (formData: FormData) => {
-    const prodUrl = 'https://kyeza.pythonanywhere.com/register/parents/'
-    // const devUrl = 'http://127.0.0.1:8000/register/parents/'
 
     // Guardian data
     const guardianData = {
@@ -42,7 +44,7 @@ export const registerContestant = async (formData: FormData) => {
     // console.log('Form Submitted(Sever):', requestData);
 
     try {
-        const response = await axios.post(prodUrl, requestData);
+        const response = await axios.post(API_URL, requestData);
         return {success: true, data: response.data};
     } catch (error) {
         const axiosError = error as AxiosError;
