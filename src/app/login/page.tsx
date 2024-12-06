@@ -6,6 +6,10 @@ import Cookies from 'js-cookie';
 // import { loginUser } from "@/actions/auth";
 // import Link from "next/link";
 
+const API_URL = process.env.NODE_ENV === 'production'
+    ? 'https://kyeza.pythonanywhere.com/login/'
+    : 'http://127.0.0.1:8000/login/';
+
 const LoginPage: React.FC = () => {
     const router = useRouter();
 
@@ -13,9 +17,6 @@ const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<{ username?: string; password?: string; login?:string }>({});
-
-
-    const API_URL = 'https://kyeza.pythonanywhere.com/login/'; // Adjust as needed
 
 
     const handleLogin = async (event: React.FormEvent) => {
