@@ -1,6 +1,7 @@
 'use client'
 import React, {useState} from 'react';
 import { useRouter } from 'next/navigation';
+import { loginUser } from "@/actions/auth";
 // import Link from "next/link";
 
 const LoginPage: React.FC = () => {
@@ -12,21 +13,49 @@ const LoginPage: React.FC = () => {
     const [errors, setErrors] = useState<{ username?: string; password?: string; login?:string }>({});
 
         // Mock credentials
-    const mockUsername = 'staff';
-    const mockPassword = 'tf-Staff-24';
+    // const mockUsername = 'staff';
+    // const mockPassword = 'tf-Staff-24';
 
     // Function to handle login
-    const handleMockLogin = async (event: React.FormEvent) => {
-        event.preventDefault();
-        // Clear any previous errors
-        setErrors({});
+    // const handleMockLogin = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     // Clear any previous errors
+    //     setErrors({});
+    //
+    //     // Check if the username and password match the mock credentials
+    //     if (username === mockUsername && password === mockPassword) {
+    //         router.push('/dashboard'); // Redirect to the dashboard
+    //     } else {
+    //         // Set an error message for failed login
+    //         setErrors({ login: 'Invalid username or password' });
+    //     }
+    // };
 
-        // Check if the username and password match the mock credentials
-        if (username === mockUsername && password === mockPassword) {
-            router.push('/dashboard'); // Redirect to the dashboard
-        } else {
-            // Set an error message for failed login
-            setErrors({ login: 'Invalid username or password' });
+    const handleLogin = async (event: React.FormEvent) => {
+        event.preventDefault();
+        setErrors({}); // Clear errors
+
+        try {
+            // Call the login action
+            const data = await loginUser(username, password);
+
+
+            // Store the token in a cookie (HTTP-only for security)
+            // document.cookie = `authToken=${data.token}; path=/; Secure; HttpOnly;`;
+
+            // Redirect based on role
+            if (data.user.role === 'admin' || data.user.role === 'staff') {
+                router.push('/dashboard');
+            } else if (data.user.role === 'judge') {
+                router.push('/judge_panel');
+            }
+        } catch (error: unknown) {
+            // Handle login errors
+            if (error instanceof Error) {
+                setErrors({ login: error.message });
+            } else {
+                setErrors({ login: 'An unexpected error occurred.' });
+            }
         }
     };
 
@@ -94,7 +123,7 @@ const LoginPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">Login</h2>
 
                 {/* Form */}
-                <form onSubmit={handleMockLogin}>
+                <form onSubmit={handleLogin}>
                     {/* Email Input */}
                     <div className="mb-4">
                         <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
