@@ -8,6 +8,7 @@ import Image from "next/image";
 // import axios from 'axios';
 import Link from 'next/link';
 // import NotificationBell from "@/components/ActionButtons/notificationBell";
+import { useRouter } from 'next/navigation';
 
 // const LOGOUT_URL = "/api/auth/logout/";
 
@@ -22,8 +23,23 @@ type TopNavProps = {
 };
 
 const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
-    const auth = {userPic:null, username:'Super Admin'}
+    const auth = {userPic:null, username:'Staff'}
     // const auth = useAuth();
+
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            const res = await fetch('/api/logout', { method: 'POST' });
+            if (res.ok) {
+                router.push('/login'); // Redirect to login page
+            } else {
+                console.error('Logout failed:', await res.json());
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
 
     // const handleLogout = async () => {
     //     const isLogout = confirm("Are you sure you want to Logout");
@@ -150,7 +166,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
                                 <MenuItem>
                                     <button
                                         type="button"
-                                        // onClick={handleLogout}
+                                        onClick={handleLogout}
                                         className="block px-3 py-1 text-sm leading-6 text-gray-900 data-[focus]:bg-gray-50"
                                     >
                                         Logout
