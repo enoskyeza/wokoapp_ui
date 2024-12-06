@@ -1,11 +1,16 @@
 'use server'
 import axios, {AxiosError} from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://kyeza.pythonanywhere.com/register/parents/'
-  : 'http://127.0.0.1:8000/register/parents/';
+// const API_URL = process.env.NODE_ENV === 'production'
+//   ? 'https://kyeza.pythonanywhere.com/register/parents/'
+//   : 'http://127.0.0.1:8000/register/parents/';
+
+
+const API_URL = 'https://kyeza.pythonanywhere.com/register/parents/'
 
 export const registerContestant = async (formData: FormData) => {
+
+    console.log(API_URL)
 
     // Guardian data
     const guardianData = {

@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 //     : 'http://127.0.0.1:8000/login/';
 
 const API_URL = 'https://kyeza.pythonanywhere.com/login/'
+// const API_URL = 'http://127.0.0.1:8000/login/'
 
 export const loginUser = async (
     username: string,
@@ -36,9 +37,38 @@ export const loginUser = async (
 
         return response.data;
     } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-            throw new Error(error.response?.data?.detail || 'Login failed. Please try again.');
-        }
-        throw new Error('An unexpected error occurred. Please try again.');
+        return handleServerError(error);
     }
 };
+
+
+export async function handleServerError(error: unknown): Promise<never> {
+    if (axios.isAxiosError(error)) {
+        const response = error.response;
+
+        // Handle unauthorized errors
+        if (response?.status === 401 || response?.data?.detail === 'Unauthorized') {
+            throw new Error('Invalid username or password.');
+        }
+
+        // Handle validation errors
+        if (response?.status === 400) {
+            const message = response?.data?.username?.[0] || response?.data?.password?.[0] || 'Bad Request';
+            throw new Error(message);
+        }
+
+        // Connection issues
+        if (error.code === 'ECONNREFUSED') {
+            throw new Error('Connection refused. Please try again later.');
+        }
+
+        // Generic server error
+        if (response) {
+            const message = response.data?.detail || response.data?.message || 'Server error.';
+            throw new Error(message);
+        }
+    }
+
+    // Unknown error
+    throw new Error('An unexpected error occurred. Please try again.');
+}
