@@ -125,7 +125,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfacePro
                         <button
                             className={`sm:w-auto text-white font-semibold text-md px-4 py-2 rounded-md
                                         shadow-md hover:bg-purple-700 transition-colors ${processing ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600'}`}
-                            disabled={processing}
+                            // disabled={processing}
                             onClick={handleTicketing}
                         >
                             {processing ? 'Downloading...' : 'Download Ticket'}

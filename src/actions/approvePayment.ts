@@ -1,9 +1,11 @@
 'use server'
 import axios, {AxiosError} from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://kyeza.pythonanywhere.com/register/contestants'
-  : 'http://127.0.0.1:8000/register/contestants';
+// const API_URL = process.env.NODE_ENV === 'production'
+//   ? 'https://kyeza.pythonanywhere.com/register/contestants'
+//   : 'http://127.0.0.1:8000/register/contestants';
+
+const API_URL = 'https://kyeza.pythonanywhere.com/register/contestants'
 
 export const approvePayment = async (id:number) => {
 
