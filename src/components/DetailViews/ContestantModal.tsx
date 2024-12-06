@@ -36,7 +36,6 @@ function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfacePro
 
     const handleApproval = async () => {
         setProcessing(true); // Disable further actions
-        console.log("Approving payment for", participantId);
 
         // Call the global approvePayment function
         await handleApprovePayment(participantId);
@@ -48,7 +47,7 @@ function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfacePro
     };
 
     const handleTicketing = () => {
-        console.log('Generating participant ticket')
+        setTicketing(true); // Disable further actions
     }
 
     return (
