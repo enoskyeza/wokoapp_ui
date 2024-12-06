@@ -15,6 +15,7 @@ type InterfaceProps = {
 
 function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfaceProps) {
     const [processing, setProcessing] = useState<boolean>(false);
+    const [ticketing, setTicketing] = useState<boolean>(false);
     const {getParticipantDetailsById, handleApprovePayment} = useParticipantContext();
     const {participant, parent} = getParticipantDetailsById(participantId);
 
@@ -124,11 +125,11 @@ function ParticipantModalDialog({isOpen, setIsOpen, participantId}: InterfacePro
                     {participant.payment_status === 'paid' && (
                         <button
                             className={`sm:w-auto text-white font-semibold text-md px-4 py-2 rounded-md
-                                        shadow-md hover:bg-purple-700 transition-colors ${processing ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600'}`}
+                                        shadow-md hover:bg-purple-700 transition-colors ${ticketing ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600'}`}
                             // disabled={processing}
                             onClick={handleTicketing}
                         >
-                            {processing ? 'Downloading...' : 'Download Ticket'}
+                            {ticketing ? 'Downloading...' : 'Download Ticket'}
                         </button>
                     )}
                 </div>
