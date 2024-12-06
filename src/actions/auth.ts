@@ -2,9 +2,11 @@
 import axios from 'axios';
 import { cookies } from 'next/headers';
 
-const API_URL = process.env.NODE_ENV === 'production'
-    ? 'https://kyeza.pythonanywhere.com/login/'
-    : 'http://127.0.0.1:8000/login/';
+// const API_URL = process.env.NODE_ENV === 'production'
+//     ? 'https://kyeza.pythonanywhere.com/login/'
+//     : 'http://127.0.0.1:8000/login/';
+
+const API_URL = 'https://kyeza.pythonanywhere.com/login/'
 
 export const loginUser = async (
     username: string,

@@ -2,13 +2,16 @@
 
 import { NextResponse } from 'next/server';
 
-const CONTESTANT_URL = process.env.NODE_ENV === 'production'
-  ? 'https://kyeza.pythonanywhere.com/register/contestants/'
-  : 'http://127.0.0.1:8000/register/contestants/';
+// const CONTESTANT_URL = process.env.NODE_ENV === 'production'
+//   ? 'https://kyeza.pythonanywhere.com/register/contestants/'
+//   : 'http://127.0.0.1:8000/register/contestants/';
 
-const PARENT_URL = process.env.NODE_ENV === 'production'
-  ? 'https://kyeza.pythonanywhere.com/register/parents/'
-  : 'http://127.0.0.1:8000/register/parents/';
+// const PARENT_URL = process.env.NODE_ENV === 'production'
+//   ? 'https://kyeza.pythonanywhere.com/register/parents/'
+//   : 'http://127.0.0.1:8000/register/parents/';
+
+const CONTESTANT_URL = 'https://kyeza.pythonanywhere.com/register/contestants/'
+const PARENT_URL = 'https://kyeza.pythonanywhere.com/register/parents/'
 
 export async function GET() {
   try {
