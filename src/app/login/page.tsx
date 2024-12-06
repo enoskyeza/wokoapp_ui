@@ -1,7 +1,9 @@
 'use client'
 import React, {useState} from 'react';
 import { useRouter } from 'next/navigation';
-import { loginUser } from "@/actions/auth";
+import axios from 'axios';
+import Cookies from 'js-cookie';
+// import { loginUser } from "@/actions/auth";
 // import Link from "next/link";
 
 const LoginPage: React.FC = () => {
@@ -12,110 +14,49 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<{ username?: string; password?: string; login?:string }>({});
 
-        // Mock credentials
-    // const mockUsername = 'staff';
-    // const mockPassword = 'tf-Staff-24';
 
-    // Function to handle login
-    // const handleMockLogin = async (event: React.FormEvent) => {
-    //     event.preventDefault();
-    //     // Clear any previous errors
-    //     setErrors({});
-    //
-    //     // Check if the username and password match the mock credentials
-    //     if (username === mockUsername && password === mockPassword) {
-    //         router.push('/dashboard'); // Redirect to the dashboard
-    //     } else {
-    //         // Set an error message for failed login
-    //         setErrors({ login: 'Invalid username or password' });
-    //     }
-    // };
+    const API_URL = 'https://kyeza.pythonanywhere.com/login/'; // Adjust as needed
+
 
     const handleLogin = async (event: React.FormEvent) => {
         event.preventDefault();
-        setErrors({}); // Clear errors
+        setErrors({}); // Clear previous errors
 
         try {
-            // Call the login action
-            const data = await loginUser(username, password);
+            // Make the POST request
+            const response = await axios.post(API_URL, { username, password });
 
+            // Extract token and user from response
+            const { token, user } = response.data;
 
-            // Store the token in a cookie (HTTP-only for security)
-            // document.cookie = `authToken=${data.token}; path=/; Secure; HttpOnly;`;
+            // Set cookies for token and user
+            Cookies.set('authToken', token, {
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Strict',
+            });
+
+            Cookies.set('userData', JSON.stringify(user), {
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'Strict',
+            });
 
             // Redirect based on role
-            if (data.user.role === 'admin' || data.user.role === 'staff') {
+            if (user.role === 'admin' || user.role === 'staff') {
                 router.push('/dashboard');
-            } else if (data.user.role === 'judge') {
+            } else if (user.role === 'judge') {
                 router.push('/judge_panel');
             }
         } catch (error: unknown) {
-            // Handle login errors
-            if (error instanceof Error) {
-                setErrors({ login: error.message });
+            // Handle errors
+            if (axios.isAxiosError(error) && error.response) {
+                setErrors({ login: error.response.data.message || 'Login failed.' });
             } else {
                 setErrors({ login: 'An unexpected error occurred.' });
             }
         }
     };
-
-    // const handleLogin = async (event: React.FormEvent) => {
-    //     event.preventDefault();
-    //     const newErrors: { username?: string; password?: string } = {};
-    //
-    //     if (!username.trim()) {
-    //         newErrors.username = 'Username is required';
-    //     }
-    //
-    //     if (!password.trim()) {
-    //         newErrors.password = 'Password is required';
-    //     }
-    //
-    //     setErrors(newErrors);
-    //
-    //     if (Object.keys(newErrors).length === 0) {
-    //         // If no errors, proceed with login
-    //         try {
-    //             const response = await fetch('/api/login', {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify({username, password, role}),
-    //             });
-    //
-    //             if (response.ok) {
-    //                 // Successful login - handle redirect based on userType (this is handled on the backend)
-    //                 console.log('Login successful!');
-    //             } else {
-    //                 // Handle login error (e.g., display error message)
-    //                 const data = await response.json();
-    //                 console.error('Login failed:', data.message);
-    //                 // You might want to set an error state to display the message to the user
-    //             }
-    //         } catch (error) {
-    //             console.error('An error occurred during login:', error);
-    //             // Handle unexpected errors
-    //         }
-    //     }
-    // };
-
-    // const handleLogin = (e: React.FormEvent) => {
-    //   e.preventDefault();
-    //
-    //   // Submit login request (this will be handled by the backend)
-    //   // You can also pass the 'role' to the backend to verify user type and get appropriate redirects
-    //
-    //   console.log(`Logging in as ${role}`);
-    //   // After successful login, redirect based on role
-    //   if (role === 'staff') {
-    //     // Redirect to staff dashboard
-    //     window.location.href = '/staff/dashboard';
-    //   } else {
-    //     // Redirect to judge dashboard
-    //     window.location.href = '/judge/dashboard';
-    //   }
-    // };
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
@@ -211,3 +152,109 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+
+// Mock credentials
+    // const mockUsername = 'staff';
+    // const mockPassword = 'tf-Staff-24';
+
+    // Function to handle login
+    // const handleMockLogin = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     // Clear any previous errors
+    //     setErrors({});
+    //
+    //     // Check if the username and password match the mock credentials
+    //     if (username === mockUsername && password === mockPassword) {
+    //         router.push('/dashboard'); // Redirect to the dashboard
+    //     } else {
+    //         // Set an error message for failed login
+    //         setErrors({ login: 'Invalid username or password' });
+    //     }
+    // };
+
+    // const handleLogin = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     setErrors({}); // Clear errors
+
+    //     try {
+    //         // Call the login action
+    //         const data = await loginUser(username, password);
+
+
+    //         // Store the token in a cookie (HTTP-only for security)
+    //         // document.cookie = `authToken=${data.token}; path=/; Secure; HttpOnly;`;
+
+    //         // Redirect based on role
+    //         if (data.user.role === 'admin' || data.user.role === 'staff') {
+    //             router.push('/dashboard');
+    //         } else if (data.user.role === 'judge') {
+    //             router.push('/judge_panel');
+    //         }
+    //     } catch (error: unknown) {
+    //         // Handle login errors
+    //         if (error instanceof Error) {
+    //             setErrors({ login: error.message });
+    //         } else {
+    //             setErrors({ login: 'An unexpected error occurred.' });
+    //         }
+    //     }
+    // };
+
+    // const handleLogin = async (event: React.FormEvent) => {
+    //     event.preventDefault();
+    //     const newErrors: { username?: string; password?: string } = {};
+    //
+    //     if (!username.trim()) {
+    //         newErrors.username = 'Username is required';
+    //     }
+    //
+    //     if (!password.trim()) {
+    //         newErrors.password = 'Password is required';
+    //     }
+    //
+    //     setErrors(newErrors);
+    //
+    //     if (Object.keys(newErrors).length === 0) {
+    //         // If no errors, proceed with login
+    //         try {
+    //             const response = await fetch('/api/login', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify({username, password, role}),
+    //             });
+    //
+    //             if (response.ok) {
+    //                 // Successful login - handle redirect based on userType (this is handled on the backend)
+    //                 console.log('Login successful!');
+    //             } else {
+    //                 // Handle login error (e.g., display error message)
+    //                 const data = await response.json();
+    //                 console.error('Login failed:', data.message);
+    //                 // You might want to set an error state to display the message to the user
+    //             }
+    //         } catch (error) {
+    //             console.error('An error occurred during login:', error);
+    //             // Handle unexpected errors
+    //         }
+    //     }
+    // };
+
+    // const handleLogin = (e: React.FormEvent) => {
+    //   e.preventDefault();
+    //
+    //   // Submit login request (this will be handled by the backend)
+    //   // You can also pass the 'role' to the backend to verify user type and get appropriate redirects
+    //
+    //   console.log(`Logging in as ${role}`);
+    //   // After successful login, redirect based on role
+    //   if (role === 'staff') {
+    //     // Redirect to staff dashboard
+    //     window.location.href = '/staff/dashboard';
+    //   } else {
+    //     // Redirect to judge dashboard
+    //     window.location.href = '/judge/dashboard';
+    //   }
+    // };
