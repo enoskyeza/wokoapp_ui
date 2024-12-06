@@ -10,12 +10,11 @@ export const approvePayment = async (id:number) => {
     const url = `${API_URL}/${id}/`
 
     const requestData = {
-        payment_status: 'paid'
+        payment_status: "paid"
     };
 
     try {
         const response = await axios.patch(url, requestData);
-        console.log('approving payment...',response)
         return {success: true, data: response.data};
     } catch (error) {
         const axiosError = error as AxiosError;
