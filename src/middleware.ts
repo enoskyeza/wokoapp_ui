@@ -27,13 +27,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.next(); // Allow the request
 }
 
-// export const config = {
-//     matcher: ['/dashboard/:path*', '/judge_panel/:path*'], // Restricted routes
-// };
-
 export const config = {
-    matcher: [], // Restricted routes
+    matcher: ['/dashboard/:path*', '/judge_panel/:path*'], // Restricted routes
 };
+
+// export const config = {
+//     matcher: [], // Restricted routes
+// };
 
 
 
