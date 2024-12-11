@@ -3,12 +3,10 @@ import React, {useState} from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { API_URL } from '@/config';
 // import { loginUser } from "@/actions/auth";
 // import Link from "next/link";
 
-const API_URL = process.env.NODE_ENV === 'production'
-    ? 'https://kyeza.pythonanywhere.com/login/'
-    : 'http://127.0.0.1:8000/login/';
 
 const LoginPage: React.FC = () => {
     const router = useRouter();
@@ -25,7 +23,7 @@ const LoginPage: React.FC = () => {
 
         try {
             // Make the POST request
-            const response = await axios.post(API_URL, { username, password });
+            const response = await axios.post(`${API_URL}login`, { username, password });
 
             // Extract token and user from response
             const { token, user } = response.data;
