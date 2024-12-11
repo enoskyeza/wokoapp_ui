@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
 
         try {
             // Make the POST request
-            const response = await axios.post(`${API_URL}login`, { username, password });
+            const response = await axios.post(`${API_URL}login/`, { username, password });
 
             // Extract token and user from response
             const { token, user } = response.data;
