@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState, use } from "react";
+import Link from 'next/link';
 import { API_URL } from "@/config";
 
 interface Participant {
@@ -29,8 +30,8 @@ export default function VerifyParticipant({ params }: { params: Promise<{ id: st
 
         const data: Participant = await response.json();
         setParticipant(data);
-      } catch (err: any) {
-        setError(err.message || "An error occurred.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred.");
       } finally {
         setLoading(false);
       }
@@ -53,12 +54,12 @@ export default function VerifyParticipant({ params }: { params: Promise<{ id: st
         <div className="text-center">
           <h1 className="text-4xl font-bold text-red-600">Error</h1>
           <p className="mt-4 text-gray-600">{error}</p>
-          <a
+          <Link
             href="/"
             className="mt-6 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
           >
             Go Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -88,12 +89,12 @@ export default function VerifyParticipant({ params }: { params: Promise<{ id: st
             </p>
           )}
         </div>
-        <a
+        <Link
           href="/"
           className="mt-6 inline-block w-full text-center bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
         >
           Go Back to Home
-        </a>
+        </Link>
       </div>
     </div>
   );
