@@ -53,25 +53,20 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
       },
       {
         name: "Judge Panel",
-        href: "/customers",
+        // href: "/judge_panel",
         icon: UsersIcon,
-        current: pathname.startsWith("/customers"),
+        current: pathname.startsWith("/judge_panel"),
         children: [
           {
             name: "Scores",
-            href: "/customers",
-            current: pathname.startsWith("/customers"),
+            href: "/judge_panel",
+            current: pathname.startsWith("/judge_panel"),
           },
           {
             name: "Rubics",
-            href: "/customers/field-of-interest",
-            current: pathname.startsWith("/customers/field-of-interest"),
+            href: "#",
+            current: pathname.startsWith("/rubic"),
           },
-          // {
-          //   name: "Categories",
-          //   href: "/customers/categories",
-          //   current: pathname.startsWith("/customers/categories"),
-          // },
         ],
       },
     ];
