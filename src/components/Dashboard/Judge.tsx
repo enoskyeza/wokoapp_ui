@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {useParticipantContext} from "@/context/ParticipantContext";
-import { Participant } from "@/types";
 import Cookies from "js-cookie";
 
 
