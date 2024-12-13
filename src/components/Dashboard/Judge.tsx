@@ -5,22 +5,26 @@ import { useParticipantContext } from "@/context/ParticipantContext";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import ScoreFormModal from "../Forms/ScoreFormModal";
+import { Score, Participant } from "@/types";
+
 
 
 const JudgeDashboard: React.FC = () => {
   const [judgeName, setJudgeName] = useState("Judge");
+  const [judgeId, setJudgeId] = useState(null);
 
   useEffect(() => {
-    const userData = Cookies.get("userData");
+    const userData = Cookies.get('userData');
     if (userData) {
-      try {
-        const parsedData = JSON.parse(userData);
-        setJudgeName(parsedData.username);
-      } catch (error) {
-        console.error("Error parsing userData cookie: ", error);
-      }
+        try {
+            const parsedData = JSON.parse(userData);
+            setJudgeId(parsedData.id);
+            setJudgeName(parsedData.username);
+        } catch (error) {
+            console.error('Error parsing userData cookie: ', error);
+        }
     }
-  }, []);
+}, []);
 
   const { participants } = useParticipantContext();
 
@@ -42,6 +46,11 @@ const JudgeDashboard: React.FC = () => {
 
     return paid && matchesSearch && matchesage_category && matchesGender;
   });
+
+  const has_judge_scores = (participant:Participant) => {
+    return participant.scores.some((score:Score) => score.judge === judgeId);
+  };
+
 
 
 
@@ -108,21 +117,22 @@ const JudgeDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-2">
-                {participant.has_scores ? (
-
+              {
+                participant.scores && has_judge_scores(participant) ? (
                   <button
-                    onClick={() => (handleAddScore(participant.id))}
+                    onClick={() => handleAddScore(participant.id)}
                     className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm">
                     Update Scores
                   </button>
                 ) : (
                   <button
-                    onClick={() => (handleAddScore(participant.id))}
+                    onClick={() => handleAddScore(participant.id)}
                     className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
                     Add Score
                   </button>
                 )
-                }
+              }
+
 
                 <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
                   Comment
