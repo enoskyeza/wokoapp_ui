@@ -27,6 +27,7 @@ function CommentModal({ isOpen, setIsOpen, participantId }: CommentModalProps) {
             const parsedData = JSON.parse(userData);
             judgeId = parsedData.id;
         } catch (e) {
+            console.log(e)
             setError('Invalid user data. Please log in again.');
             return;
         }
@@ -60,6 +61,7 @@ function CommentModal({ isOpen, setIsOpen, participantId }: CommentModalProps) {
                 setError(errorData.detail || 'Failed to submit comment.');
             }
         } catch (e) {
+            console.log(e)
             setError('An unexpected error occurred. Please try again.');
         } finally {
             setProcessing(false);
