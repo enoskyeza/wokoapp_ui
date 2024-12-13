@@ -1,26 +1,28 @@
 'use client'
 
 import React, { useState, useEffect } from "react";
-import {useParticipantContext} from "@/context/ParticipantContext";
+import { useParticipantContext } from "@/context/ParticipantContext";
 import Cookies from "js-cookie";
+import Link from "next/link";
+import ScoreFormModal from "../Forms/ScoreFormModal";
 
 
 const JudgeDashboard: React.FC = () => {
-    const [judgeName, setJudgeName] = useState("Judge");
+  const [judgeName, setJudgeName] = useState("Judge");
 
-    useEffect(() => {
-        const userData = Cookies.get("userData");
-        if (userData) {
-          try {
-            const parsedData = JSON.parse(userData);
-            setJudgeName(parsedData.username);
-          } catch (error) {
-            console.error("Error parsing userData cookie: ", error);
-          }
-        }
-      }, []);
+  useEffect(() => {
+    const userData = Cookies.get("userData");
+    if (userData) {
+      try {
+        const parsedData = JSON.parse(userData);
+        setJudgeName(parsedData.username);
+      } catch (error) {
+        console.error("Error parsing userData cookie: ", error);
+      }
+    }
+  }, []);
 
-    const { participants } = useParticipantContext();
+  const { participants } = useParticipantContext();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedage_category, setSelectedage_category] = useState<string | null>(null);
@@ -41,8 +43,18 @@ const JudgeDashboard: React.FC = () => {
     return paid && matchesSearch && matchesage_category && matchesGender;
   });
 
+
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
+
+  const handleAddScore = (participantId:number) => {
+    setSelectedParticipant(participantId)
+    setIsModalOpen(true)
+  }
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-white min-h-screen">
       <h1 className="text-2xl font-bold text-blue-700 mb-4 capitalize">
         Welcome, {judgeName}
       </h1>
@@ -84,20 +96,21 @@ const JudgeDashboard: React.FC = () => {
         {filteredParticipants.map((participant, index) => (
           <div key={participant.id}>
             <div
-              className={`p-4 flex flex-col items-left justify-between sm:flex-row sm:items-center ${
-                index % 2 === 0 ? "bg-gray-100" : "bg-white"
-              }`}
+              className={`p-4 flex flex-col items-left justify-between sm:flex-row sm:items-center ${index % 2 === 0 ? "bg-gray-100" : "bg-white"
+                }`}
             >
               <div className="flex-1">
-                <p className="font-bold text-gray-700">
+                <Link href={`judge_panel/${participant.id}`} className="font-bold text-gray-700 hover:text-blue-500">
                   {participant.identifier}
-                </p>
+                </Link>
                 <p className="text-gray-600">
                   {participant.first_name} {participant.last_name}
                 </p>
               </div>
               <div className="flex gap-2">
-                <button className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
+                <button
+                onClick={()=>(handleAddScore(participant.id))}
+                className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
                   Add Score
                 </button>
                 <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
@@ -111,6 +124,11 @@ const JudgeDashboard: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Modal Component */}
+      {isModalOpen && selectedParticipant && (
+        <ScoreFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} participantId={selectedParticipant} />
+      )}
     </div>
   );
 };
