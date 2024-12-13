@@ -58,7 +58,7 @@ const comments = participant.comments.filter(comment => comment.judge===judge)
             <div className="flex flex-col items-center">
               <img src={score.icon} alt={score.category} className="w-12 h-12 mb-2" />
               <h3 className="font-bold text-lg">{score.category}</h3>
-              <p className="text-sm">
+              <p className="text-[32px] font-bold">
                 {score.score}/{score.total}
               </p>
             </div>
@@ -69,7 +69,7 @@ const comments = participant.comments.filter(comment => comment.judge===judge)
         <div className="p-6 rounded-lg shadow-md bg-orange-500 text-blue-700 col-span-2">
           <div className="flex flex-col items-center">
             <h3 className="font-bold text-lg">Total Points</h3>
-            <p className="text-xl">
+            <p className="lead text-[32px] font-bold">
               {totalScore}/{totalPossible}
             </p>
           </div>
