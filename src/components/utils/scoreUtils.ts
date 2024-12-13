@@ -12,7 +12,7 @@ export const calculateScores = (scores: Score[], loggedInJudge: number | null) =
     const categories = [
         { name: "Fun", total: 50, icon: "/icon-01.png" },
         { name: "Function", total: 40, icon: "/icon-02.png" },
-        { name: "Engineering and Crafting", total: 40, icon: "/icon-03.png" },
+        { name: "Engineering and crafting", total: 40, icon: "/icon-03.png" },
         { name: "Creativity & Innovation", total: 50, icon: "/icon-04.png" },
     ];
 
@@ -34,6 +34,7 @@ export const calculateScores = (scores: Score[], loggedInJudge: number | null) =
         if (categoryIndex !== -1) {
             scoresByCategory[categoryIndex].score += parseFloat(score.score);
         }
+
     });
 
     // Step 5: Calculate total score and total possible

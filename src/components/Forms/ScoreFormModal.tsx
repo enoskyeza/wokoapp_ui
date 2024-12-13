@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useParticipantContext } from '@/context/ParticipantContext';
 import ScoreForm from './ScoreForm';
 import Cookies from 'js-cookie';
+import { API_URL } from '@/config';
 
 type InterfaceProps = {
     isOpen: boolean;
@@ -40,7 +41,7 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
     useEffect(() => {
         const fetchCriteria = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/score/criteria/');
+                const response = await fetch(`${API_URL}score/criteria/`);
                 if (response.ok) {
                     const data: Criteria[] = await response.json();
                     setCriteriaList(data);
@@ -90,7 +91,7 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
         setProcessing(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/score/upload-scores/', {
+            const response = await fetch(`${API_URL}score/upload-scores/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
