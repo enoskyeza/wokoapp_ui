@@ -31,3 +31,42 @@ export interface Parent {
     'phone_number': string;
     contestants: Participant[]
 }
+
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface Criteria {
+  id: number;
+  name: string;
+  category: Category;
+}
+
+export interface Score {
+  id: number;
+  judge: number;
+  contestant: number;
+  criteria: Criteria;
+  score: string;
+}
+
+  export interface Comment {
+    id: number;
+    judge: number;
+    judge_name: string;
+    contestant: number;
+    contestant_full_name: string;
+    comment: string;
+  }
+
+  export interface ParticipantDetails {
+    id: number;
+    first_name: string;
+    last_name: string;
+    identifier: string;
+    age: number;
+    gender: string;
+    scores: Score[];
+    comments: Comment[];
+  }
