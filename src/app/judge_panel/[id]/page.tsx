@@ -1,25 +1,20 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import ScoreDetails from "@/components/Score/ScoreDetails";
 import { ParticipantProvider } from "@/context/ParticipantContext";
 import DashboardLayout from '@/components/Layouts/Dashboard';
-import { useParams } from "next/navigation";
 import { API_URL } from "@/config";
 import BackButton from "@/components/Buttons/BackButton";
+import { ParticipantDetails } from "@/types";
+import LoadingSpinner from "@/components/utils/LoadingSpinner";
 
-interface PageProps {
-  params: {
-    id: string; // ID of the participant passed as a parameter
-  };
-}
 
-const Page: React.FC<PageProps> = () => {
 
-  const params = useParams();
-  const id = params?.id;
+const Page = ({ params }: { params: Promise<{ id: string }> }) => {
+  const { id } = use(params);
 
   // State to store the fetched participant data
-  const [participant, setParticipant] = useState<any>(null);
+  const [participant, setParticipant] = useState<ParticipantDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +30,7 @@ const Page: React.FC<PageProps> = () => {
           const data = await response.json();
           setParticipant(data);
         } catch (err) {
+          console.log(err)
           setError('Failed to fetch participant data');
         } finally {
           setLoading(false);
@@ -46,7 +42,7 @@ const Page: React.FC<PageProps> = () => {
   }, [id]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -58,7 +54,9 @@ const Page: React.FC<PageProps> = () => {
     <ParticipantProvider>
       <DashboardLayout>
         <BackButton link="/judge_panel"/>
+        {participant &&
         <ScoreDetails participant={participant} />
+        }
       </DashboardLayout>
     </ParticipantProvider>
   );

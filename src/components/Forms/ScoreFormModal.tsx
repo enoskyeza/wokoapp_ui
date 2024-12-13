@@ -67,7 +67,7 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
 
         // Format scores for submission
         const formattedScores = Object.entries(scores)
-            .filter(([_, score]) => score) // Filter empty scores
+            .filter(([, score]) => score) // Filter empty scores
             .map(([criteriaName, score]) => {
                 const matchingCriteria = criteriaList.find(c => c.name === criteriaName);
                 if (!matchingCriteria) {
