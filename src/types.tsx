@@ -19,6 +19,7 @@ export interface Participant {
     parent: number;
     parent_name: number;
     age_category: "junior" |"intermediate"| "senior";
+    has_scores: boolean
 }
 
 export interface Parent {
