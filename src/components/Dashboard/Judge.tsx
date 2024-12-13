@@ -48,7 +48,7 @@ const JudgeDashboard: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
 
-  const handleAddScore = (participantId:number) => {
+  const handleAddScore = (participantId: number) => {
     setSelectedParticipant(participantId)
     setIsModalOpen(true)
   }
@@ -108,11 +108,22 @@ const JudgeDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                onClick={()=>(handleAddScore(participant.id))}
-                className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
-                  Add Score
-                </button>
+                {participant.has_scores ? (
+
+                  <button
+                    onClick={() => (handleAddScore(participant.id))}
+                    className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm">
+                    Update Scores
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => (handleAddScore(participant.id))}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
+                    Add Score
+                  </button>
+                )
+                }
+
                 <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
                   Comment
                 </button>
