@@ -34,6 +34,11 @@ const ScoreDetails: React.FC<ScoreDetailsProps> = ({ participant }) => {
     judge
   );
 
+  // filter comments
+
+const comments = participant.comments.filter(comment => comment.judge===judge)
+
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* Participant Details */}
@@ -74,10 +79,10 @@ const ScoreDetails: React.FC<ScoreDetailsProps> = ({ participant }) => {
       {/* Comments Section */}
       <div className="bg-white shadow-md rounded-lg p-6 mt-6">
         <h2 className="text-xl font-bold text-gray-800 mb-4">Comments</h2>
-        {participant.comments.length > 0 ? (
+        {comments.length > 0 ? (
           <ul className="space-y-4">
-            {participant.comments.map((comment, index) => (
-              <li key={index} className="border border-gray-300 rounded-md p-4">
+            {comments.map((comment, index) => (
+              <li key={index} className="p-2 text-gray-500 italic">
                 <p><strong>{comment.judge_name}:</strong> {comment.comment}</p>
               </li>
             ))}
