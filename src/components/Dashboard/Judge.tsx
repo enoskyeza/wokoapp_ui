@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import ScoreFormModal from "../Forms/ScoreFormModal";
 import { Score, Participant } from "@/types";
+import CommentModal from "../Forms/CommentModal";
 
 
 
@@ -16,15 +17,15 @@ const JudgeDashboard: React.FC = () => {
   useEffect(() => {
     const userData = Cookies.get('userData');
     if (userData) {
-        try {
-            const parsedData = JSON.parse(userData);
-            setJudgeId(parsedData.id);
-            setJudgeName(parsedData.username);
-        } catch (error) {
-            console.error('Error parsing userData cookie: ', error);
-        }
+      try {
+        const parsedData = JSON.parse(userData);
+        setJudgeId(parsedData.id);
+        setJudgeName(parsedData.username);
+      } catch (error) {
+        console.error('Error parsing userData cookie: ', error);
+      }
     }
-}, []);
+  }, []);
 
   const { participants } = useParticipantContext();
 
@@ -47,19 +48,25 @@ const JudgeDashboard: React.FC = () => {
     return paid && matchesSearch && matchesage_category && matchesGender;
   });
 
-  const has_judge_scores = (participant:Participant) => {
-    return participant.scores.some((score:Score) => score.judge === judgeId);
+  const has_judge_scores = (participant: Participant) => {
+    return participant.scores.some((score: Score) => score.judge === judgeId);
   };
 
 
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
 
   const handleAddScore = (participantId: number) => {
     setSelectedParticipant(participantId)
     setIsModalOpen(true)
+  }
+
+  const handleAddComment = (participantId: number) => {
+    setSelectedParticipant(participantId)
+    setIsCommentModalOpen(true)
   }
 
   return (
@@ -117,24 +124,25 @@ const JudgeDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-2">
-              {
-                participant.scores && has_judge_scores(participant) ? (
-                  <button
-                    onClick={() => handleAddScore(participant.id)}
-                    className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm">
-                    Update Scores
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleAddScore(participant.id)}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
-                    Add Score
-                  </button>
-                )
-              }
+                {
+                  participant.scores && has_judge_scores(participant) ? (
+                    <button
+                      onClick={() => handleAddScore(participant.id)}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm">
+                      Update Scores
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleAddScore(participant.id)}
+                      className="px-4 py-2 bg-green-500 text-white rounded-md text-sm">
+                      Add Score
+                    </button>
+                  )
+                }
 
-
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
+                <button
+                  onClick={() => handleAddComment(participant.id)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
                   Comment
                 </button>
               </div>
@@ -146,9 +154,14 @@ const JudgeDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Modal Component */}
+      {/* Score Modal Component */}
       {isModalOpen && selectedParticipant && (
         <ScoreFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} participantId={selectedParticipant} />
+      )}
+
+      {/* Comment Modal Component */}
+      {isCommentModalOpen && selectedParticipant && (
+        <CommentModal isOpen={isCommentModalOpen} setIsOpen={setIsCommentModalOpen} participantId={selectedParticipant} />
       )}
     </div>
   );
