@@ -97,3 +97,51 @@ export interface ScoreViewOnly {
     age_category: "junior" |"intermediate"| "senior";
     scores: Score[],
 }
+
+// RESULTS TYPES
+// Represents a single score given by a judge
+export interface JudgeScore {
+  judge_name: string; // The username of the judge
+  score: number; // The score given by the judge
+}
+
+// Represents scores and averages for a single criterion
+export interface CriteriaScores {
+  judge_scores: JudgeScore[]; // Array of scores by individual judges for this criterion
+  average: number; // Average score for this criterion
+}
+
+// Represents totals for a category
+export interface CategoryTotals {
+  judges: { [judge_name: string]: number }; // Total scores per judge for this category
+  average: number; // Average score across all criteria in this category
+}
+
+// Represents a single category's data, including its criteria and totals
+export interface ResultCategory {
+  criteria: {
+    [criteriaName: string]: CriteriaScores; // Criteria name as key, with its scores and average
+  };
+  totals: CategoryTotals; // Totals for the category
+}
+
+// Represents a contestant's full data, including scores and personal details
+export interface Contestant {
+  name: string; // Full name of the contestant
+  identifier: string; // Unique identifier for the contestant
+  age: number; // Age of the contestant
+  age_category: string; // Age category of the contestant
+  gender: string; // Gender of the contestant
+  categories: {
+    [categoryName: string]: ResultCategory; // Category name as key, with criteria and totals
+  };
+  overall_total: number; // Sum of averages of all categories for the contestant
+}
+
+// Represents the structure for paginated API responses
+export interface PaginatedResults {
+  count: number; // Total number of contestants
+  next: string | null; // URL for the next page of results
+  previous: string | null; // URL for the previous page of results
+  results: Contestant[]; // Array of contestant data
+}
