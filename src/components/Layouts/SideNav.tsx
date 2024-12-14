@@ -67,6 +67,11 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
             href: "#",
             current: pathname.startsWith("/rubic"),
           },
+          {
+            name: "Results",
+            href: "/judge_panel/results",
+            current: pathname.startsWith("/rubic"),
+          },
         ],
       },
     ];
