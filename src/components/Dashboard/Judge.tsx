@@ -7,6 +7,7 @@ import Link from "next/link";
 import ScoreFormModal from "../Forms/ScoreFormModal";
 import { Score, Participant } from "@/types";
 import CommentModal from "../Forms/CommentModal";
+// import ScoreUpdateModal from "../Forms/ScoreUpdateModal";
 
 
 
@@ -56,12 +57,18 @@ const JudgeDashboard: React.FC = () => {
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
 
   const handleAddScore = (participantId: number) => {
     setSelectedParticipant(participantId)
     setIsModalOpen(true)
+  }
+
+  const handleUpdateScore = (participantId: number) => {
+    setSelectedParticipant(participantId)
+    setIsUpdateModalOpen(true)
   }
 
   const handleAddComment = (participantId: number) => {
@@ -127,7 +134,7 @@ const JudgeDashboard: React.FC = () => {
                 {
                   participant.scores && has_judge_scores(participant) ? (
                     <button
-                      onClick={() => handleAddScore(participant.id)}
+                      onClick={() => handleUpdateScore(participant.id)}
                       className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm">
                       Update Scores
                     </button>
@@ -157,6 +164,12 @@ const JudgeDashboard: React.FC = () => {
       {/* Score Modal Component */}
       {isModalOpen && selectedParticipant && (
         <ScoreFormModal isOpen={isModalOpen} setIsOpen={setIsModalOpen} participantId={selectedParticipant} />
+      )}
+
+      {/* Score Modal Component */}
+      {isUpdateModalOpen && selectedParticipant && (
+        <ScoreFormModal isOpen={isUpdateModalOpen} setIsOpen={setIsUpdateModalOpen} participantId={selectedParticipant} />
+        // <ScoreUpdateModal isOpen={isUpdateModalOpen} setIsOpen={setIsUpdateModalOpen} participantId={selectedParticipant} />
       )}
 
       {/* Comment Modal Component */}
