@@ -53,6 +53,27 @@ const JudgeDashboard: React.FC = () => {
     return participant.scores.some((score: Score) => score.judge === judgeId);
   };
 
+  // Mock function to get judge names by their IDs
+const getJudgeNameById = (judgeId: number): string => {
+  const judges: Record<number, string> = {
+    8: "Sharon",
+    7: "Micheal",
+    9: "Richard",
+    // Add other judges here as needed
+  };
+  return judges[judgeId] || `Judge ${judgeId}`;
+};
+
+// Function to get the list of unique judges who scored a participant
+const scoredBy = (participant: Participant): string[] => {
+  const judgeIds = new Set<number>(); // To store unique judge IDs
+  participant.scores.forEach((score) => judgeIds.add(score.judge));
+
+  // Map unique judge IDs to their names
+  return Array.from(judgeIds).map((judgeId) => getJudgeNameById(judgeId));
+
+};
+
 
 
 
@@ -131,6 +152,16 @@ const JudgeDashboard: React.FC = () => {
                 </p>
               </div>
               <div className="flex gap-2">
+
+               {/* Display Judged By Tab */}
+               {participant.scores && participant.scores.length > 0 && (
+  <div className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-xs font-semibold">
+    <p className="font-semibold">Judged by:</p>
+    <p className="mt-1 text-green-600 text-xs">
+      {scoredBy(participant).join(" | ")} {/* Use a separator of your choice */}
+    </p>
+  </div>
+)}
                 {
                   participant.scores && has_judge_scores(participant) ? (
                     <button
