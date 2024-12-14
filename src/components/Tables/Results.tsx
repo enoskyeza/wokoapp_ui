@@ -16,15 +16,14 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data, page }) => {
             <th className="border p-3 text-left">Identifier</th>
             <th className="border p-3 text-left">Name</th>
             <th className="border p-3 text-left">Age</th>
-            <th className="border p-3 text-left">Age Category</th>
             <th className="border p-3 text-left">Gender</th>
             {/* Dynamically add columns for categories */}
             {Object.keys(data[0]?.categories || {}).map((category) => (
-              <th key={category} className="border p-3 text-left">
-                {category} Average
+              <th key={category} className="border p-3 text-sm text-center">
+                {category}
               </th>
             ))}
-            <th className="border p-3 text-left">Overall Total</th>
+            <th className="border p-3 text-center">Overall Total</th>
           </tr>
         </thead>
         <tbody>
@@ -34,7 +33,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ data, page }) => {
               <td className="border p-3">{contestant.identifier}</td>
               <td className="border p-3">{contestant.name}</td>
               <td className="border p-3">{contestant.age}</td>
-              <td className="border p-3">{contestant.age_category}</td>
               <td className="border p-3">{contestant.gender === "M" ? "Male" : "Female"}</td>
               {Object.entries(contestant.categories).map(([category, details]) => (
                 <td key={category} className="border p-3">

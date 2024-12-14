@@ -108,7 +108,13 @@ function Contestants() {
                                     <div className="text-right">{index + 1}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="flex items-center">
+                                    <div className="flex flex-col items-left">
+                                        {participant.identifier  && <p
+                                            onClick={() => (handleSelectParticipant(participant.id))}
+                                            className="text-gray-800 font-bold cursor-pointer hover:text-blue-400"
+                                        >
+                                            {`${participant.identifier}`}
+                                        </p>}
                                         <p
                                             onClick={() => (handleSelectParticipant(participant.id))}
                                             className="text-gray-800 cursor-pointer hover:text-blue-400"

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { PaginatedResults } from "@/types";
 import { API_URL } from "@/config";
 import ResultsTable from "@/components/Tables/Results";
+import DashboardLayout from '@/components/Layouts/Dashboard';
 
 const ResultsPage: React.FC = () => {
   const [data, setData] = useState<PaginatedResults | null>(null);
@@ -36,6 +37,8 @@ const ResultsPage: React.FC = () => {
   };
 
   return (
+
+    <DashboardLayout>
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-6">Contestant Results</h1>
 
@@ -115,6 +118,7 @@ const ResultsPage: React.FC = () => {
         </button>
       </div>
     </div>
+    </DashboardLayout>
   );
 };
 
