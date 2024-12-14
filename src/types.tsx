@@ -52,6 +52,14 @@ export interface Score {
   score: string;
 }
 
+export interface ScoreViewOnly {
+  id: number;
+  judge: number;
+  contestant: number;
+  criteria: number;
+  score: string;
+}
+
   export interface Comment {
     id: number;
     judge: number;
