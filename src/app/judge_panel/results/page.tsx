@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { PaginatedResults, Contestant } from "@/types";
+import { PaginatedResults } from "@/types";
 import { API_URL } from "@/config";
 import ResultsTable from "@/components/Tables/Results";
 
