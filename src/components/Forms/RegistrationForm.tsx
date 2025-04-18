@@ -1,20 +1,16 @@
 import React, {useState} from 'react';
 import GuardianFieldset from '@/components/Forms/GuardianForm';
 import ParticipantFieldset from '@/components/Forms/ParticipantForm';
-import Link from "next/link";
+// import Link from "next/link";
 import SuccessModalDialog from "@/components/utils/RegisterSuccessModal";
 // import {registerContestant} from "@/actions/register";
+import {FormParticipant} from "@/types";
 
 import axios, {AxiosError} from 'axios';
+import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 
-interface Participant {
-    firstName: string;
-    lastName: string;
-    email: string;
-    age: number;
-    gender: 'M' | 'F';
-    school: string;
-}
+
+
 
 interface ErrorMessages {
     [key: string]: string;
@@ -78,20 +74,21 @@ const registerContestant = async (formData: FormData) => {
 };
 
 const RegistrationForm: React.FC = () => {
+    const {setSelectedProgram, setStarted} = useRegistrationData()
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [participants, setParticipants] = useState<Participant[]>([{
-        firstName: '',
-        lastName: '',
+    const [participants, setParticipants] = useState<FormParticipant[]>([{
+        first_name: '',
+        last_name: '',
         email: '',
         age: 3,
         gender: 'M',
         school: ''
     }]);
 
-    const [submittedParticipants, setSubmittedParticipants] = useState<Participant[]>([{
-        firstName: '',
-        lastName: '',
+    const [submittedParticipants, setSubmittedParticipants] = useState<FormParticipant[]>([{
+        first_name: '',
+        last_name: '',
         email: '',
         age: 3,
         gender: 'M',
@@ -104,8 +101,8 @@ const RegistrationForm: React.FC = () => {
 
     const addParticipant = () => {
         setParticipants([...participants, {
-            firstName: '',
-            lastName: '',
+            first_name: '',
+            last_name: '',
             email: '',
             age: 3,
             gender: 'M',
@@ -120,7 +117,7 @@ const RegistrationForm: React.FC = () => {
 
     const handleParticipantChange = (
         index: number,
-        field: keyof Participant,
+        field: keyof FormParticipant,
         value: string | number
     ) => {
         setParticipants((prevContestants) =>
@@ -143,8 +140,8 @@ const RegistrationForm: React.FC = () => {
             setIsModalOpen(true)
             setErrors({})
             setParticipants([{
-                firstName: '',
-                lastName: '',
+                first_name: '',
+                last_name: '',
                 email: '',
                 age: 3,
                 gender: 'M',
@@ -264,7 +261,7 @@ const RegistrationForm: React.FC = () => {
                 )}
 
                 <div className="flex items-center justify-end gap-4">
-                    <Link href={`/`} className="hover:text-red-500 cursor-pointer hover:underline">Cancel</Link>
+                    {/*<Link href={`/`} className="hover:text-red-500 cursor-pointer hover:underline">Cancel</Link>*/}
                     {/* Submit Button */}
                     {/*<button*/}
                     {/*    type="submit"*/}
@@ -272,6 +269,14 @@ const RegistrationForm: React.FC = () => {
                     {/*>*/}
                     {/*    Register*/}
                     {/*</button>*/}
+
+                    <button
+                        // type="submit"
+                        onClick={()=>{ setStarted(false); setSelectedProgram(null) }}
+                        className="hover:text-red-500 cursor-pointer hover:underline "
+                    >
+                        Cancel
+                    </button>
 
                     <button
                         disabled

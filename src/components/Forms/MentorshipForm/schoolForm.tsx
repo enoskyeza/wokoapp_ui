@@ -36,7 +36,7 @@ const SchoolForm = () => {
                             <div className="mt-2">
                                 <input
                                     id="first-name"
-                                    name="firstName"
+                                    name="first_name"
                                     type="text"
                                     value={newSchool.name}
                                     onChange={handleNewSchoolChange}
