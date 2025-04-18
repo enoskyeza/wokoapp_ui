@@ -4,6 +4,24 @@ export interface PaymentMethod {
     payment_method: string;
 }
 
+//   export interface Participant {
+//     id: number;
+//     created_at: string;
+//     identifier: string;
+//     first_name: string;
+//     last_name: string;
+//     email: string;
+//     age: number;
+//     gender: "M" | "F";
+//     school: string;
+//     payment_status: "paid" | "not_paid";
+//     payment_method: PaymentMethod;
+//     parent: number;
+//     parent_name: number;
+//     age_category: "junior" |"intermediate"| "senior";
+//     scores: Score[],
+// }
+
 export interface Participant {
     id: number;
     created_at: string;
@@ -20,6 +38,16 @@ export interface Participant {
     parent_name: number;
     age_category: "junior" |"intermediate"| "senior";
     has_scores: boolean
+    scores: Score[],
+}
+
+export interface FormParticipant {
+    first_name: string;
+    last_name: string;
+    email: string;
+    age: number;
+    gender: 'M' | 'F';
+    school: string;
 }
 
 export interface Parent {
@@ -80,23 +108,6 @@ export interface ScoreViewOnly {
     comments: Comment[];
   }
 
-  export interface Participant {
-    id: number;
-    created_at: string;
-    identifier: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    age: number;
-    gender: "M" | "F";
-    school: string;
-    payment_status: "paid" | "not_paid";
-    payment_method: PaymentMethod;
-    parent: number;
-    parent_name: number;
-    age_category: "junior" |"intermediate"| "senior";
-    scores: Score[],
-}
 
 // RESULTS TYPES
 // Represents a single score given by a judge

@@ -6,8 +6,8 @@ const ContestantDetails = () => {
     // Sample data for illustration
     const contestant = {
         id: 'TF23001',
-        firstName: 'Jane',
-        lastName: 'Doe',
+        first_name: 'Jane',
+        last_name: 'Doe',
         age: 12,
         school: 'Bright Future Academy',
         gender: 'F',
@@ -44,7 +44,7 @@ const ContestantDetails = () => {
                     </div>
                     <div className="sm:col-span-2 pl-4">
                         <div className="space-y-2">
-                            <p><strong>Name:</strong> {contestant.firstName} {contestant.lastName}</p>
+                            <p><strong>Name:</strong> {contestant.first_name} {contestant.last_name}</p>
                             <p><strong>ID No:</strong> {contestant.id}</p>
                             <p><strong>Age:</strong> {contestant.age}</p>
                             <p><strong>School:</strong> {contestant.school}</p>

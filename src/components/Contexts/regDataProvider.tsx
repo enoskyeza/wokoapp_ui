@@ -29,6 +29,9 @@ export type RegistrationDataContextType = {
 
   refreshSchools: () => Promise<void>
   refreshPrograms: () => Promise<void>
+
+  started:boolean
+  setStarted: (string:boolean) => void
 }
 
 const RegistrationDataContext = createContext<RegistrationDataContextType | undefined>(undefined)
@@ -38,6 +41,10 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [programs, setPrograms] = useState<Program[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<unknown>(null)
+
+  // local state to “started” flow
+  const [started, setStarted] = React.useState(false)
+
 
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [schoolQuery, setSchoolQuery] = useState<string>('')
@@ -101,6 +108,8 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
       setSelectedProgram,
       refreshSchools,
       refreshPrograms,
+      started,
+      setStarted,
     }}>
       {children}
     </RegistrationDataContext.Provider>

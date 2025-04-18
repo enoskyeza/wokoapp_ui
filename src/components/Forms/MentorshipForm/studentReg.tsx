@@ -3,8 +3,8 @@ import React, { useState, ChangeEvent } from 'react';
 import { TrashIcon } from "@heroicons/react/20/solid";
 
 interface Student {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   age: number;
   gender: 'M' | 'F';
   guardianName: string;
@@ -13,8 +13,8 @@ interface Student {
 
 const StudentFieldset: React.FC = () => {
   const emptyStudent: Student = {
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     age: 0,
     gender: 'M',
     guardianName: '',
@@ -52,16 +52,16 @@ const StudentFieldset: React.FC = () => {
           <input
             type="text"
             placeholder="First Name"
-            value={student.firstName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'firstName', e.target.value)}
+            value={student.first_name}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'first_name', e.target.value)}
             className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
             required
           />
           <input
             type="text"
             placeholder="Last Name"
-            value={student.lastName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'lastName', e.target.value)}
+            value={student.last_name}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'last_name', e.target.value)}
             className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
             required
           />

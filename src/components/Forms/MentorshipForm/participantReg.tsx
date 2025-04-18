@@ -7,8 +7,8 @@ import {School} from "@/types";
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 
 interface Student {
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     age: number;
     gender: 'M' | 'F';
     guardianName: string;
@@ -21,8 +21,8 @@ const ParticipantRegFieldset: React.FC = () => {
     const {schools: allSchools} = useRegistrationData();
 
     const emptyStudent: Student = {
-        firstName: '',
-        lastName: '',
+        first_name: '',
+        last_name: '',
         age: 0,
         gender: 'M',
         guardianName: '',
@@ -72,9 +72,11 @@ const ParticipantRegFieldset: React.FC = () => {
                                 </label>
                                 <input
                                     type="text"
+                                    name={`participant-first-name-${index}`}
+                                    id={`participant-first-name-${index}`}
                                     placeholder="First Name"
-                                    value={student.firstName}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'firstName', e.target.value)}
+                                    value={student.first_name}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'first_name', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                                     required
                                 />
@@ -82,15 +84,17 @@ const ParticipantRegFieldset: React.FC = () => {
 
                             {/* last Name */}
                             <div className="col-span-6 sm:col-span-3">
-                                <label htmlFor={`participant-first-name-${index}`}
+                                <label htmlFor={`participant-last-name-${index}`}
                                        className="block text-gray-700 font-medium mb-2">
-                                    First Name <span className="text-sm text-red-500">*</span>
+                                    Last Name <span className="text-sm text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
+                                    name={`participant-last-name-${index}`}
+                                    id={`participant-last-name-${index}`}
                                     placeholder="Last Name"
-                                    value={student.lastName}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'lastName', e.target.value)}
+                                    value={student.last_name}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'last_name', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                                     required
                                 />
@@ -104,6 +108,8 @@ const ParticipantRegFieldset: React.FC = () => {
                                 </label>
                                 <input
                                     type="number"
+                                    name={`participant-age-${index}`}
+                                    id={`participant-age-${index}`}
                                     placeholder="Age"
                                     value={student.age}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'age', parseInt(e.target.value, 10) || 0)}
@@ -119,6 +125,8 @@ const ParticipantRegFieldset: React.FC = () => {
                                     Gender <span className="text-sm text-red-500">*</span>
                                 </label>
                                 <select
+                                    name={`participant-gender-${index}`}
+                                    id={`participant-gender-${index}`}
                                     value={student.gender}
                                     onChange={(e: ChangeEvent<HTMLSelectElement>) => handleChange(index, 'gender', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
@@ -130,7 +138,7 @@ const ParticipantRegFieldset: React.FC = () => {
                             </div>
 
                             {/* School */}
-                            <div className="col-span-6 sm:col-span-4">
+                            <div className="col-span-5 sm:col-span-3">
                                 <label htmlFor={`participant-school-${index}`}
                                        className="block text-gray-700 font-medium mb-2">
                                     School
@@ -143,7 +151,7 @@ const ParticipantRegFieldset: React.FC = () => {
                                     data={filteredSchools}
                                     displayField={item => item.name}
                                     getId={item => item.id}
-                                    input_name="school"
+                                    input_name={`participant-school-${index}`}
                                     // label={'School'}
                                     // note={'Search by name, eg: St Augustine Junior School'}
                                 />
@@ -160,7 +168,7 @@ const ParticipantRegFieldset: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => removeStudent(index)}
-                                className="text-red-500 hover:text-red-700 p-2 self-start sm:self-center"
+                                className="text-red-500 hover:text-red-700 p-2 self-center"
                                 aria-label="Remove student"
                             >
                                 <TrashIcon className="h-5 w-5"/>

@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface Participant {
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     email: string;
     age: number;
     gender: 'M' | 'F';
@@ -28,8 +28,8 @@ const ParticipantFieldset: React.FC<Props> = ({participant, index, onChange}) =>
                     type="text"
                     name={`participant-first-name-${index}`}
                     id={`participant-first-name-${index}`}
-                    value={participant.firstName}
-                    onChange={(e) => onChange(index, 'firstName', e.target.value)}
+                    value={participant.first_name}
+                    onChange={(e) => onChange(index, 'first_name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                     placeholder="Enter first name"
                     required
@@ -45,8 +45,8 @@ const ParticipantFieldset: React.FC<Props> = ({participant, index, onChange}) =>
                     type="text"
                     name={`participant-last-name-${index}`}
                     id={`participant-last-name-${index}`}
-                    value={participant.lastName}
-                    onChange={(e) => onChange(index, 'lastName', e.target.value)}
+                    value={participant.last_name}
+                    onChange={(e) => onChange(index, 'last_name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                     placeholder="Enter last name"
                     required

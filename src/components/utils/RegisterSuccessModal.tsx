@@ -3,13 +3,13 @@
 import React from 'react'
 import {Dialog, DialogActions, DialogBody, DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
-import {Participant} from "@/types";
+import {FormParticipant} from "@/types";
 import SocialSharingSection from "@/components/utils/SocialSharingSection";
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 
 // interface Participant {
-//     firstName: string;
-//     lastName: string;
+//     first_name: string;
+//     last_name: string;
 //     email: string;
 //     age: number;
 //     gender: 'M' | 'F';
@@ -23,7 +23,7 @@ interface ReportItem {
 type InterfaceProps = {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
-    participants: Participant[];
+    participants: FormParticipant[];
     report?: ReportItem[];
     eventLink: string;
     program?: string
