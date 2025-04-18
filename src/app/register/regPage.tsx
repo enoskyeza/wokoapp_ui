@@ -2,6 +2,7 @@
 import React from "react";
 import dynamic from 'next/dynamic'
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
+import Image from "next/image";
 
 const formMap: Record<string, React.ComponentType> = {
   tf: dynamic(() => import('./forms/tfForm'), { ssr: false }),
@@ -13,10 +14,8 @@ export default function RegisterPage() {
   const {
     programs, isLoading, error,
     selectedProgram, setSelectedProgram,
+      started, setStarted
   } = useRegistrationData()
-
-  // local state to “started” flow
-  const [started, setStarted] = React.useState(false)
 
   if (isLoading) return <p>Loading programs…</p>
   if (error)     return <p className="text-red-500">Error loading programs</p>
@@ -24,8 +23,18 @@ export default function RegisterPage() {
   return (
     <div>
       {!started ? (
-        <div className="max-w-md w-full text-center text-white space-y-6">
-           <img src="/logo.png" alt="Wokober Logo" className="mx-auto h-24 w-auto" />
+        <div className="max-w-md w-full px-8 sm:px-0 text-center text-white space-y-6">
+
+          <div className="flex justify-center">
+            <Image
+                src="/logo.png"
+                alt="WokoApp Logo"
+                width={100}
+                height={60}
+                priority
+            />
+          </div>
+           {/*<img src="/logo.png" alt="Wokober Logo" className="mx-auto h-24 w-auto" />*/}
            <h1 className="text-4xl font-bold">Wokober Registrations Panel</h1>
            <p className="text-xl">Choose Program</p>
 
@@ -52,9 +61,9 @@ export default function RegisterPage() {
         </div>
       ) : (
         <div>
-          <button onClick={()=>{ setStarted(false); setSelectedProgram(null) }}>
-            &larr; Back
-          </button>
+          {/*<button onClick={()=>{ setStarted(false); setSelectedProgram(null) }}>*/}
+          {/*  &larr; Back*/}
+          {/*</button>*/}
           {selectedProgram && (() => {
             const key = selectedProgram?.type?.form_key || 'gen'
             const Form = formMap[key]
