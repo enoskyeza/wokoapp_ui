@@ -145,3 +145,116 @@ export interface PaginatedResults {
   previous: string | null; // URL for the previous page of results
   results: Contestant[]; // Array of contestant data
 }
+
+export interface School {
+  id: number;
+  name: string;
+  address?: string;
+  email?: string;
+  phone_number?: string;
+  created_at: string;  // ISO date string
+  updated_at: string;
+}
+
+export interface Guardian {
+  id: number;
+  first_name: string;
+  last_name: string;
+  profession?: string;
+  address?: string;
+  email?: string;
+  phone_number?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NewParticipant {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  date_of_birth: string;  // ISO date string
+  gender: 'M' | 'F';
+  current_school?: number;
+  guardians?: Guardian[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ParticipantGuardian {
+  id: number;
+  participant: NewParticipant;
+  guardian: number;
+  relationship: 'mother' | 'father' | 'aunt' | 'uncle' | 'other';
+  isPrimary: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgramType {
+  id: number;
+  name: string;
+  description?: string;
+  form_key: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Program {
+  id: number;
+  type?: ProgramType;
+  year?: number;
+  name: string;
+  description?: string;
+  start_date?: string;  // ISO date string
+  end_date?: string;
+  registration_fee?: number;
+  age_min?: number;
+  age_max?: number;
+  capacity?: number;
+  requires_ticket: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Registration {
+  id: number;
+  participant: number;
+  program: number;
+  age_at_registration: number;
+  school_at_registration?: number;
+  guardian_at_registration?: number;
+  status: 'pending' | 'paid' | 'cancelled' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Receipt {
+  id: number;
+  registration: number;
+  issued_by: number;
+  amount: number;
+  status: 'paid' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Coupon {
+  id: number;
+  registration: number;
+  qrCodeUrl?: string;
+  status: 'paid' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Approval {
+  id: number;
+  registrationId: number;
+  status: 'paid' | 'cancelled' | 'refunded';
+  created_by: number;
+  receipt?: Receipt;
+  coupon?: Coupon;
+  created_at: string;
+  updated_at: string;
+}
