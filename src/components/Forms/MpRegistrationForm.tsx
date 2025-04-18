@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import GuardianFieldset from '@/components/Forms/GuardianForm';
-import ParticipantFieldset from '@/components/Forms/ParticipantForm';
 import Link from "next/link";
 import SuccessModalDialog from "@/components/utils/RegisterSuccessModal";
 // import {registerContestant} from "@/actions/register";
 
 import axios, {AxiosError} from 'axios';
+import ParticipantRegFieldset from "@/components/Forms/MentorshipForm/participantReg";
 
 interface Participant {
     firstName: string;
@@ -77,7 +77,7 @@ const registerContestant = async (formData: FormData) => {
     }
 };
 
-const RegistrationForm: React.FC = () => {
+const MpRegistrationForm: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [participants, setParticipants] = useState<Participant[]>([{
@@ -101,34 +101,6 @@ const RegistrationForm: React.FC = () => {
     const [paymentMethod, setPaymentMethod] = useState('cash');
 
     const [errors, setErrors] = useState<ErrorMessages>({});
-
-    const addParticipant = () => {
-        setParticipants([...participants, {
-            firstName: '',
-            lastName: '',
-            email: '',
-            age: 3,
-            gender: 'M',
-            school: ''
-        }]);
-    };
-
-
-    const removeParticipant = (index: number) => {
-        setParticipants(participants.filter((_, i) => i !== index));
-    };
-
-    const handleParticipantChange = (
-        index: number,
-        field: keyof Participant,
-        value: string | number
-    ) => {
-        setParticipants((prevContestants) =>
-            prevContestants.map((contestant, i) =>
-                i === index ? {...contestant, [field]: value} : contestant,
-            ),
-        );
-    };
 
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -171,41 +143,8 @@ const RegistrationForm: React.FC = () => {
                         Participants Information
                     </legend>
 
-                    {participants.map((participant, index) => (
-                        <div key={index}
-                             className={`relative mb-6 ${participants.length > 1 ? 'border-b border-gray-200 mb-8 pb-2' : ''}`
-                             }>
-                            <ParticipantFieldset
-                                key={index}
-                                participant={participant}
-                                index={index}
-                                onChange={handleParticipantChange}
-                            />
-                            {participants.length > 1 &&
-                                (<button
-                                    type="button"
-                                    onClick={() => removeParticipant(index)}
-                                    className="absolute top-1.5 right-2.5 text-red-500 text-xs underline"
-                                >
-                                    Remove
-                                </button>)
-                            }
-                        </div>
-                    ))}
+                    <ParticipantRegFieldset />
 
-                    {/* Note about participants */}
-                    {participants.length > 1 && <p className="italic text-sm text-gray-600 mb-6">
-                        <span className="font-semibold">Note:</span> All participants listed above should belong to the
-                        same parent or guardian.
-                    </p>}
-
-                    <button
-                        type="button"
-                        onClick={addParticipant}
-                        className="px-4 mt-4 w-fit bg-green-500 text-white py-2 rounded-lg shadow-md hover:bg-green-600 transition-transform transform hover:scale-105 focus:scale-105"
-                    >
-                        Add Another Participant
-                    </button>
                 </fieldset>
 
 
@@ -251,7 +190,7 @@ const RegistrationForm: React.FC = () => {
                             <p className="text-gray-600">
                                 Payment to be made at Wokober offices, located at Elephante Commons, Gulu City before
                                 10th
-                                December 2024.
+                                May 2025.
                             </p>
                         </div>
                     </div>
@@ -296,4 +235,4 @@ const RegistrationForm: React.FC = () => {
     );
 };
 
-export default RegistrationForm;
+export default MpRegistrationForm;
