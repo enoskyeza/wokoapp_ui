@@ -15,9 +15,11 @@ import {
     HomeIcon,
     UsersIcon,
     XMarkIcon,
+    DocumentTextIcon, AcademicCapIcon, ScaleIcon
 } from "@heroicons/react/24/outline";
 import {usePathname} from 'next/navigation';
 import Image from "next/image";
+// import {DocumentTextIcon} from "@heroicons/react/24/solid";
 // import {useAuth} from "@/providers/AuthProvider";
 // import {getNavigationByRoleAndDepartment} from "@/utils/navbar/navUtils";
 
@@ -52,9 +54,27 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
         current: pathname.startsWith("/dashboard"),
       },
       {
+        name: "Register",
+        href: "/register",
+        icon: DocumentTextIcon,
+        current: pathname.startsWith("/register"),
+      },
+      {
+        name: "Mentorship Panel",
+        href: "#",
+        icon: AcademicCapIcon,
+        current: pathname.startsWith("/mentorship"),
+      },
+      {
+        name: "Toy Festival",
+        href: "#",
+        icon: UsersIcon,
+        current: pathname.startsWith("/tf"),
+      },
+      {
         name: "Judge Panel",
         // href: "/judge_panel",
-        icon: UsersIcon,
+        icon: ScaleIcon,
         current: pathname.startsWith("/judge_panel"),
         children: [
           {
