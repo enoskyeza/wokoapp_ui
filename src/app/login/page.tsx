@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { API_URL } from '@/config';
+import Link from "next/link";
 // import { loginUser } from "@/actions/auth";
 // import Link from "next/link";
 
@@ -58,12 +59,8 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-            <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">
-                <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">Login</h2>
-
-                {/* Form */}
-                <form onSubmit={handleLogin}>
+        <div className="w-full max-w-[500px] bg-[rgba(255,255,255,1)] backdrop-blur-md p-8 shadow-lg rounded-lg">
+            <form onSubmit={handleLogin} className="">
                     {/* Email Input */}
                     <div className="mb-4">
                         <label htmlFor="username" className="block text-gray-700 font-medium mb-2">
@@ -138,6 +135,13 @@ const LoginPage: React.FC = () => {
                     >
                         Login
                     </button>
+
+                    <Link
+                        href={'/register'}
+                        className="block w-full text-blue-700  text-center py-3 hover:text-blue-500 transition-transform transform hover:scale-105 focus:scale-105"
+                    >
+                        Register
+                    </Link>
                     {/*<Link*/}
                     {/*    href={'/dashboard'}*/}
                     {/*    className="block w-full bg-blue-700 text-white text-center py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
@@ -145,7 +149,6 @@ const LoginPage: React.FC = () => {
                     {/*    Login*/}
                     {/*</Link>*/}
                 </form>
-            </div>
         </div>
     );
 };
@@ -153,7 +156,99 @@ const LoginPage: React.FC = () => {
 export default LoginPage;
 
 
+
+        {/*<div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center">*/}
+        {/*    <div className="max-w-md w-full bg-white p-8 shadow-lg rounded-lg">*/}
+        {/*        <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">Login</h2>*/}
+
+        {/*        /!* Form *!/*/}
+        {/*        <form onSubmit={handleLogin}>*/}
+        {/*            /!* Email Input *!/*/}
+        {/*            <div className="mb-4">*/}
+        {/*                <label htmlFor="username" className="block text-gray-700 font-medium mb-2">*/}
+        {/*                    Username*/}
+        {/*                </label>*/}
+        {/*                <input*/}
+        {/*                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500 ${*/}
+        {/*                        errors.username ? 'border-red-500' : ''*/}
+        {/*                    }`}*/}
+        {/*                    id="username"*/}
+        {/*                    type="text"*/}
+        {/*                    placeholder="Enter username"*/}
+        {/*                    value={username}*/}
+        {/*                    onChange={(e) => setUsername(e.target.value)}*/}
+        {/*                />*/}
+        {/*                {errors.username && <p className="text-red-500 text-xs italic">{errors.username}</p>}*/}
+        {/*            </div>*/}
+
+        {/*            /!* Password Input *!/*/}
+        {/*            <div className="mb-6">*/}
+        {/*                <label htmlFor="password" className="block text-gray-700 font-medium mb-2">*/}
+        {/*                    Password*/}
+        {/*                </label>*/}
+        {/*                <input*/}
+        {/*                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500 ${*/}
+        {/*                        errors.password ? 'border-red-500' : ''*/}
+        {/*                    }`}*/}
+        {/*                    id="password"*/}
+        {/*                    type="password"*/}
+        {/*                    placeholder="******************"*/}
+        {/*                    value={password}*/}
+        {/*                    onChange={(e) => setPassword(e.target.value)}*/}
+        {/*                />*/}
+        {/*                {errors.password && <p className="text-red-500 text-xs italic">{errors.password}</p>}*/}
+        {/*            </div>*/}
+
+        {/*            /!* Role Selector *!/*/}
+        {/*            <div className="mb-6">*/}
+        {/*                <label className="block text-gray-700 font-medium mb-2">Login as:</label>*/}
+        {/*                <div className="flex space-x-4">*/}
+        {/*                    <label className="flex items-center space-x-2">*/}
+        {/*                        <input*/}
+        {/*                            type="radio"*/}
+        {/*                            name="role"*/}
+        {/*                            value="staff"*/}
+        {/*                            checked={role === 'staff'}*/}
+        {/*                            onChange={() => setRole('staff')}*/}
+        {/*                            className="h-4 w-4 text-blue-600 focus:ring focus:ring-blue-500"*/}
+        {/*                        />*/}
+        {/*                        <span>Staff</span>*/}
+        {/*                    </label>*/}
+        {/*                    <label className="flex items-center space-x-2">*/}
+        {/*                        <input*/}
+        {/*                            type="radio"*/}
+        {/*                            name="role"*/}
+        {/*                            value="judge"*/}
+        {/*                            checked={role === 'judge'}*/}
+        {/*                            onChange={() => setRole('judge')}*/}
+        {/*                            className="h-4 w-4 text-blue-600 focus:ring focus:ring-blue-500"*/}
+        {/*                        />*/}
+        {/*                        <span>Judge</span>*/}
+        {/*                    </label>*/}
+        {/*                </div>*/}
+        {/*            </div>*/}
+
+        {/*             /!*Submit Button*!/*/}
+        {/*            {errors.login && <p className="error text-red-500 text-sm text-center pb-2">{errors.login}</p>}*/}
+
+        {/*            <button*/}
+        {/*                type="submit"*/}
+        {/*                className="w-full bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
+        {/*            >*/}
+        {/*                Login*/}
+        {/*            </button>*/}
+        {/*            /!*<Link*!/*/}
+        {/*            /!*    href={'/dashboard'}*!/*/}
+        {/*            /!*    className="block w-full bg-blue-700 text-white text-center py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*!/*/}
+        {/*            /!*>*!/*/}
+        {/*            /!*    Login*!/*/}
+        {/*            /!*</Link>*!/*/}
+        {/*        </form>*/}
+        {/*    </div>*/}
+        {/*</div>*/}
+
 // Mock credentials
+
     // const mockUsername = 'staff';
     // const mockPassword = 'tf-Staff-24';
 
