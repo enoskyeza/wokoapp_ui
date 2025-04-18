@@ -21,7 +21,7 @@ export default function SearchSelectInput<T>(
     {
         selected,
         setSelected,
-        query,
+        // query,
         setQuery,
         data,
         label,
@@ -35,16 +35,18 @@ export default function SearchSelectInput<T>(
 
   const [error, setError] = useState<string>("");
 
+  console.log(error)
+
     useEffect(() => {
     if (selected) {
       setError("");
     }
   }, [selected]);
 
-      const handleInvalid = (event: React.FormEvent<HTMLInputElement>) => {
-    event.preventDefault();
-    setError("Please select a value.");
-  };
+  // const handleInvalid = (event: React.FormEvent<HTMLInputElement>) => {
+  //   event.preventDefault();
+  //   setError("Please select a value.");
+  // };
 
     return (
         <div>

@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import GuardianFieldset from '@/components/Forms/GuardianForm';
-import ParticipantFieldset from '@/components/Forms/ParticipantForm';
 import Link from "next/link";
 import SuccessModalDialog from "@/components/utils/RegisterSuccessModal";
 // import {registerContestant} from "@/actions/register";
