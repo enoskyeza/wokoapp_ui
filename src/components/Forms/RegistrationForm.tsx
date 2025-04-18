@@ -266,9 +266,17 @@ const RegistrationForm: React.FC = () => {
                 <div className="flex items-center justify-end gap-4">
                     <Link href={`/`} className="hover:text-red-500 cursor-pointer hover:underline">Cancel</Link>
                     {/* Submit Button */}
+                    {/*<button*/}
+                    {/*    type="submit"*/}
+                    {/*    className="w-fit px-6 bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"*/}
+                    {/*>*/}
+                    {/*    Register*/}
+                    {/*</button>*/}
+
                     <button
-                        type="submit"
-                        className="w-fit px-6 bg-blue-700 text-white py-3 rounded-lg shadow-md hover:bg-blue-800 transition-transform transform hover:scale-105 focus:scale-105"
+                        disabled
+                        // type="submit"
+                        className="w-fit px-6 bg-gray-400 text-white py-3 rounded-lg shadow-md hover:cursor-not-allowed "
                     >
                         Register
                     </button>
