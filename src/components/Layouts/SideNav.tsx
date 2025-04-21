@@ -15,7 +15,7 @@ import {
     HomeIcon,
     UsersIcon,
     XMarkIcon,
-    DocumentTextIcon, AcademicCapIcon, ScaleIcon, ChatBubbleBottomCenterTextIcon
+    DocumentTextIcon, AcademicCapIcon, ScaleIcon, ChatBubbleBottomCenterTextIcon, ClipboardDocumentListIcon
 } from "@heroicons/react/24/outline";
 import {usePathname} from 'next/navigation';
 import Image from "next/image";
@@ -56,7 +56,7 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
       {
         name: "Register",
         href: "/register",
-        icon: DocumentTextIcon,
+        icon: ClipboardDocumentListIcon,
         current: pathname.startsWith("/register"),
       },
       {
@@ -93,6 +93,12 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
             current: pathname.startsWith("/rubic"),
           },
         ],
+      },
+      {
+        name: "Receipts",
+        href: "#",
+        icon: DocumentTextIcon,
+        current: pathname.startsWith("/receipts"),
       },
       {
         name: "Sms",
