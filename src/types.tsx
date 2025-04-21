@@ -269,3 +269,10 @@ export interface Approval {
   created_at: string;
   updated_at: string;
 }
+
+export interface SentMessage {
+  id: number
+  to: string
+  body: string
+  dateSent: string
+}
