@@ -15,7 +15,7 @@ import {
     HomeIcon,
     UsersIcon,
     XMarkIcon,
-    DocumentTextIcon, AcademicCapIcon, ScaleIcon
+    DocumentTextIcon, AcademicCapIcon, ScaleIcon, ChatBubbleBottomCenterTextIcon
 } from "@heroicons/react/24/outline";
 import {usePathname} from 'next/navigation';
 import Image from "next/image";
@@ -93,6 +93,12 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
             current: pathname.startsWith("/rubic"),
           },
         ],
+      },
+      {
+        name: "Sms",
+        href: "/sms",
+        icon: ChatBubbleBottomCenterTextIcon,
+        current: pathname.startsWith("/sms"),
       },
     ];
 
