@@ -10,7 +10,7 @@ export function middleware(req: NextRequest) {
             const user = JSON.parse(userDataCookie.value);
 
             if (!user.role) {
-                return NextResponse.redirect(new URL('/login', req.url));
+                return NextResponse.redirect(new URL('/', req.url));
             }
 
             // Restrict routes based on roles
@@ -18,10 +18,10 @@ export function middleware(req: NextRequest) {
                 return NextResponse.redirect(new URL('/dashboard', req.url));
             }
         } catch {
-            return NextResponse.redirect(new URL('/login', req.url));
+            return NextResponse.redirect(new URL('/', req.url));
         }
     } else {
-        return NextResponse.redirect(new URL('/login', req.url));
+        return NextResponse.redirect(new URL('/', req.url));
     }
 
     return NextResponse.next(); // Allow the request

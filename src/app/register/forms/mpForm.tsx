@@ -18,7 +18,7 @@ const mpForm = () => {
             />
           </div>
           <h2 className="mt-4 text-center text-2xl font-extrabold text-yellow-300">
-            MENTORSHIP PROGRAMME 2025.
+            MENTORSHIP PROGRAM 2025.
           </h2>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-white">
             Participants&apos; Register

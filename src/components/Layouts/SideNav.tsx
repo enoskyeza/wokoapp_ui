@@ -61,13 +61,13 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
       },
       {
         name: "Mentorship Panel",
-        href: "#",
+        href: "/mp",
         icon: AcademicCapIcon,
         current: pathname.startsWith("/mentorship"),
       },
       {
         name: "Toy Festival",
-        href: "#",
+        href: "/tf",
         icon: UsersIcon,
         current: pathname.startsWith("/tf"),
       },
