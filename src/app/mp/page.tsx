@@ -1,21 +1,19 @@
+// app/sms/page.tsx
 'use client'
-import {ParticipantProvider} from "@/context/ParticipantContext";
-import JudgeDashboard from "@/components/Dashboard/Judge"
+import React from 'react'
 import DashboardLayout from '@/components/Layouts/Dashboard';
+import {RegistrationProvider} from "@/components/Contexts/regDataProvider";
+import {EnrollmentProvider} from "@/components/Contexts/enrollmentDataProvider";
+import Registrations from "@/components/Tables/Registrations";
 
-// import dynamic from "next/dynamic";
-
-
-const JudgePage = () => {
-
+export default function Page() {
     return (
-        <ParticipantProvider>
             <DashboardLayout>
-                <JudgeDashboard />
+                <RegistrationProvider>
+                    <EnrollmentProvider>
+                        <Registrations />
+                    </EnrollmentProvider>
+                </RegistrationProvider>
             </DashboardLayout>
-        </ParticipantProvider>
     )
-};
-
-export default JudgePage;
-
+}

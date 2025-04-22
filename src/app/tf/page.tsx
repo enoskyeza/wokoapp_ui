@@ -11,7 +11,7 @@ const AgeCategoryChart = dynamic(() => import("@/components/Dashboard/CategoryPi
     ssr: false,
 });
 
-const DashboardPage = () => {
+const TFPage = () => {
 
     return (
         <ParticipantProvider>
@@ -30,4 +30,4 @@ const DashboardPage = () => {
     )
 };
 
-export default DashboardPage;
+export default TFPage;
