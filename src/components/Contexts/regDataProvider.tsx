@@ -26,6 +26,11 @@ export type RegistrationDataContextType = {
 
   selectedProgram: Program | null
   setSelectedProgram: (program: Program | null) => void
+  programTypeFilter: number | null
+  setProgramTypeFilter: (typeId: number | null) => void
+  activeFilter: boolean | null
+  setActiveFilter: (active: boolean | null) => void
+
 
   refreshSchools: () => Promise<void>
   refreshPrograms: () => Promise<void>
@@ -50,6 +55,10 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
   const [schoolQuery, setSchoolQuery] = useState<string>('')
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
 
+    // New filter state for programs
+  const [programTypeFilter, setProgramTypeFilter] = useState<number | null>(null)
+  const [activeFilter, setActiveFilter] = useState<boolean | null>(null)
+
   // Fetch schools from API
   const fetchSchools = async () => {
     setIsLoading(true)
@@ -72,7 +81,15 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setError(null)
     try {
-      const url = `${API_BASE}/programs/?active=true`
+            // Build query params based on filters
+      const params = new URLSearchParams()
+      if (programTypeFilter !== null) params.append('type', String(programTypeFilter))
+      if (activeFilter !== null) params.append('active', String(activeFilter))
+
+
+      const queryString = params.toString() ? `?${params.toString()}` : ''
+      const url = `${API_BASE}/programs${queryString}`
+
       const response = await axios.get<Program[]>(url)
       setPrograms(response.data)
     } catch (err) {
@@ -85,7 +102,7 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void fetchPrograms()
-  }, [])
+  }, [programTypeFilter, activeFilter])
 
   useEffect(() => {
     void fetchSchools()
@@ -106,6 +123,10 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
       setSchoolQuery,
       selectedProgram,
       setSelectedProgram,
+      programTypeFilter,
+      setProgramTypeFilter,
+      activeFilter,
+      setActiveFilter,
       refreshSchools,
       refreshPrograms,
       started,
