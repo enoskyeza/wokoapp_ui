@@ -15,6 +15,8 @@ interface Student {
     contact: string;
     schoolQuery: string;
     selectedSchool: School | null;
+    isAddingNewSchool: boolean;
+    newSchoolName: string;
 }
 
 const ParticipantRegFieldset: React.FC = () => {
@@ -28,12 +30,14 @@ const ParticipantRegFieldset: React.FC = () => {
         guardianName: '',
         contact: '',
         schoolQuery: '',
-        selectedSchool: null
+        selectedSchool: null,
+        isAddingNewSchool: false,
+        newSchoolName: '',
     };
 
     const [students, setStudents] = useState<Student[]>([emptyStudent]);
 
-    const handleChange = (
+    const handleSchoolChange = (
         index: number,
         field: keyof Student,
         value: string | number | School | null
@@ -44,6 +48,16 @@ const ParticipantRegFieldset: React.FC = () => {
             return copy;
         });
     };
+
+    const handleChange = <K extends keyof Student>(
+    index: number,
+    field: K,
+    value: Student[K]
+  ) => {
+    const next = [...students];
+    next[index] = { ...next[index], [field]: value };
+    setStudents(next);
+  };
 
     const addStudent = () => {
         setStudents(prev => [...prev, {...emptyStudent}]);
@@ -127,8 +141,15 @@ const ParticipantRegFieldset: React.FC = () => {
                                 <select
                                     name={`participant-gender-${index}`}
                                     id={`participant-gender-${index}`}
-                                    value={student.gender}
-                                    onChange={(e: ChangeEvent<HTMLSelectElement>) => handleChange(index, 'gender', e.target.value)}
+                                      onChange={(e) =>
+                                                handleChange(
+                                                  index,
+                                                  'gender',
+                                                  // cast here so TS knows it's 'M' | 'F'
+                                                  e.target.value as 'M' | 'F'
+                                                )
+                                              }
+                                    // onChange={(e: ChangeEvent<HTMLSelectElement>) => handleChange(index, 'gender', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
                                     required
                                 >
@@ -138,31 +159,100 @@ const ParticipantRegFieldset: React.FC = () => {
                             </div>
 
                             {/* School */}
+                            {/*<div className="col-span-5 sm:col-span-3">*/}
+                            {/*    <label htmlFor={`participant-school-${index}`}*/}
+                            {/*           className="block text-gray-700 font-medium mb-2">*/}
+                            {/*        School*/}
+                            {/*    </label>*/}
+                            {/*    {<SearchSelectInput<School>*/}
+                            {/*        selected={student.selectedSchool}*/}
+                            {/*        setSelected={(school) => handleChange(index, 'selectedSchool', school)}*/}
+                            {/*        query={student.schoolQuery}*/}
+                            {/*        setQuery={(q) => handleChange(index, 'schoolQuery', q)}*/}
+                            {/*        data={filteredSchools}*/}
+                            {/*        displayField={item => item.name}*/}
+                            {/*        getId={item => item.id}*/}
+                            {/*        input_name={`participant-school-${index}`}*/}
+                            {/*        // label={'School'}*/}
+                            {/*        // note={'Search by name, eg: St Augustine Junior School'}*/}
+                            {/*    />}*/}
+
+                            {/*    <p*/}
+                            {/*        className="text-blue-700 mt-2 font-light text-sm hover:text-purple-500 hover:cursor-pointer"*/}
+                            {/*        // onClick={toggleNewSchoolForm}*/}
+                            {/*    >*/}
+                            {/*        Can’t find your school? Click here to add it!*/}
+                            {/*    </p>*/}
+                            {/*</div>*/}
+
+                            {/* School */}
                             <div className="col-span-5 sm:col-span-3">
-                                <label htmlFor={`participant-school-${index}`}
-                                       className="block text-gray-700 font-medium mb-2">
-                                    School
-                                </label>
-                                <SearchSelectInput<School>
+                              <label
+                                htmlFor={`participant-school-${index}`}
+                                className="block text-gray-700 font-medium mb-2"
+                              >
+                                School
+                              </label>
+
+                              {!student.isAddingNewSchool ? (
+                                <>
+                                  {/*<SearchSelectInput<School>*/}
+                                  {/*  selected={student.selectedSchool}*/}
+                                  {/*  setSelected={school => handleSchoolChange(index, 'selectedSchool', school)}*/}
+                                  {/*  query={student.schoolQuery}*/}
+                                  {/*  setQuery={q => handleSchoolChange(index, 'schoolQuery', q)}*/}
+                                  {/*  data={filteredSchools}*/}
+                                  {/*  displayField={item => item.name}*/}
+                                  {/*  getId={item => item.id}*/}
+                                  {/*  input_name={`participant-school-${index}`}*/}
+                                  {/*/>*/}
+
+
+                                {<SearchSelectInput<School>
                                     selected={student.selectedSchool}
-                                    setSelected={(school) => handleChange(index, 'selectedSchool', school)}
+                                    setSelected={(school) => handleSchoolChange(index, 'selectedSchool', school)}
                                     query={student.schoolQuery}
-                                    setQuery={(q) => handleChange(index, 'schoolQuery', q)}
+                                    setQuery={(q) => handleSchoolChange(index, 'schoolQuery', q)}
                                     data={filteredSchools}
                                     displayField={item => item.name}
                                     getId={item => item.id}
                                     input_name={`participant-school-${index}`}
                                     // label={'School'}
                                     // note={'Search by name, eg: St Augustine Junior School'}
-                                />
+                                />}
 
-                                <p
-                                    className="text-blue-700 mt-2 font-light text-sm hover:text-purple-500 hover:cursor-pointer"
-                                    // onClick={toggleNewSchoolForm}
-                                >
-                                    New School? Click here to add details!
-                                </p>
+
+                                  <button
+                                    type="button"
+                                    className="mt-2 text-sm text-blue-700 hover:text-purple-500"
+                                    onClick={() => handleChange(index, 'isAddingNewSchool', true)}
+                                  >
+                                    Can’t find your school? Click here to add it.
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <input
+                                    type="text"
+                                    name={`participant-school-name-${index}`}
+                                    id={`participant-school-name-${index}`}
+                                    placeholder="Enter school name"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-500"
+                                    // value={student.newSchoolName}
+                                    onChange={e => handleChange(index, 'newSchoolName', e.target.value)}
+                                  />
+
+                                  <button
+                                    type="button"
+                                    className="mt-2 text-sm text-gray-600 hover:text-blue-500 cursor-pointer"
+                                    onClick={() => handleChange(index, 'isAddingNewSchool', false)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              )}
                             </div>
+
 
                             {/* Remove Button */}
                             <button
