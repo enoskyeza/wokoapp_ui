@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, {useEffect} from "react";
 import dynamic from 'next/dynamic'
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 import Image from "next/image";
@@ -15,8 +15,13 @@ export default function RegisterPage() {
   const {
     programs, isLoading, error,
     selectedProgram, setSelectedProgram,
-      started, setStarted
+      started, setStarted, setActiveFilter
   } = useRegistrationData()
+
+
+  useEffect(() => {
+    setActiveFilter(true)
+  }, [setActiveFilter])
 
   if (isLoading) return <p>Loading programs…</p>
   if (error)     return <p className="text-red-500">Error loading programs</p>
@@ -61,7 +66,7 @@ export default function RegisterPage() {
           >Next</button>
           <div>
           <Link
-              href={'/'}
+              href={'/dashboard'}
              className="w-full text-white font-semibold px-6  rounded-lg hover:text-green-400 underline"
           >login</Link>
           </div>
