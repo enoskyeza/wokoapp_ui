@@ -72,7 +72,7 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setError(null)
     try {
-      const url = `${API_BASE}/programs/`
+      const url = `${API_BASE}/programs/?active=true`
       const response = await axios.get<Program[]>(url)
       setPrograms(response.data)
     } catch (err) {

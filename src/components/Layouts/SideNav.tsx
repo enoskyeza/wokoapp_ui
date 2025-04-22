@@ -96,7 +96,7 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
       },
       {
         name: "Receipts",
-        href: "#",
+        href: "/receipts",
         icon: DocumentTextIcon,
         current: pathname.startsWith("/receipts"),
       },

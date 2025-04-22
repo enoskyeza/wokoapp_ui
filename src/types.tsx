@@ -242,7 +242,7 @@ export interface Registration {
 
 export interface Receipt {
   id: number;
-  registration: number;
+  registration: string;
   issued_by: number;
   amount: number;
   status: 'paid' | 'refunded';
@@ -275,4 +275,17 @@ export interface SentMessage {
   to: string
   body: string
   dateSent: string
+}
+
+export interface Pagination {
+  page_size: number;
+  total_pages: number;
+  total_records: number;
+  current_page: number;
+  links: Record<string, string | number>;
+}
+
+export interface PaginatedResponse<T> {
+  pagination: Pagination;
+  results: T[];
 }

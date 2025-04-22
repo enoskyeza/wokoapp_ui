@@ -54,7 +54,8 @@ const registerContestant = async (formData: FormData) => {
             age_at_registration: parseInt(formData.get(`participant-age-${i}`) as string, 10),
             gender: formData.get(`participant-gender-${i}`) as string,
             school_at_registration: {
-                id: formData.get(`participant-school-${i}`) as string
+                id: formData.get(`participant-school-${i}`) as string,
+                name: formData.get(`participant-school-name-${i}`) as string
             },
             // payment_method: {
             //     payment_method: formData.get('payment_method') as string // Nested payment method
@@ -70,11 +71,11 @@ const registerContestant = async (formData: FormData) => {
         program: programData
     };
 
-    console.log('Form Submitted(Sever):', requestData);
+    // console.log('Form Submitted(Sever):', requestData);
 
     try {
         const response = await axios.post(API_URL, requestData);
-        console.log('SERVER RESPONSE', response.data)
+        // console.log('SERVER RESPONSE', response.data)
         return {success: true, data: response.data};
     } catch (error) {
         const axiosError = error as AxiosError;
