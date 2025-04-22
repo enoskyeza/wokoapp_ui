@@ -3,6 +3,7 @@ import React from "react";
 import dynamic from 'next/dynamic'
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 import Image from "next/image";
+import Link from "next/link";
 
 const formMap: Record<string, React.ComponentType> = {
   tf: dynamic(() => import('./forms/tfForm'), { ssr: false }),
@@ -58,6 +59,12 @@ export default function RegisterPage() {
             onClick={() => setStarted(true)}
              className="w-full bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 disabled:opacity-50"
           >Next</button>
+          <div>
+          <Link
+              href={'/'}
+             className="w-full text-white font-semibold px-6  rounded-lg hover:text-green-400 underline"
+          >login</Link>
+          </div>
         </div>
       ) : (
         <div>
