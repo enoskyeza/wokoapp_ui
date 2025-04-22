@@ -1,12 +1,16 @@
 'use client'
 import React, { useState } from 'react'
-import axios, { AxiosError } from 'axios'
+// import axios, { AxiosError } from 'axios'
 import { Guardian } from '@/types'
 import {useContacts} from "@/components/Contexts/contactDataProvider";
 
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://yourapi.com/register'
-  : 'http://127.0.0.1:8000/register'
+const mockSend = () => new Promise<void>((_, reject) =>
+  setTimeout(() => reject(new Error("Please subscribe to our SMS service")), 2000)
+)
+
+// const API_BASE = process.env.NODE_ENV === 'production'
+//   ? 'https://yourapi.com/register'
+//   : 'http://127.0.0.1:8000/register'
 
 export default function CustomSMSForm() {
   const { contacts, filterQuery, setFilterQuery, selectedContacts, setSelectedContacts } = useContacts()
@@ -37,18 +41,20 @@ export default function CustomSMSForm() {
     setError(null)
     setSuccess(null)
     try {
-      const body = renderTemplate(previewContact)
-      await axios.post(`${API_BASE}/sms/send/`, {
-        to: previewContact.phone_number,
-        body,
-      })
+      // const body = renderTemplate(previewContact)
+      // await axios.post(`${API_BASE}/sms/send/`, {
+      //   to: previewContact.phone_number,
+      //   body,
+      // })
+      await mockSend()
       setSuccess('SMS sent successfully!')
       // reset
       setTemplate('Hi {first_name}, ')
       setSelectedContacts([])
     } catch (err) {
-      const axiosErr = err as AxiosError
-      setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      // const axiosErr = err as AxiosError
+      // setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      setError((err as Error).message)
     } finally {
       setIsLoading(false)
     }

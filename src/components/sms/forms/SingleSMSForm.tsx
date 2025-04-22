@@ -1,10 +1,14 @@
 'use client'
 import React, { useState } from 'react'
-import axios, { AxiosError } from 'axios'
+// import axios, { AxiosError } from 'axios'
 
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://yourapi.com/register'
-  : 'http://127.0.0.1:8000/register'
+const mockSend = () => new Promise<void>((_, reject) =>
+  setTimeout(() => reject(new Error("Please subscribe to our SMS service")), 2000)
+)
+
+// const API_BASE = process.env.NODE_ENV === 'production'
+//   ? 'https://yourapi.com/register'
+//   : 'http://127.0.0.1:8000/register'
 
 export default function SingleSMSForm() {
   const [phone, setPhone] = useState('')
@@ -13,6 +17,7 @@ export default function SingleSMSForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -20,16 +25,18 @@ export default function SingleSMSForm() {
     setSuccess(null)
 
     try {
-      await axios.post(`${API_BASE}/sms/send/`, {
-        to: phone,
-        body: message,
-      })
+      // await axios.post(`${API_BASE}/sms/send/`, {
+      //   to: phone,
+      //   body: message,
+      // })
+      await mockSend()
       setSuccess('SMS sent successfully!')
       setPhone('')
       setMessage('')
     } catch (err) {
-      const axiosErr = err as AxiosError
-      setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      // const axiosErr = err as AxiosError
+      // setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      setError((err as Error).message)
     } finally {
       setIsLoading(false)
     }

@@ -1,12 +1,16 @@
 'use client'
 import React, { useState} from 'react'
-import axios, { AxiosError } from 'axios'
+// import axios, { AxiosError } from 'axios'
 import { Guardian } from '@/types'
 import {useContacts} from "@/components/Contexts/contactDataProvider";
 
-const API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://yourapi.com/register'
-  : 'http://127.0.0.1:8000/register'
+const mockSend = () => new Promise<void>((_, reject) =>
+  setTimeout(() => reject(new Error("Please subscribe to our SMS service")), 2000)
+)
+
+// const API_BASE = process.env.NODE_ENV === 'production'
+//   ? 'https://yourapi.com/register'
+//   : 'http://127.0.0.1:8000/register'
 
 export default function BulkSMSForm() {
   const { contacts, filterQuery, setFilterQuery, selectedContacts, setSelectedContacts } = useContacts()
@@ -16,6 +20,16 @@ export default function BulkSMSForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+
+const handleSelectAll = () => {
+  if (selectedContacts.length === contacts.length) {
+    setSelectedContacts([])
+  } else {
+    setSelectedContacts([...contacts])
+  }
+}
+
 
   // Toggle contact selection
   const toggleContact = (c: Guardian) => {
@@ -42,13 +56,15 @@ export default function BulkSMSForm() {
     setSuccess(null)
 
     try {
-      const promises = selectedContacts.map(c => {
-        const body = mode === 'general' ? message : renderTemplate(c)
-        return axios.post(`${API_BASE}/sms/send/`, {
-          to: c.phone_number,
-          body,
-        })
-      })
+      // const promises = selectedContacts.map(c => {
+      //   const body = mode === 'general' ? message : renderTemplate(c)
+      //   return axios.post(`${API_BASE}/sms/send/`, {
+      //     to: c.phone_number,
+      //     body,
+      //   })
+      // })
+      // await Promise.all(promises)
+      const promises = selectedContacts.map(() => mockSend())
       await Promise.all(promises)
       setSuccess(`Sent to ${selectedContacts.length} contacts!`)
       // reset
@@ -56,8 +72,9 @@ export default function BulkSMSForm() {
       setMessage('')
       setTemplate('Hi {first_name}, ')
     } catch (err) {
-      const axiosErr = err as AxiosError
-      setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      // const axiosErr = err as AxiosError
+      // setError(axiosErr.response?.data?.toString() ?? axiosErr.message)
+      setError((err as Error).message)
     } finally {
       setIsLoading(false)
     }
@@ -74,6 +91,23 @@ export default function BulkSMSForm() {
           placeholder="Search contacts..."
           className="mb-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
         />
+
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-gray-700">
+            Selected: {selectedContacts.length}
+          </span>
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            className="text-sm font-medium text-blue-500 hover:underline focus:outline-none"
+          >
+            {selectedContacts.length === contacts.length
+              ? 'Deselect All'
+              : 'Select All'}
+          </button>
+        </div>
+
+
         <ul className="max-h-32 overflow-auto border rounded-md p-2">
           {contacts.map(c => (
             <li key={c.id} className="flex items-center">
