@@ -240,6 +240,23 @@ export interface Registration {
   updated_at: string;
 }
 
+export interface FetchedRegistration {
+  id: number;
+  participant: {
+                id: number;
+                first_name: string;
+                last_name: string;
+                gender: "M" | "F"
+            };
+  program: string;
+  age_at_registration: number;
+  school_at_registration?: string;
+  guardian_at_registration?: string;
+  status: 'pending' | 'paid' | 'cancelled' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Receipt {
   id: number;
   registration: string;
