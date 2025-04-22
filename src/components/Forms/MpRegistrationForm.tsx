@@ -71,11 +71,11 @@ const registerContestant = async (formData: FormData) => {
         program: programData
     };
 
-    console.log('Form Submitted(Sever):', requestData);
+    // console.log('Form Submitted(Sever):', requestData);
 
     try {
         const response = await axios.post(API_URL, requestData);
-        console.log('SERVER RESPONSE', response.data)
+        // console.log('SERVER RESPONSE', response.data)
         return {success: true, data: response.data};
     } catch (error) {
         const axiosError = error as AxiosError;
