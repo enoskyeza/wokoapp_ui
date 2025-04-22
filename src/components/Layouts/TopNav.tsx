@@ -32,7 +32,7 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
         try {
             const res = await fetch('/api/logout', { method: 'POST' });
             if (res.ok) {
-                router.push('/login'); // Redirect to login page
+                router.push('/');
             } else {
                 console.error('Logout failed:', await res.json());
             }
