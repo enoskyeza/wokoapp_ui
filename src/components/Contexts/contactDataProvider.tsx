@@ -6,7 +6,7 @@ import { Guardian } from '@/types'
 
 // Base API URL depending on environment
 const API_BASE = process.env.NODE_ENV === 'production'
-  ? 'https://yourapi.com/register'
+  ? 'https://kyeza.pythonanywhere.com/register'
   : 'http://127.0.0.1:8000/register'
 
 export type ContactsContextType = {

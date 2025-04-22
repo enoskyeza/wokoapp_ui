@@ -19,12 +19,12 @@ export const dummySentMessages: SentMessage[] = [
     body: 'Don’t miss the Wokober Youth Leadership Workshop on April 27.',
     dateSent: '2025-04-18T09:45:00Z',
   },
-  {
-    id: 4,
-    to: '+256704444444',
-    body: 'Last chance to register for the Wokober Art Contest! Submit by April 25.',
-    dateSent: '2025-04-17T15:30:00Z',
-  },
+  // {
+  //   id: 4,
+  //   to: '+256704444444',
+  //   body: 'Last chance to register for the Wokober Art Contest! Submit by April 25.',
+  //   dateSent: '2025-04-17T15:30:00Z',
+  // },
   {
     id: 5,
     to: '+256705555555',
@@ -37,12 +37,12 @@ export const dummySentMessages: SentMessage[] = [
     body: 'Join Wokober Community Cleanup on April 30—your town needs you!',
     dateSent: '2025-04-15T08:00:00Z',
   },
-  {
-    id: 7,
-    to: '+256707777777',
-    body: 'Wokober Environmental Awareness Day event tomorrow at 3 PM.',
-    dateSent: '2025-04-14T14:10:00Z',
-  },
+  // {
+  //   id: 7,
+  //   to: '+256707777777',
+  //   body: 'Wokober Environmental Awareness Day event tomorrow at 3 PM.',
+  //   dateSent: '2025-04-14T14:10:00Z',
+  // },
   {
     id: 8,
     to: '+256708888888',
