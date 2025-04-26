@@ -251,7 +251,15 @@ export interface FetchedRegistration {
   program: string;
   age_at_registration: number;
   school_at_registration?: string;
-  guardian_at_registration?: string;
+  guardian_at_registration?: {
+                id: number;
+                first_name: string;
+                last_name: string;
+                phone_number: string;
+                address: string;
+                profession: string;
+                email:string
+            };
   status: 'pending' | 'paid' | 'cancelled' | 'refunded';
   created_at: string;
   updated_at: string;

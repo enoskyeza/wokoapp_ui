@@ -1,5 +1,5 @@
 'use client'
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {DateRangePicker} from "@nextui-org/date-picker";
 // import ReceiptModalDialog from "@/components/DetailViews/ReceiptModal";
 // import {PlusCircleIcon} from "@heroicons/react/24/outline";
@@ -9,6 +9,7 @@ import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 import {DynamicSelect} from "@/components/menus/customSelect";
 import {Program} from "@/types";
 import {useEnrollmentData} from "@/components/Contexts/enrollmentDataProvider";
+import RegistrationModalDialog from "@/components/DetailViews/RegistrationModal";
 
 function findProgramTypeIdByName(
   programs: Program[],
@@ -25,7 +26,7 @@ function findProgramTypeIdByName(
 
 
 function Registrations() {
-    const {enrollments, filters, setFilters, clearFilters} = useEnrollmentData()
+    const {enrollments, filters, setFilters, clearFilters, selectedEnrollment, selectEnrollmentById} = useEnrollmentData()
     const { programs, setProgramTypeFilter } = useRegistrationData()
 
   useEffect(() => {
@@ -47,13 +48,12 @@ function Registrations() {
   }, [programs.length]);
 
 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-    // const [selectedReceipt, setSelectedReceipt] = useState<number | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // const handleSelectReceipt = (receiptId:number) => {
-    //     setIsModalOpen(true);
-    //     setSelectedReceipt(receiptId);
-    // }
+    const handleSelectReg = (receiptId:number) => {
+        setIsModalOpen(true);
+        selectEnrollmentById(receiptId);
+    }
 
     type PaymentStatus = 'pending' | 'paid' | 'cancelled' | 'refunded';
 
@@ -157,7 +157,7 @@ function Registrations() {
                             <div className="font-semibold text-center">Age</div>
                         </th>
                         <th className="p-2">
-                            <div className="font-semibold text-left">Gender</div>
+                            <div className="font-semibold text-center">Gender</div>
                         </th>
                         <th className="p-2">
                             <div className="font-semibold text-left">Guardian</div>
@@ -190,13 +190,13 @@ function Registrations() {
                                 <td className="p-2">
                                     <div className="flex flex-col items-left">
                                         <p
-                                            // onClick={() => (handleSelectReg(reg.id))}
+                                            onClick={() => (handleSelectReg(reg.id))}
                                             className="text-gray-800 font-bold cursor-pointer hover:text-blue-400"
                                         >
                                             {`REG-${String(reg.id).padStart(3, '0')}: ${reg.participant.first_name} ${reg.participant.last_name}`}
                                         </p>
                                         <p
-                                            // onClick={() => (handleSelectReg(reg.id))}
+                                            onClick={() => (handleSelectReg(reg.id))}
                                             className="text-gray-800 cursor-pointer hover:text-blue-400"
                                         >
                                             {`${reg.program}`}
@@ -210,13 +210,13 @@ function Registrations() {
                                     <div className="text-center">{reg.participant.gender}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="text-center">{reg.guardian_at_registration}</div>
+                                    <div className="text-left">{`${reg.guardian_at_registration?.first_name} ${reg.guardian_at_registration?.last_name}`}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="max-w-[150px] text-center capitalize">{reg.school_at_registration?.toLowerCase()}</div>
+                                    <div className="max-w-[150px] text-left capitalize">{reg.school_at_registration?.toLowerCase()}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="text-center">
+                                    <div className="text-left">
                                         <span
                                             className={`my-1 px-3 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-sm ring-[1.5px] ring-offset-1 ${
                                                 reg.status === 'paid'
@@ -238,10 +238,10 @@ function Registrations() {
             </div>
 
 
-            {/* Modal Component */}
-            {/*{isModalOpen && selectedReg && (*/}
-            {/*    <RegModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} regId={selectedReg} />*/}
-            {/*)}*/}
+             {/*Modal Component*/}
+            {isModalOpen && selectedEnrollment && (
+                <RegistrationModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
+            )}
         </div>
     );
 };
