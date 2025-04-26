@@ -44,6 +44,8 @@ export type EnrollmentDataContextType = {
    */
   clearFilters: (preserveKeys?: (keyof EnrollmentFilters)[]) => void
 
+  selectedEnrollment: FetchedRegistration | null
+  selectEnrollmentById: (id: number) => FetchedRegistration | null
 
   // Actions
   refreshEnrollments: () => Promise<void>
@@ -59,6 +61,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<unknown>(null)
   const [filters, setFilters] = useState<EnrollmentFilters>(initialFilters)
+  const [selectedEnrollment, setSelectedEnrollment] = useState<FetchedRegistration | null>(null)
+
 
   // const clearFilters = () => setFilters(initialFilters)
 
@@ -112,6 +116,12 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     void fetchEnrollments()
   }, [filters])
 
+    const selectEnrollmentById = (id: number) => {
+    const found = enrollments.find(e => e.id === id) || null
+    setSelectedEnrollment(found)
+    return found
+  }
+
   const refreshEnrollments = () => fetchEnrollments()
 
   return (
@@ -124,6 +134,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       setFilters,
       clearFilters,
       refreshEnrollments,
+      selectedEnrollment,
+      selectEnrollmentById
     }}>
       {children}
     </EnrollmentDataContext.Provider>
@@ -136,131 +148,3 @@ export function useEnrollmentData() {
   if (!context) throw new Error('useEnrollmentData must be used within an EnrollmentProvider')
   return context
 }
-
-// 'use client'
-// import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-// import axios, { AxiosError } from 'axios'
-// import { FetchedRegistration, Pagination } from '@/types'
-//
-// // Base API URL depending on environment
-// enum Env {
-//   DEVELOPMENT = 'development',
-//   PRODUCTION = 'production',
-// }
-// const API_BASE = process.env.NODE_ENV === Env.PRODUCTION
-//   ? 'https://kyeza.pythonanywhere.com/register'
-//   : 'http://127.0.0.1:8000/register'
-//
-// // Context type for enrollments
-// export type EnrollmentDataContextType = {
-//   enrollments: FetchedRegistration[]
-//   pagination: Pagination | null
-//   isLoading: boolean
-//   error: unknown
-//
-//   // Filters & controls
-//   searchQuery: string
-//   setSearchQuery: (q: string) => void
-//   statusFilter: string | null
-//   setStatusFilter: (status: string | null) => void
-//   programFilter: number | null
-//   setProgramFilter: (programId: number | null) => void
-//   programTypeFilter: number | null
-//   setProgramTypeFilter: (typeId: number | null) => void
-//   participantFilter: number | null
-//   setParticipantFilter: (participantId: number | null) => void
-//   ordering: string
-//   setOrdering: (order: string) => void
-//   currentPage: number
-//   setCurrentPage: (page: number) => void
-//
-//   // Actions
-//   refreshEnrollments: () => Promise<void>
-// }
-//
-// // Create context
-// const EnrollmentDataContext = createContext<EnrollmentDataContextType | undefined>(undefined)
-//
-// // Provider
-// export function EnrollmentProvider({ children }: { children: ReactNode }) {
-//   const [enrollments, setEnrollments] = useState<FetchedRegistration[]>([])
-//   const [pagination, setPagination] = useState<Pagination | null>(null)
-//   const [isLoading, setIsLoading] = useState(false)
-//   const [error, setError] = useState<unknown>(null)
-//
-//   // Filters
-//   const [searchQuery, setSearchQuery] = useState<string>('')
-//   const [statusFilter, setStatusFilter] = useState<string | null>(null)
-//   const [programFilter, setProgramFilter] = useState<number | null>(null)
-//   const [programTypeFilter, setProgramTypeFilter] = useState<number | null>(null)
-//   const [participantFilter, setParticipantFilter] = useState<number | null>(null)
-//   const [ordering, setOrdering] = useState<string>('-created_at')
-//   const [currentPage, setCurrentPage] = useState<number>(1)
-//
-//   // Fetch enrollments
-//   const fetchEnrollments = async () => {
-//     setIsLoading(true)
-//     setError(null)
-//     try {
-//       const params = new URLSearchParams()
-//       params.append('page', String(currentPage))
-//       if (searchQuery) params.append('search', searchQuery)
-//       if (statusFilter) params.append('status', statusFilter)
-//       if (programFilter !== null) params.append('program', String(programFilter))
-//       if (programTypeFilter !== null) params.append('program__type', String(programTypeFilter))
-//       if (participantFilter !== null) params.append('participant', String(participantFilter))
-//       if (ordering) params.append('ordering', ordering)
-//
-//       const queryString = params.toString() ? `?${params.toString()}` : ''
-//       const url = `${API_BASE}/registrations/${queryString}`
-//       const response = await axios.get<{ pagination: Pagination; results: FetchedRegistration[] }>(url)
-//       setEnrollments(response.data.results)
-//       setPagination(response.data.pagination)
-//     } catch (err) {
-//       const axiosErr = err as AxiosError
-//       setError(axiosErr.response?.data ?? axiosErr.message)
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
-//
-//   // Auto-fetch whenever filters, ordering or page change
-//   useEffect(() => {
-//     void fetchEnrollments()
-//   }, [searchQuery, statusFilter, programFilter, programTypeFilter, participantFilter, ordering, currentPage])
-//
-//   const refreshEnrollments = () => fetchEnrollments()
-//
-//   return (
-//     <EnrollmentDataContext.Provider value={{
-//       enrollments,
-//       pagination,
-//       isLoading,
-//       error,
-//       searchQuery,
-//       setSearchQuery,
-//       statusFilter,
-//       setStatusFilter,
-//       programFilter,
-//       setProgramFilter,
-//       programTypeFilter,
-//       setProgramTypeFilter,
-//       participantFilter,
-//       setParticipantFilter,
-//       ordering,
-//       setOrdering,
-//       currentPage,
-//       setCurrentPage,
-//       refreshEnrollments,
-//     }}>
-//       {children}
-//     </EnrollmentDataContext.Provider>
-//   )
-// }
-//
-// // Custom hook
-// export function useEnrollmentData() {
-//   const context = useContext(EnrollmentDataContext)
-//   if (!context) throw new Error('useEnrollmentData must be used within an EnrollmentProvider')
-//   return context
-// }
