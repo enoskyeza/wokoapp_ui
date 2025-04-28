@@ -5,10 +5,11 @@ import {DateRangePicker} from "@nextui-org/date-picker";
 import ContestantModalDialog from "@/components/DetailViews/ContestantModal";
 import {useParticipantContext} from "@/context/ParticipantContext";
 import {PlusCircleIcon} from "@heroicons/react/24/outline";
+import ReportGenerator from "@/components/Printing/tfReport";
 
 
 function Contestants() {
-    const { participants } = useParticipantContext();
+    const { participants, parents } = useParticipantContext();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedParticipant, setSelectedParticipant] = useState<number | null>(null);
@@ -48,7 +49,6 @@ function Contestants() {
             </div>
 
             <div className="flex flex-wrap sm:justify-end px-6 mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
-
                 <FilterMenu filters={filters} setFilters={setFilters}/>
                 <DateRangePicker
                     variant='bordered'
@@ -56,6 +56,11 @@ function Contestants() {
                     className=" max-w-xs"
                     aria-label="Select date range"
                 />
+            </div>
+
+
+            <div className="flex flex-wrap sm:justify-end px-6 mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
+                <ReportGenerator parents={parents} contestants={participants} />
             </div>
 
             {/* Table */}
