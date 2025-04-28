@@ -41,6 +41,7 @@ export interface Participant {
     scores: Score[],
 }
 
+
 export interface FormParticipant {
     first_name: string;
     last_name: string;
@@ -49,6 +50,7 @@ export interface FormParticipant {
     gender: 'M' | 'F';
     school: string;
 }
+
 
 export interface Parent {
     id: number;
@@ -240,6 +242,26 @@ export interface Registration {
   updated_at: string;
 }
 
+
+export interface Receipt {
+  id: number;
+  registration: string;
+  issued_by: number;
+  amount: number;
+  status: 'paid' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Coupon {
+  id: number;
+  registration: number;
+  qr_code: string;
+  status: 'paid' | 'refunded';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FetchedRegistration {
   id: number;
   participant: {
@@ -263,25 +285,9 @@ export interface FetchedRegistration {
   status: 'pending' | 'paid' | 'cancelled' | 'refunded';
   created_at: string;
   updated_at: string;
-}
-
-export interface Receipt {
-  id: number;
-  registration: string;
-  issued_by: number;
-  amount: number;
-  status: 'paid' | 'refunded';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Coupon {
-  id: number;
-  registration: number;
-  qrCodeUrl?: string;
-  status: 'paid' | 'refunded';
-  created_at: string;
-  updated_at: string;
+  amount_due: number;
+  coupon?:Coupon;
+  receipts?: Receipt[]
 }
 
 export interface Approval {
