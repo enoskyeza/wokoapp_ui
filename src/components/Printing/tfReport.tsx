@@ -131,7 +131,7 @@ export default function ReportGenerator({ parents, contestants }: ReportGenerato
 
   return (
     <Menu as="div" className="relative inline-block text-left z-10">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={generateGuardiansCSV}
           className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
