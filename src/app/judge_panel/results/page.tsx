@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, useEffect } from "react";
 import { PaginatedResults } from "@/types";
 import { API_URL } from "@/config";

@@ -1,111 +1,84 @@
-import React, { useState } from 'react';
+// import React from 'react';
 
-const categories = [
-    {
-        name: 'Fun',
-        criteria: [
-            'Did the child have fun building it?',
-            'Linking hobby to the activity',
-            'Toy demonstration moment',
-            'Passion',
-            'Bonus point',
-        ],
-    },
-    {
-        name: 'Function',
-        criteria: [
-            'Functionality',
-            'Applicability',
-            'Lends itself to more than one use?',
-            'Bonus points',
-        ],
-    },
-    {
-        name: 'Engineering and crafting',
-        criteria: [
-            'Neatness',
-            'Quality of execution',
-            'Attention to detail',
-            'Build Style',
-        ],
-    },
-    {
-        name: 'Creativity & Innovation',
-        criteria: [
-            'Build Style',
-            'Uniqueness',
-            'Demonstrate an understanding of material properties',
-            'Combining different materials/resources',
-            'Bonus point',
-        ],
-    },
-];
+// interface NewCriteria {
+//     id: number;
+//     name: string;
+//     score: string
+//  }
 
-type ScoreFormProps = {
-    onScoresChange: (scores: Record<string, string>) => void;
-};
+// interface CategoryProp {
+//     id?: number
+//     name: string;
+//     criteria: NewCriteria[];
+// }
+
+// interface ScoreUpdateFormProps {
+//     categories: CategoryProp[];
+//     scores: Record<string, string>;
+//     onScoresChange: (updatedScores: Record<string, string>) => void;
+//     openSections: string[];
+//     toggleSection: (categoryName: string) => void;
+// }
+
+// const ScoreUpdateForm: React.FC<ScoreUpdateFormProps> = ({
+//     categories,
+//     scores,
+//     onScoresChange,
+//     openSections,
+//     toggleSection,
+// }) => {
+//     const handleInputChange = (criteriaName: string, value: string) => {
+//         const updatedScores = {
+//             ...scores,
+//             [criteriaName]: value,
+//         };
+//         onScoresChange(updatedScores);
+//     };
 
 
-const ScoreForm: React.FC<ScoreFormProps> = ({ onScoresChange }) => {
-    const [scores, setScores] = useState<Record<string, string>>({});
-    const [openSections, setOpenSections] = useState<string[]>([]);
+//     return (
+//         <div className="p-4 max-w-4xl mx-auto shadow-md rounded-lg">
+//             {categories.map((category) => (
+//                 <div key={category.name} className="mb-4">
+//                     <button
+//                         onClick={() => toggleSection(category.name)}
+//                         className="w-full text-left bg-blue-100 text-blue-700 px-4 py-2 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+//                     >
+//                         {category.name}
+//                     </button>
+//                     {openSections.includes(category.name) && (
+//                         <fieldset className="mt-2 border border-gray-300 rounded-md p-4">
+//                             <legend className="text-lg font-semibold text-gray-700">
+//                                 {category.name}
+//                             </legend>
+//                             {category.criteria.map((criteria) => (
+//                                 <div key={criteria.id} className="mb-2">
+//                                     <label
+//                                         htmlFor={`criteria-${criteria.id}`}
+//                                         className="block text-sm font-medium text-gray-600"
+//                                     >
+//                                         {criteria.name}
+//                                     </label>
+//                                     <input
+//                                         id={`criteria-${criteria.id}`}
+//                                         type="number"
+//                                         step="0.01"
+//                                         max="10"
+//                                         value={scores[criteria.score] || ''}
+//                                         onChange={(e) =>
+//                                             handleInputChange(criteria.name, e.target.value)
+//                                         }
+//                                         className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+//                                         placeholder="Enter score (max 10)"
+//                                     />
+//                                 </div>
+//                             ))}
+//                         </fieldset>
+//                     )}
+//                 </div>
+//             ))}
+//         </div>
+//     );
+// };
 
-    const handleInputChange = (criteria: string, value: string) => {
-        const updatedScores = {
-          ...scores,
-          [criteria]: value,
-        };
-        setScores(updatedScores);
-        onScoresChange(updatedScores); // Notify the parent about score changes
-      };
-
-    const handleToggleSection = (category: string) => {
-        setOpenSections((prevSections) =>
-            prevSections.includes(category)
-                ? prevSections.filter((section) => section !== category)
-                : [...prevSections, category]
-        );
-    };
-
-
-
-    return (
-        <div className="p-4 max-w-4xl mx-auto  shadow-md rounded-lg">
-            {categories.map((category) => (
-                <div key={category.name} className="mb-4">
-                    <button
-                        onClick={() => handleToggleSection(category.name)}
-                        className="w-full text-left bg-blue-100 text-blue-700 px-4 py-2 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
-                    >
-                        {category.name}
-                    </button>
-                    {openSections.includes(category.name) && (
-                        <fieldset className="mt-2 border border-gray-300 rounded-md p-4">
-                            <legend className="text-lg font-semibold text-gray-700">
-                                {category.name}
-                            </legend>
-                            {category.criteria.map((criteria) => (
-                                <div key={criteria} className="mb-2">
-                                    <label className="block text-sm font-medium text-gray-600">
-                                        {criteria}
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        max="10"
-                                        value={scores[criteria] || ''}
-                                        onChange={(e) => handleInputChange(criteria, e.target.value)}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                        placeholder="Enter score (max 10)"
-                                    />
-                                </div>
-                            ))}
-                        </fieldset>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-};
-
-export default ScoreForm;
+// export default ScoreUpdateForm;
