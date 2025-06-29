@@ -95,7 +95,7 @@ const ScoreForm: React.FC<ScoreFormProps> = ({ onScoresChange }) => {
                                         max="10"
                                         value={scores[criteria] || ''}
                                         onChange={(e) => handleInputChange(criteria, e.target.value)}
-                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        className="mt-1 block px-3 w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                         placeholder="Enter score (max 10)"
                                     />
                                 </div>

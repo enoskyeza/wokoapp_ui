@@ -12,8 +12,7 @@ const API_BASE = process.env.NODE_ENV === Env.PRODUCTION
   ? 'https://kyeza.pythonanywhere.com/register'
   : 'http://127.0.0.1:8000/register'
 
-// Shape of filter object
-type EnrollmentFilters = {
+export type EnrollmentFilters = {
   search?: string
   status?: 'pending' | 'paid' | 'cancelled' | 'refunded'
   program?: number
@@ -28,7 +27,6 @@ const initialFilters: EnrollmentFilters = {
   page: 1,
 }
 
-// Context type for enrollments
 export type EnrollmentDataContextType = {
   enrollments: FetchedRegistration[]
   pagination: Pagination | null
@@ -37,24 +35,20 @@ export type EnrollmentDataContextType = {
 
   filters: EnrollmentFilters
   setFilters: (f: EnrollmentFilters) => void
-
-    /**
-   * Reset filters to defaults, optionally preserving certain keys.
-   * @param preserveKeys keys in filters to keep from current state
-   */
   clearFilters: (preserveKeys?: (keyof EnrollmentFilters)[]) => void
 
   selectedEnrollment: FetchedRegistration | null
   selectEnrollmentById: (id: number) => FetchedRegistration | null
 
-  // Actions
   refreshEnrollments: () => Promise<void>
+
+  processPayment: (data: { regId: number; status: string; amount?: number }) => Promise<boolean>
+  paymentLoading: boolean
+  paymentError: unknown
 }
 
-// Create context
 const EnrollmentDataContext = createContext<EnrollmentDataContextType | undefined>(undefined)
 
-// Provider
 export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const [enrollments, setEnrollments] = useState<FetchedRegistration[]>([])
   const [pagination, setPagination] = useState<Pagination | null>(null)
@@ -63,24 +57,9 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<EnrollmentFilters>(initialFilters)
   const [selectedEnrollment, setSelectedEnrollment] = useState<FetchedRegistration | null>(null)
 
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [paymentError, setPaymentError] = useState<unknown>(null)
 
-  // const clearFilters = () => setFilters(initialFilters)
-
-  const clearFilters = (preserveKeys: (keyof EnrollmentFilters)[] = []) => {
-    setFilters(prev => {
-      const next: EnrollmentFilters = { ...initialFilters }
-      for (const key of preserveKeys) {
-        if (key in prev) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          next[key] = prev[key]
-        }
-      }
-      return next
-    })
-  }
-
-  // Build query string from filter object
   const buildQuery = (f: EnrollmentFilters) => {
     const params = new URLSearchParams()
     if (f.page !== undefined) params.append('page', String(f.page))
@@ -93,7 +72,6 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     return params.toString() ? `?${params.toString()}` : ''
   }
 
-  // Fetch enrollments
   const fetchEnrollments = async () => {
     setIsLoading(true)
     setError(null)
@@ -111,18 +89,48 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Auto-fetch on filters change
   useEffect(() => {
     void fetchEnrollments()
   }, [filters])
 
-    const selectEnrollmentById = (id: number) => {
+  const selectEnrollmentById = (id: number) => {
     const found = enrollments.find(e => e.id === id) || null
     setSelectedEnrollment(found)
     return found
   }
 
   const refreshEnrollments = () => fetchEnrollments()
+
+  // Process payment and refresh data
+  const processPayment = async ({ regId, status, amount }: { regId: number; status: string; amount?: number }) => {
+    setPaymentLoading(true)
+    setPaymentError(null)
+    try {
+      const url = `${API_BASE}/approvals/`
+      const payload: { registration: number; status: string; amount?: number } = { registration: regId, status }
+      if (amount !== undefined) payload.amount = amount
+      await axios.post(url, payload)
+      await fetchEnrollments()
+      return true
+    } catch (err) {
+      const axiosErr = err as AxiosError
+      setPaymentError(axiosErr.response?.data ?? axiosErr.message)
+      return false
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  const clearFilters = (preserveKeys: (keyof EnrollmentFilters)[] = []) => {
+    setFilters(prev => {
+      const next: EnrollmentFilters = { ...initialFilters }
+      for (const key of preserveKeys) {
+        // @ts-expect-error TypeScript: copying previous filter values to next
+        next[key] = prev[key]
+      }
+      return next
+    })
+  }
 
   return (
     <EnrollmentDataContext.Provider value={{
@@ -135,14 +143,16 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       clearFilters,
       refreshEnrollments,
       selectedEnrollment,
-      selectEnrollmentById
+      selectEnrollmentById,
+      processPayment,
+      paymentLoading,
+      paymentError,
     }}>
       {children}
     </EnrollmentDataContext.Provider>
   )
 }
 
-// Custom hook
 export function useEnrollmentData() {
   const context = useContext(EnrollmentDataContext)
   if (!context) throw new Error('useEnrollmentData must be used within an EnrollmentProvider')

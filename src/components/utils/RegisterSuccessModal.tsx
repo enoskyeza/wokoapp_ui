@@ -75,7 +75,7 @@ function SuccessModalDialog({isOpen, setIsOpen, participants, report=[], program
                 </div>
             </DialogBody>
             <DialogActions>
-                <Button plain onClick={handleClose}>
+                <Button variant="ghost" onClick={handleClose}>
                     Close
                 </Button>
                 {/*<Button type="submit">Add</Button>*/}
