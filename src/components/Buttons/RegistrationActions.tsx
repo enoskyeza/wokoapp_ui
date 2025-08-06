@@ -46,20 +46,20 @@ const RegistrationActions: React.FC<RegistrationActionsProps> = ({ registration 
   return (
     <div className="relative inline-block text-left">
       {/* Status and Amount Due */}
-      <div className="mb-2 flex items-center space-x-4">
-        <span className={
-          `px-2 py-1 rounded-full text-xs font-semibold \$
-          {registration.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : ''}
-          {registration.status === 'paid' ? 'bg-green-200 text-green-800' : ''}
-          {registration.status === 'cancelled' ? 'bg-red-200 text-red-800' : ''}
-          {registration.status === 'refunded' ? 'bg-gray-200 text-gray-800' : ''}`
-        }>
-          {registration.status.toUpperCase()}
-        </span>
-        <span className="text-sm text-gray-600">
-          Amount Due: {Number(registration.amount_due).toFixed(2)}
-        </span>
-      </div>
+      {/*<div className="mb-2 flex items-center space-x-4">*/}
+      {/*  /!*<span className={*!/*/}
+      {/*  /!*  `px-2 py-1 rounded-full text-xs font-semibold \$*!/*/}
+      {/*  /!*  {registration.status === 'pending' ? 'bg-yellow-200 text-yellow-800' : ''}*!/*/}
+      {/*  /!*  {registration.status === 'paid' ? 'bg-green-200 text-green-800' : ''}*!/*/}
+      {/*  /!*  {registration.status === 'cancelled' ? 'bg-red-200 text-red-800' : ''}*!/*/}
+      {/*  /!*  {registration.status === 'refunded' ? 'bg-gray-200 text-gray-800' : ''}`*!/*/}
+      {/*  /!*}>*!/*/}
+      {/*  /!*  {registration.status.toUpperCase()}*!/*/}
+      {/*  /!*</span>*!/*/}
+      {/*  <span className="text-sm text-gray-600">*/}
+      {/*    Amount Due: {Number(registration.amount_due).toFixed(2)}*/}
+      {/*  </span>*/}
+      {/*</div>*/}
 
       {/* Actions Button */}
       <button

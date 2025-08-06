@@ -1,7 +1,6 @@
 "use client"
 import React from 'react'
-import {Dialog, DialogActions, DialogBody, DialogTitle} from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
+import {Dialog,  DialogBody, DialogTitle} from '@/components/ui/dialog';
 import Image from "next/image";
 import participantMale from '/public/contestant_boy.jpg';
 import participantFemale from '/public/contestant_girl.jpg';
@@ -44,9 +43,11 @@ function RegistrationModalDialog({isOpen, setIsOpen}: InterfaceProps){
                                     height={100}
                                 />
                             )}
-                            <div className="">
+                            <div className="w-full">
                                 <p className="text-xl font-semibold">{selectedEnrollment.participant.first_name} {selectedEnrollment.participant.last_name}</p>
                                 <p className="text-md font-semibold">{`REG:${String(selectedEnrollment.id).padStart(3, '0')}`}</p>
+                                <div className="flex flex-row items-end justify-between w-full gap-2">
+                                    <div>
                                 <p> {selectedEnrollment.age_at_registration} Years | {selectedEnrollment.participant.gender === 'M' ? 'Male' : 'Female'}</p>
                                 <span className={`px-2 py-1 text-xs rounded-md font-semibold ${
                                     selectedEnrollment.status === 'paid' 
@@ -57,6 +58,11 @@ function RegistrationModalDialog({isOpen, setIsOpen}: InterfaceProps){
                                 }`}>
                                     {selectedEnrollment.status === 'paid' ? 'Paid' : (selectedEnrollment.status === 'cancelled' ? 'cancelled' : 'Pending payment')}
                                 </span>
+                                        </div>
+                                <div className="">
+                                    {selectedEnrollment && (<RegistrationActions registration={selectedEnrollment} />)}
+                                </div>
+                                    </div>
                             </div>
                         </div>
                         <div className="mt-6">
@@ -73,21 +79,12 @@ function RegistrationModalDialog({isOpen, setIsOpen}: InterfaceProps){
                                         {selectedEnrollment.guardian_at_registration.address && <p><strong>Address:</strong> {selectedEnrollment.guardian_at_registration.address}</p>}
                                     </>
                                 )}
+
                             </div>
                         </div>
                     </div>
                 </>
             </DialogBody>
-            <DialogActions>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                    <Button onClick={() => setIsOpen(false)}>
-                        Close
-                    </Button>
-
-                </div>
-                {selectedEnrollment && (<RegistrationActions registration={selectedEnrollment} />)}
-                {/*<Button type="submit">Add</Button>*/}
-            </DialogActions>
         </Dialog>
     );
 }
