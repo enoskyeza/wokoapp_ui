@@ -13,6 +13,7 @@ const RegistrationLandingPage: React.FC = () => {
             style={{backgroundImage: "url('/bg.jpg')", backgroundSize: "cover", backgroundRepeat: "no-repeat"}}
             className="min-h-screen bg-theme-primary flex flex-col items-center justify-center"
         >
+            {/*<RegisterPage />*/}
             <RegisterPage />
         </div>
       </RegistrationProvider>
