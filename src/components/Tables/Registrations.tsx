@@ -10,47 +10,56 @@ import {DynamicSelect} from "@/components/menus/customSelect";
 import {Program} from "@/types";
 import {useEnrollmentData} from "@/components/Contexts/enrollmentDataProvider";
 import RegistrationModalDialog from "@/components/DetailViews/RegistrationModal";
+import { format } from "date-fns";
 
 function findProgramTypeIdByName(
-  programs: Program[],
-  targetNames: string[]
+    programs: Program[],
+    targetNames: string[]
 ): number | null {
-  const match = programs.find(p => {
-    if (!p.type || !p.type.name) return false
-    const lower = p.type.name.toLowerCase()
-    return targetNames.some(t => lower === t.toLowerCase())
-  })
+    const match = programs.find(p => {
+        if (!p.type || !p.type.name) return false
+        const lower = p.type.name.toLowerCase()
+        return targetNames.some(t => lower === t.toLowerCase())
+    })
 
-  return match?.type?.id ?? null
+    return match?.type?.id ?? null
 }
 
 
 function Registrations() {
-    const {enrollments, filters, setFilters, clearFilters, selectedEnrollment, selectEnrollmentById} = useEnrollmentData()
-    const { programs, setProgramTypeFilter } = useRegistrationData()
+    const {
+        enrollments,
+        filters,
+        setFilters,
+        clearFilters,
+        selectedEnrollment,
+        selectEnrollmentById
+    } = useEnrollmentData()
+    const {programs, setProgramTypeFilter} = useRegistrationData()
 
-  useEffect(() => {
-    // look for either spelling
-    const oneTimeId = findProgramTypeIdByName(programs, [
-      'Mentorship Programme',
-      'Mentorship Program'
-    ]);
+
+    useEffect(() => {
+        // look for either spelling
+        const oneTimeId = findProgramTypeIdByName(programs, [
+            'Mentorship Programme',
+            'Mentorship Program'
+        ]);
 
 
-    if (oneTimeId !== null) {
-      setFilters({
-        ...filters,
-        programType: oneTimeId,    // matches our EnrollmentFilters.programType
-      });
+        if (oneTimeId !== null) {
+            setFilters({
+                ...filters,
+                programType: oneTimeId,    // matches our EnrollmentFilters.programType
+            });
 
-      setProgramTypeFilter(oneTimeId)
-    }
-  }, [programs.length]);
+            setProgramTypeFilter(oneTimeId)
+        }
+    }, [programs.length]);
 
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const handleSelectReg = (receiptId:number) => {
+    const handleSelectReg = (receiptId: number) => {
         setIsModalOpen(true);
         selectEnrollmentById(receiptId);
     }
@@ -58,15 +67,15 @@ function Registrations() {
     type PaymentStatus = 'pending' | 'paid' | 'cancelled' | 'refunded';
 
     const statusOptions: Option<PaymentStatus>[] = [
-      { label: 'Pending',    value: 'pending'    },
-      { label: 'Paid',    value: 'paid'    },
-      { label: 'Refunded', value: 'refunded'},
-      { label: 'Cancelled', value: 'cancelled'},
+        {label: 'Pending', value: 'pending'},
+        {label: 'Paid', value: 'paid'},
+        {label: 'Refunded', value: 'refunded'},
+        {label: 'Cancelled', value: 'cancelled'},
     ];
 
     const selectedProgram = filters.program != null
-    ? programs.find(p => p.id === filters.program) ?? null
-    : null;
+        ? programs.find(p => p.id === filters.program) ?? null
+        : null;
 
     return (
         <div className="bg-white shadow-lg rounded-lg border border-stroke col-span-full xl:col-span-8 mt-12">
@@ -77,18 +86,19 @@ function Registrations() {
             </div>
 
             <div className="px-6 mb-6 space-y-4 sm:space-y-0 ">
-                <div >
+                <div>
                     <label className="block text-sm font-medium text-gray-700"> Search </label>
                     <div className="relative w-full max-w-md">
-                        <MagnifyingGlassIcon className="absolute left-3 top-[50%] sm:top-[50%] transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <MagnifyingGlassIcon
+                            className="absolute left-3 top-[50%] sm:top-[50%] transform -translate-y-1/2 h-5 w-5 text-gray-400"/>
                         <input
-                          type="text"
-                          value={filters.search ?? ''}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                setFilters({ ...filters, search: e.target.value, page: 1 })
-                              }
-                          placeholder={'Search participant.'}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            type="text"
+                            value={filters.search ?? ''}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                setFilters({...filters, search: e.target.value, page: 1})
+                            }
+                            placeholder={'Search participant.'}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         />
                     </div>
                 </div>
@@ -98,31 +108,31 @@ function Registrations() {
                         <div className="w-full max-w-[250px]">
                             <label className="block text-sm font-medium text-gray-700">Filter by program </label>
                             <DynamicSelect<Program>
-                            items={programs}
-                            value={selectedProgram}
-                            onChange={(program) =>
-                              setFilters({ ...filters, program: program.id, page: 1 })
-                            }
-                            itemToLabel={p => p.name}
-                            itemToValue={p => p.id}
-                        />
+                                items={programs}
+                                value={selectedProgram}
+                                onChange={(program) =>
+                                    setFilters({...filters, program: program.id, page: 1})
+                                }
+                                itemToLabel={p => p.name}
+                                itemToValue={p => p.id}
+                            />
                         </div>
                         <div className="flex items-end gap-2">
                             <div className="w-full max-w-[110px]">
-                            <SimpleDropdown<typeof statusOptions[number]['value']>
-                                            label="Status"
-                                            options={statusOptions}
-                                            value={filters.status}
-                                            onChange={(status) =>
-                                              setFilters({ ...filters, status, page: 1 })
-                                            }
-                                          />
-                        </div>
+                                <SimpleDropdown<typeof statusOptions[number]['value']>
+                                    label="Status"
+                                    options={statusOptions}
+                                    value={filters.status}
+                                    onChange={(status) =>
+                                        setFilters({...filters, status, page: 1})
+                                    }
+                                />
+                            </div>
                             <p
-                              onClick={() => clearFilters(['programType', 'ordering'])}
-                              className="w-full text-xs hover:text-red-500 underline cursor-pointer"
+                                onClick={() => clearFilters(['programType', 'ordering'])}
+                                className="w-full text-xs hover:text-red-500 underline cursor-pointer"
                             >
-                              Clear Filters
+                                Clear Filters
                             </p>
                         </div>
                     </div>
@@ -199,7 +209,7 @@ function Registrations() {
                                             onClick={() => (handleSelectReg(reg.id))}
                                             className="text-gray-800 cursor-pointer hover:text-blue-400"
                                         >
-                                            {`${reg.program}`}
+                                            {`${format(new Date(reg.created_at), "MMM dd, yyyy HH:mm")}`}
                                         </p>
                                     </div>
                                 </td>
@@ -210,10 +220,12 @@ function Registrations() {
                                     <div className="text-center">{reg.participant.gender}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="text-left">{`${reg.guardian_at_registration?.first_name} ${reg.guardian_at_registration?.last_name}`}</div>
+                                    <div
+                                        className="text-left">{`${reg.guardian_at_registration?.first_name} ${reg.guardian_at_registration?.last_name}`}</div>
                                 </td>
                                 <td className="p-2">
-                                    <div className="max-w-[150px] text-left capitalize">{reg.school_at_registration?.toLowerCase()}</div>
+                                    <div
+                                        className="max-w-[150px] text-left capitalize">{reg.school_at_registration?.toLowerCase()}</div>
                                 </td>
                                 <td className="p-2">
                                     <div className="text-left">
@@ -222,7 +234,7 @@ function Registrations() {
                                                 reg.status === 'paid'
                                                     ? 'ring-green-600 text-green-600 px-4'
                                                     : (reg.status === 'cancelled'
-                                                       ? 'ring-red-600 text-red-600 px-4' 
+                                                        ? 'ring-red-600 text-red-600 px-4'
                                                         : 'ring-yellow-500 text-yellow-600')
                                             }`}
                                         >
@@ -238,9 +250,9 @@ function Registrations() {
             </div>
 
 
-             {/*Modal Component*/}
+            {/*Modal Component*/}
             {isModalOpen && selectedEnrollment && (
-                <RegistrationModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
+                <RegistrationModalDialog isOpen={isModalOpen} setIsOpen={setIsModalOpen}/>
             )}
         </div>
     );
