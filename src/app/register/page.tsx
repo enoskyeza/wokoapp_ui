@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import RegisterPage from "@/app/register/regPage";
 import {RegistrationProvider} from "@/components/Contexts/regDataProvider";

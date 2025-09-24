@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useEffect, Suspense} from 'react';
 import {useDashboardData} from '@/hooks/useDashboardData';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
@@ -28,7 +28,7 @@ import {ParticipantProvider} from "@/context/ParticipantContext";
 import DashboardLayout from "@/components/Layouts/Dashboard";
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function AdminDashboard() {
+function DashboardContent() {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -428,5 +428,13 @@ export default function AdminDashboard() {
                 </div>
             </DashboardLayout>
         </ParticipantProvider>
+    );
+}
+
+export default function AdminDashboard() {
+    return (
+        <Suspense fallback={<div className="p-6">Loading dashboard...</div>}>
+            <DashboardContent />
+        </Suspense>
     );
 }

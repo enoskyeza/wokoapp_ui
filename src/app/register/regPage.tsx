@@ -1,6 +1,6 @@
-'use client'
+'use client';
+
 import React, {useEffect, useMemo, useState} from "react";
-// import dynamic from 'next/dynamic'
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 import Image from "next/image";
 
@@ -13,6 +13,7 @@ import { programService, type Program as ApiProgram } from '@/services/programSe
 import { toast } from 'sonner';
 import ProgramCardSkeleton from '@/components/ProgramCardSkeleton';
 import { Dialog, DialogBody, DialogTitle } from '@/components/ui/dialog';
+import { RegistrationModal } from '@/components/Registration/RegistrationModal';
 
 interface Program {
   id: string;
@@ -64,12 +65,13 @@ function mapApiToProgram(
         // 1) /file/d/<id>/view
         const match = url.match(/\/file\/d\/([^/]+)/);
         if (match && match[1]) {
-          return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+          // Use lh3.googleusercontent.com for better image loading
+          return `https://lh3.googleusercontent.com/d/${match[1]}`;
         }
         // 2) ?id=<id>
         const idParam = u.searchParams.get('id');
         if (idParam) {
-          return `https://drive.google.com/uc?export=view&id=${idParam}`;
+          return `https://lh3.googleusercontent.com/d/${idParam}`;
         }
       }
       // lh3.googleusercontent already serves images
@@ -128,16 +130,16 @@ function mapApiToProgram(
   };
 }
 
-export default function RegisterPage() {
+function RegisterPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [videoOpen, setVideoOpen] = useState<boolean>(false);
-  const [videoSrc, setVideoSrc] = useState<string>('');
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoSrc, setVideoSrc] = useState('');
+  const [registrationModalOpen, setRegistrationModalOpen] = useState(false);
+  const [selectedProgramId, setSelectedProgramId] = useState<number | null>(null);
 
-  const {isLoading, error, setActiveFilter
-  } = useRegistrationData()
-
+  const {isLoading, error, setActiveFilter} = useRegistrationData();
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -152,18 +154,9 @@ export default function RegisterPage() {
     }
   };
 
-
-  // const {
-  //     programs, isLoading, error,
-  //     selectedProgram, setSelectedProgram,
-  //     started, setStarted, setActiveFilter
-  // } = useRegistrationData()
-
-
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
 
-  // Derive category list from loaded programs
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(programs.map(p => p.category)))],
     [programs]
@@ -171,7 +164,6 @@ export default function RegisterPage() {
 
   const isFetching = isLoading || loading;
 
-  // Fetch programs + dashboard stats on mount
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -214,55 +206,27 @@ export default function RegisterPage() {
     }
   }, [selectedCategory, programs]);
 
-
   useEffect(() => {
-    setActiveFilter(true)
-  }, [setActiveFilter])
-
-  // Inline handling below to allow layout skeletons
+    setActiveFilter(true);
+  }, [setActiveFilter]);
 
   return (
     <div className="w-full px-8 sm:py-8 text-center text-white space-y-6">
-      <div className="flex justify-center">
-        <Image
-          src="/logo.png"
-          alt="WokoApp Logo"
-          width={100}
-          height={60}
-          priority
-        />
-      </div>
-
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-white mb-3">
-            Explore our
-            <span className="text-orange-400"> Impactful Programs</span>
-          </h2>
-          <p className="text-lg text-gray-100 ">
-            Join Wokober in transforming education through creativity, hands‑on learning, and community engagement.
-          </p>
-          {/*<div className="flex flex-wrap justify-center gap-4 mb-12">*/}
-          {/*    <div className="bg-white rounded-lg p-4 shadow-md border border-blue-100">*/}
-          {/*        <div className="text-2xl font-bold text-blue-600">500+</div>*/}
-          {/*        <div className="text-sm text-gray-600">Programs Available</div>*/}
-          {/*    </div>*/}
-          {/*    <div className="bg-white rounded-lg p-4 shadow-md border border-blue-100">*/}
-          {/*        <div className="text-2xl font-bold text-blue-600">10k+</div>*/}
-          {/*        <div className="text-sm text-gray-600">Students Enrolled</div>*/}
-          {/*    </div>*/}
-          {/*    <div className="bg-white rounded-lg p-4 shadow-md border border-blue-100">*/}
-          {/*        <div className="text-2xl font-bold text-blue-600">95%</div>*/}
-          {/*        <div className="text-sm text-gray-600">Success Rate</div>*/}
-          {/*    </div>*/}
-          {/*</div>*/}
-        </div>
+        <h2 className="text-4xl font-bold text-white mb-3">
+          Explore our
+          <span className="text-orange-400"> Impactful Programs</span>
+        </h2>
+        <p className="text-lg text-gray-100">
+          Join Wokober in transforming education through creativity, hands‑on learning, and community engagement.
+        </p>
+      </div>
 
       {/* Programs Section */}
       <section className="py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto ">
-          <div className="flex flex-col  sm:flex-row justify-center items-center mb-12">
-
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-center items-center mb-12">
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
               {categories.map((category) => (
@@ -304,6 +268,7 @@ export default function RegisterPage() {
                           src={program.thumbnail || '/program-placeholder.jpg'}
                           alt={program.title}
                           fill
+                          priority
                           className="object-cover rounded-t-lg"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                         />
@@ -354,14 +319,17 @@ export default function RegisterPage() {
                         </div>
                       </div>
 
-                      <Link href={`/programs/${program.id}`}>
-                        <Button
-                          className="w-full bg-blue-600 hover:bg-blue-700 group">
-                          Register
-                          <ArrowRight
-                            className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"/>
-                        </Button>
-                      </Link>
+                      <Button
+                        onClick={() => {
+                          setSelectedProgramId(parseInt(program.id));
+                          setRegistrationModalOpen(true);
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-700 group"
+                      >
+                        Register Now
+                        <ArrowRight
+                          className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"/>
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -389,15 +357,28 @@ export default function RegisterPage() {
         </DialogBody>
       </Dialog>
 
+      {/* Registration Modal */}
+      {selectedProgramId && (
+        <RegistrationModal
+          programId={selectedProgramId}
+          isOpen={registrationModalOpen}
+          onClose={() => {
+            setRegistrationModalOpen(false);
+            setSelectedProgramId(null);
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-center space-x-4">
         <div>
           <Link
             href={'/dashboard'}
-            className="w-full text-white font-semibold px-6  rounded-lg hover:text-green-400 underline"
+            className="w-full text-white font-semibold px-6 rounded-lg hover:text-green-400 underline"
           >login</Link>
         </div>
-
       </div>
     </div>
-  )
+  );
 }
+
+export default RegisterPage;

@@ -94,6 +94,32 @@ const fieldTypes = [
   { value: 'file', label: 'File Upload' }
 ];
 
+// Static steps that are always present
+const staticSteps: FormStep[] = [
+  {
+    id: 'static-guardian',
+    title: 'Guardian Information',
+    description: '',
+    fields: [
+      { id: 'guardian-first-name', type: 'text', label: 'First Name', required: true },
+      { id: 'guardian-last-name', type: 'text', label: 'Last Name', required: true },
+      { id: 'guardian-email', type: 'email', label: 'Email Address', required: false },
+      { id: 'guardian-phone', type: 'tel', label: 'Phone Number', required: true },
+      { id: 'guardian-profession', type: 'text', label: 'Profession', required: false },
+      { id: 'guardian-address', type: 'text', label: 'Address', required: false },
+    ]
+  },
+  {
+    id: 'static-participants',
+    title: 'Participant Information',
+    description: '',
+    fields: [
+      { id: 'participants-list', type: 'text', label: 'Participants (Multiple participants can be added)', required: true },
+      { id: 'participant-school', type: 'text', label: 'School (Search and select or add new)', required: true },
+    ]
+  }
+];
+
 const initialFormData: FormData = {
   basic: {
     name: '',
@@ -103,14 +129,14 @@ const initialFormData: FormData = {
   steps: [
     {
       id: 'step-1',
-      title: 'Personal Information',
-      description: 'Basic details about the applicant',
+      title: 'Additional Information',
+      description: 'Program-specific requirements',
       fields: [
         {
           id: 'field-1',
           type: 'text',
-          label: 'First Name',
-          required: true
+          label: 'Sample Field',
+          required: false
         }
       ]
     }
@@ -124,6 +150,10 @@ export default function CreateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [programs, setPrograms] = useState<ProgramOption[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewStep, setPreviewStep] = useState(0);
+  
+  // Combined steps for preview (static + dynamic)
+  const allSteps = [...staticSteps, ...formData.steps];
 
   useEffect(() => {
     // Fetch real programs
@@ -464,33 +494,56 @@ export default function CreateForm() {
 
                 <div className="pt-4 border-t">
                   <h4 className="font-medium mb-2">Form Steps</h4>
-                  <div className="space-y-2">
-                    {formData.steps.map((step, index) => (
+                  
+                  {/* Static Steps Preview */}
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Required Steps (Non-editable)</h5>
+                    {staticSteps.map((step, index) => (
                       <div
                         key={step.id}
-                        className={`p-2 rounded cursor-pointer transition-colors ${
-                          activeStep === index ? 'bg-blue-100 border border-blue-200' : 'bg-gray-50 hover:bg-gray-100'
-                        }`}
-                        onClick={() => setActiveStep(index)}
+                        className="p-2 rounded bg-gray-50 border border-gray-200 mb-2"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{step.title}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {step.fields.length} fields
+                          <span className="text-sm font-medium text-gray-700">{step.title}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            Step {index + 1}
                           </Badge>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={addStep}
-                    className="w-full mt-2"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Step
-                  </Button>
+                  
+                  {/* Dynamic Steps */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Custom Steps (Editable)</h5>
+                    <div className="space-y-2">
+                      {formData.steps.map((step, index) => (
+                        <div
+                          key={step.id}
+                          className={`p-2 rounded cursor-pointer transition-colors ${
+                            activeStep === index ? 'bg-blue-100 border border-blue-200' : 'bg-gray-50 hover:bg-gray-100'
+                          }`}
+                          onClick={() => setActiveStep(index)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{step.title}</span>
+                            <Badge variant="outline" className="text-xs">
+                              Step {staticSteps.length + index + 1}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={addStep}
+                      className="w-full mt-2"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Step
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -861,58 +914,67 @@ export default function CreateForm() {
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-2xl font-bold text-gray-900">{formData.basic.name || 'Form Preview'}</h2>
                   <Badge variant="outline" className="border-blue-200 text-blue-700">
-                    Step {activeStep + 1} of {formData.steps.length}
+                    Step {previewStep + 1} of {allSteps.length}
                   </Badge>
                 </div>
-                <Progress value={((activeStep + 1) / formData.steps.length) * 100} className="h-2 mb-4" />
+                <Progress value={((previewStep + 1) / allSteps.length) * 100} className="h-2 mb-4" />
 
                 {/* Step Navigation matching program creation */}
                 <div className="flex items-center space-x-4 overflow-x-auto pb-2">
-                  {formData.steps.map((step, index) => (
-                    <div key={step.id} className="flex items-center flex-shrink-0">
-                      <div
-                        className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
-                          index < activeStep
-                            ? 'bg-green-600 text-white'
-                            : index === activeStep
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-500'
-                        }`}
-                      >
-                        {index + 1}
+                  {allSteps.map((step, index) => {
+                    const isStatic = index < staticSteps.length;
+                    return (
+                      <div key={step.id} className="flex items-center flex-shrink-0">
+                        <div
+                          className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
+                            index < previewStep
+                              ? 'bg-green-600 text-white'
+                              : index === previewStep
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-500'
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <div className="ml-2">
+                          <p className={`text-sm font-medium ${
+                            index === previewStep ? 'text-blue-600' : 'text-gray-500'
+                          }`}>
+                            {step.title}
+                            {isStatic && <span className="ml-1 text-xs text-gray-400">(Required)</span>}
+                          </p>
+                          <p className="text-xs text-gray-400">{step.description}</p>
+                        </div>
+                        {index < allSteps.length - 1 && (
+                          <ArrowRight className="w-4 h-4 text-gray-300 ml-4" />
+                        )}
                       </div>
-                      <div className="ml-2">
-                        <p className={`text-sm font-medium ${
-                          index === activeStep ? 'text-blue-600' : 'text-gray-500'
-                        }`}>
-                          {step.title}
-                        </p>
-                        <p className="text-xs text-gray-400">{step.description}</p>
-                      </div>
-                      {index < formData.steps.length - 1 && (
-                        <ArrowRight className="w-4 h-4 text-gray-300 ml-4" />
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Step Content matching program creation card style */}
               <div className="space-y-6">
-                {formData.steps[activeStep] && (
+                {allSteps[previewStep] && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600" />
-                        {formData.steps[activeStep].title}
+                        {allSteps[previewStep].title}
+                        {previewStep < staticSteps.length && (
+                          <Badge variant="secondary" className="ml-2 text-xs">
+                            System Managed
+                          </Badge>
+                        )}
                       </CardTitle>
                       <CardDescription>
-                        {formData.steps[activeStep].description}
+                        {allSteps[previewStep].description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {formData.steps[activeStep].fields.map((f) => (
+                        {allSteps[previewStep].fields.map((f) => (
                           <div key={f.id} className={`space-y-2 ${
                             f.type === 'textarea' || (f.type === 'checkbox' && (f.options || []).length > 3) || (f.type === 'radio' && (f.options || []).length > 3)
                               ? 'md:col-span-2' : ''
@@ -997,8 +1059,8 @@ export default function CreateForm() {
                 <div className="flex items-center justify-between pt-6">
                   <Button 
                     variant="outline" 
-                    onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-                    disabled={activeStep === 0}
+                    onClick={() => setPreviewStep(Math.max(0, previewStep - 1))}
+                    disabled={previewStep === 0}
                     className="flex items-center gap-2"
                   >
                     <ArrowLeft className="w-4 h-4" />
@@ -1006,15 +1068,15 @@ export default function CreateForm() {
                   </Button>
                   
                   <div className="text-sm text-gray-500">
-                    {activeStep + 1} of {formData.steps.length}
+                    {previewStep + 1} of {allSteps.length}
                   </div>
                   
                   <Button 
-                    onClick={() => setActiveStep(Math.min(formData.steps.length - 1, activeStep + 1))}
-                    disabled={activeStep === formData.steps.length - 1}
+                    onClick={() => setPreviewStep(Math.min(allSteps.length - 1, previewStep + 1))}
+                    disabled={previewStep === allSteps.length - 1}
                     className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
                   >
-                    {activeStep === formData.steps.length - 1 ? 'Complete' : 'Next'}
+                    {previewStep === allSteps.length - 1 ? 'Complete' : 'Next'}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
