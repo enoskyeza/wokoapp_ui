@@ -1,13 +1,20 @@
 import { FaTwitter, FaFacebookF, FaLinkedinIn, FaRedditAlien } from 'react-icons/fa';
 import { HiOutlineClipboardCopy } from 'react-icons/hi';
+import React from 'react';
+import { toast } from 'sonner';
 
 const SocialSharingSection = ({ eventLink }: { eventLink: string }) => {
     const handleCopyLink = async () => {
         try {
             await navigator.clipboard.writeText(eventLink);
-            alert("Link copied to clipboard!");
+            toast.success('Link copied to clipboard!', {
+                description: 'You can now share this link with others.'
+            });
         } catch (err) {
             console.error("Failed to copy link: ", err);
+            toast.error('Failed to copy link', {
+                description: 'Please try again or copy the link manually.'
+            });
         }
     };
 

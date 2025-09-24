@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useParticipantContext } from '@/context/ParticipantContext';
 import ScoreForm from './ScoreForm';
 import Cookies from 'js-cookie';
+import { toast } from 'sonner';
 import { API_URL } from '@/config';
 
 type InterfaceProps = {
@@ -61,7 +62,9 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
 
     const handleSave = async () => {
         if (!judge || !participantId) {
-            alert('Missing judge or participant details. Please reload and try again.');
+            toast.error('Missing information', {
+                description: 'Judge or participant details are missing. Please reload and try again.'
+            });
             return;
         }
 
@@ -84,7 +87,9 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
             .filter((item): item is { judge: number; contestant: number; criteria: number; score: number } => item !== null);
 
         if (formattedScores.length === 0) {
-            alert('No valid scores to submit.');
+            toast.error('No scores to submit', {
+                description: 'Please enter at least one valid score before submitting.'
+            });
             return;
         }
 
@@ -100,16 +105,22 @@ function ScoreFormModal({ isOpen, setIsOpen, participantId }: InterfaceProps) {
             });
 
             if (response.ok) {
-                alert('Scores saved successfully!');
+                toast.success('Scores saved successfully!', {
+                    description: 'All scores have been submitted and recorded.'
+                });
                 setIsOpen(false); // Close the modal
             } else {
                 const errorData = await response.json();
                 console.error('Error submitting scores:', errorData);
-                alert('Failed to save scores. Please check your input.');
+                toast.error('Failed to save scores', {
+                    description: 'Please check your input and try again.'
+                });
             }
         } catch (error) {
             console.error('Unexpected error:', error);
-            alert('An unexpected error occurred. Please try again later.');
+            toast.error('Unexpected error occurred', {
+                description: 'Please try again later or contact support.'
+            });
         } finally {
             setProcessing(false);
         }

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Dialog, DialogActions, DialogBody, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import Cookies from 'js-cookie';
+import { toast } from 'sonner';
 import { API_URL } from '@/config';
+import Cookies from 'js-cookie';
 
 interface CommentModalProps {
     isOpen: boolean;
@@ -54,7 +55,9 @@ function CommentModal({ isOpen, setIsOpen, participantId }: CommentModalProps) {
             });
 
             if (response.ok) {
-                alert('Comment submitted successfully!');
+                toast.success('Comment submitted successfully!', {
+                    description: 'Your comment has been recorded for this participant.'
+                });
                 setComment(''); // Clear the comment field after success
             } else {
                 const errorData = await response.json();
