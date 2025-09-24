@@ -1,6 +1,7 @@
 import type {Metadata} from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from 'sonner';
 
 import {Providers} from './providers'
 
@@ -32,6 +33,13 @@ export default function RootLayout({
         >
         <Providers>
             {children}
+            <Toaster 
+                position="top-right" 
+                richColors 
+                closeButton 
+                expand={true}
+                duration={4000}
+            />
         </Providers>
         </body>
         </html>

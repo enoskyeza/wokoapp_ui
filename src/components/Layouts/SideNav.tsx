@@ -13,9 +13,8 @@ import {motion} from "framer-motion";
 import {
     Cog6ToothIcon,
     HomeIcon,
-    UsersIcon,
     XMarkIcon,
-    DocumentTextIcon, AcademicCapIcon, ScaleIcon, ChatBubbleBottomCenterTextIcon, ClipboardDocumentListIcon
+    DocumentTextIcon, ScaleIcon, ChatBubbleBottomCenterTextIcon, ClipboardDocumentListIcon
 } from "@heroicons/react/24/outline";
 import {usePathname} from 'next/navigation';
 import Image from "next/image";
@@ -58,18 +57,6 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
         href: "/register",
         icon: ClipboardDocumentListIcon,
         current: pathname.startsWith("/register"),
-      },
-      {
-        name: "Mentorship Panel",
-        href: "/mp",
-        icon: AcademicCapIcon,
-        current: pathname.startsWith("/mentorship"),
-      },
-      {
-        name: "Toy Festival",
-        href: "/tf",
-        icon: UsersIcon,
-        current: pathname.startsWith("/tf"),
       },
       {
         name: "Judge Panel",
@@ -447,5 +434,3 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
 }
 
 export default SideNav
-
-

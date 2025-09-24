@@ -228,6 +228,8 @@ export interface Program {
   requires_ticket: boolean;
   created_at: string;
   updated_at: string;
+  category_label?: string | null;
+  category_options?: string[];
 }
 
 export interface Registration {
@@ -251,6 +253,7 @@ export interface Receipt {
   status: 'paid' | 'refunded';
   created_at: string;
   updated_at: string;
+  issued_by_name?: string;
 }
 
 export interface Coupon {
@@ -287,7 +290,8 @@ export interface FetchedRegistration {
   updated_at: string;
   amount_due: number;
   coupon?:Coupon;
-  receipts?: Receipt[]
+  receipts?: Receipt[];
+  category_value?: string | null;
 }
 
 export interface Approval {

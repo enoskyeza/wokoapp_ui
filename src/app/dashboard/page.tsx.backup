@@ -1,0 +1,278 @@
+'use client';
+import React from 'react';
+
+import {useDashboardData} from '@/hooks/useDashboardData';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {
+    Plus,
+    Users,
+    BookOpen,
+    FileText,
+    BarChart3,
+    // Settings,
+    Eye,
+    Edit,
+    Trash2,
+    // ArrowLeft
+} from 'lucide-react';
+import Link from 'next/link';
+import {ParticipantProvider} from "@/context/ParticipantContext";
+import DashboardLayout from "@/components/Layouts/Dashboard";
+
+
+// Mock data removed - now using real data from API
+
+export default function AdminDashboard() {
+    const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useDashboardData();
+    
+    // Use real data from API or fallback to empty arrays
+    const programs = dashboardData?.programs || [];
+    const forms = dashboardData?.forms || [];
+    const stats = dashboardData?.stats;
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active':
+                return 'bg-green-100 text-green-800';
+            case 'draft':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'archived':
+                return 'bg-gray-100 text-gray-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    // Use stats from API or calculate from data
+    const totalEnrollments = stats?.total_enrollments || programs.reduce((sum, program) => sum + program.enrollments, 0);
+    const activePrograms = stats?.active_programs || programs.filter(p => p.status === 'active').length;
+    const totalSubmissions = stats?.total_form_submissions || forms.reduce((sum, form) => sum + form.submissions, 0);
+    const totalPrograms = stats?.total_programs || programs.length;
+
+    return (
+        <>
+            <DashboardLayout>
+                    <div className="">
+                        {/* Error handling */}
+                        {dashboardError && (
+                            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-600">Error loading dashboard data: {dashboardError}</p>
+                            </div>
+                        )}
+                        
+                        {/* Stats Overview */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Total Programs</p>
+                                            <p className="text-3xl font-bold text-blue-600">{dashboardLoading ? '...' : totalPrograms}</p>
+                                        </div>
+                                        <BookOpen className="w-8 h-8 text-blue-600"/>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Active Programs</p>
+                                            <p className="text-3xl font-bold text-green-600">{dashboardLoading ? '...' : activePrograms}</p>
+                                        </div>
+                                        <BarChart3 className="w-8 h-8 text-green-600"/>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Total Enrollments</p>
+                                            <p className="text-3xl font-bold text-purple-600">{dashboardLoading ? '...' : totalEnrollments}</p>
+                                        </div>
+                                        <Users className="w-8 h-8 text-purple-600"/>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm text-gray-600">Form Submissions</p>
+                                            <p className="text-3xl font-bold text-orange-600">{dashboardLoading ? '...' : totalSubmissions}</p>
+                                        </div>
+                                        <FileText className="w-8 h-8 text-orange-600"/>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Main Content */}
+                        <Tabs defaultValue="programs" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 bg-gray-200">
+                                <TabsTrigger value="programs">Programs Management</TabsTrigger>
+                                <TabsTrigger value="forms">Forms Management</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="programs" className="mt-6">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle>Programs</CardTitle>
+                                                <CardDescription>Manage your skilling programs</CardDescription>
+                                            </div>
+                                            <Link href="/dashboard/programs/create">
+                                                <Button color={"blue"} className=" hover:bg-blue-700">
+                                                    <Plus className="w-4 h-4 mr-2"/>
+                                                    Create Program
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-4">
+                                            {dashboardLoading ? (
+                                                <div className="text-center py-8">
+                                                    <p className="text-gray-500">Loading programs...</p>
+                                                </div>
+                                            ) : programs.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <p className="text-gray-500">No programs found</p>
+                                                </div>
+                                            ) : (
+                                                programs.map((program) => (
+                                                <div key={program.id}
+                                                     className="sm:flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <h3 className="font-semibold text-gray-900">{program.title}</h3>
+                                                            <Badge className={getStatusColor(program.status)}>
+                                                                {program.status}
+                                                            </Badge>
+                                                            <Badge variant="outline"
+                                                                   className="border-blue-200 text-blue-700">
+                                                                {program.category}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                                              <span className="flex items-center gap-1">
+                                                                <Users className="w-4 h-4"/>
+                                                                  {program.enrollments} enrolled
+                                                              </span>
+                                                            <span>Created: {new Date(program.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 sm:mt-0 flex items-center gap-2">
+                                                        <Link href={`/programs/${program.id}`}>
+                                                            <Button variant="outline">
+                                                                <Eye className="w-4 h-4 mr-1"/>
+                                                                View
+                                                            </Button>
+                                                        </Link>
+                                                        <Button variant="outline">
+                                                            <Edit className="w-4 h-4 mr-1"/>
+                                                            Edit
+                                                        </Button>
+                                                        <Button variant="outline"
+                                                                className="text-red-600 hover:text-red-700">
+                                                            <Trash2 className="w-4 h-4 mr-1"/>
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="forms" className="mt-6">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle>Registration Forms</CardTitle>
+                                                <CardDescription>Manage custom registration forms for your
+                                                    programs</CardDescription>
+                                            </div>
+                                            <Link href="/dashboard/forms/create">
+                                                <Button color={'blue'} className=" hover:bg-blue-700">
+                                                    <Plus className="w-4 h-4 mr-2"/>
+                                                    Create Form
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-4">
+                                            {dashboardLoading ? (
+                                                <div className="text-center py-8">
+                                                    <p className="text-gray-500">Loading forms...</p>
+                                                </div>
+                                            ) : forms.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <p className="text-gray-500">No forms found</p>
+                                                </div>
+                                            ) : (
+                                                forms.map((form) => (
+                                                <div key={form.id}
+                                                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <h3 className="font-semibold text-gray-900">{form.name}</h3>
+                                                            <Badge variant="outline"
+                                                                   className="border-blue-200 text-blue-700">
+                                                                {form.programTitle}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                                                              <span className="flex items-center gap-1">
+                                                                <FileText className="w-4 h-4"/>
+                                                                  {form.fields} fields
+                                                              </span>
+                                                              <span className="flex items-center gap-1">
+                                                                  <Users className="w-4 h-4"/>
+                                                                  {form.submissions} submissions
+                                                              </span>
+                                                            <span>Created: {new Date(form.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button variant="outline">
+                                                            <Eye className="w-4 h-4 mr-1"/>
+                                                            Preview
+                                                        </Button>
+                                                        <Button variant="outline">
+                                                            <Edit className="w-4 h-4 mr-1"/>
+                                                            Edit
+                                                        </Button>
+                                                        <Button variant="outline">
+                                                            <BarChart3 className="w-4 h-4 mr-1"/>
+                                                            Analytics
+                                                        </Button>
+                                                        <Button variant="outline"
+                                                                className="text-red-600 hover:text-red-700">
+                                                            <Trash2 className="w-4 h-4 mr-1"/>
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))})
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+            </DashboardLayout>
+        </>
+    );
+}
