@@ -1,4 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+enum Env {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production',
+}
+
+const API_BASE = process.env.NODE_ENV === Env.PRODUCTION
+  ? 'https://kyeza.pythonanywhere.com/register'
+  : 'http://127.0.0.1:8000/register'
 
 export interface ProgramType {
   id: number;
@@ -10,7 +17,7 @@ export interface ProgramType {
 export const programTypeService = {
   async getAllProgramTypes(): Promise<ProgramType[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/program-types/`);
+      const response = await fetch(`${API_BASE}/program-types/`);
       if (!response.ok) {
         console.error(`Failed to fetch program types: ${response.status} ${response.statusText}`);
         throw new Error(`Failed to fetch program types: ${response.status}`);
@@ -26,7 +33,7 @@ export const programTypeService = {
 
   async createProgramType(name: string, description: string = ''): Promise<ProgramType | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/program-types/`, {
+      const response = await fetch(`${API_BASE}/program-types/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

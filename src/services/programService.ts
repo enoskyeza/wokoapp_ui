@@ -1,4 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+enum Env {
+  DEVELOPMENT = 'development',
+  PRODUCTION = 'production',
+}
+
+const API_BASE = process.env.NODE_ENV === Env.PRODUCTION
+  ? 'https://kyeza.pythonanywhere.com/register'
+  : 'http://127.0.0.1:8000/register'
 
 export interface CreateProgramRequest {
   // Basic fields
@@ -67,7 +74,7 @@ export interface Program {
 export const programService = {
   async createProgram(programData: CreateProgramRequest): Promise<Program | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/programs/`, {
+      const response = await fetch(`${API_BASE}/programs/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +106,7 @@ export const programService = {
 
   async getAllPrograms(): Promise<Program[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/programs/`);
+      const response = await fetch(`${API_BASE}/programs/`);
       if (!response.ok) {
         throw new Error('Failed to fetch programs');
       }
@@ -115,7 +122,7 @@ export const programService = {
     programs: { id?: string; title: string; status?: string; enrollments: number }[];
   } | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/programs/dashboard-stats/`);
+      const response = await fetch(`${API_BASE}/programs/dashboard-stats/`);
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard stats');
       }
