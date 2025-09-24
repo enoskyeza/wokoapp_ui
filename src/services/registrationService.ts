@@ -17,6 +17,7 @@ export interface FormField {
   type: string
   required: boolean
   help_text?: string
+  placeholder?: string
   options?: string[]
   max_length?: number
   min_value?: number

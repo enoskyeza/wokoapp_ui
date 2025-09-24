@@ -23,6 +23,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
 
   const renderField = (field: FormField) => {
     const fieldValue = data[field.name] ?? '';
+    const stringValue = String(fieldValue);
 
     switch (field.type) {
       case 'text':
@@ -31,7 +32,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
         return (
           <Input
             type={field.type}
-            value={fieldValue}
+            value={stringValue}
             onChange={(e) => updateField(field.name, e.target.value)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
             maxLength={field.max_length || undefined}
@@ -43,7 +44,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
         return (
           <Input
             type="tel"
-            value={fieldValue}
+            value={stringValue}
             onChange={(e) => updateField(field.name, e.target.value)}
             placeholder={field.placeholder || 'Enter phone number'}
             maxLength={field.max_length || undefined}
@@ -55,7 +56,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
         return (
           <Input
             type="number"
-            value={fieldValue}
+            value={stringValue}
             onChange={(e) => updateField(field.name, parseFloat(e.target.value) || '')}
             placeholder={field.placeholder || 'Enter number'}
             min={field.min_value}
@@ -68,7 +69,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
         return (
           <Input
             type="date"
-            value={fieldValue}
+            value={stringValue}
             onChange={(e) => updateField(field.name, e.target.value)}
             required={field.required}
           />
@@ -77,7 +78,7 @@ export function DynamicStep({ step, data, onChange }: DynamicStepProps) {
       case 'textarea':
         return (
           <Textarea
-            value={fieldValue}
+            value={stringValue}
             onChange={(e) => updateField(field.name, e.target.value)}
             placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
             maxLength={field.max_length || undefined}

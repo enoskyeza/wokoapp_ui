@@ -1043,8 +1043,8 @@ export default function CreateForm() {
                               <Input 
                                 placeholder={f.placeholder} 
                                 type={f.type === 'tel' ? 'tel' : (f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : (f.type === 'url' ? 'url' : (f.type === 'email' ? 'email' : 'text'))))}
-                                min={f.type === 'number' ? f.min_value : undefined}
-                                max={f.type === 'number' ? f.max_value : undefined}
+                                min={f.type === 'number' ? (f.min_value ?? undefined) : undefined}
+                                max={f.type === 'number' ? (f.max_value ?? undefined) : undefined}
                                 maxLength={f.max_length || undefined}
                               />
                             )}
