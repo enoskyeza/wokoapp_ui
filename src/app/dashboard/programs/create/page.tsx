@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -27,25 +27,34 @@ import {
     // DollarSign
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import {programTypeService, ProgramType} from '@/services/programTypeService';
+import {programService, CreateProgramRequest} from '@/services/programService';
 
 interface ProgramData {
     basic: {
         title: string;
         description: string;
         longDescription: string;
-        category: string;
+        category: string; // selected type name
+        categoryLabel: string; // registration category label used on registration form
+        categoryOptions: string[]; // options for registration category
         level: string;
         thumbnail: string;
         video: string;
+        year: number;
     };
     details: {
-        duration: string;
         price: number;
         maxParticipants: number;
         instructor: string;
         startDate: string;
         endDate: string;
         featured: boolean;
+        ageMin: number;
+        ageMax: number;
+        requiresTicket: boolean;
+        active: boolean;
     };
     curriculum: {
         modules: string[];
@@ -70,18 +79,24 @@ const initialData: ProgramData = {
         description: '',
         longDescription: '',
         category: '',
+        categoryLabel: '',
+        categoryOptions: [''],
         level: '',
         thumbnail: '',
-        video: ''
+        video: '',
+        year: new Date().getFullYear()
     },
     details: {
-        duration: '',
         price: 0,
         maxParticipants: 0,
         instructor: '',
         startDate: '',
         endDate: '',
-        featured: false
+        featured: false,
+        ageMin: 0,
+        ageMax: 0,
+        requiresTicket: false,
+        active: true
     },
     curriculum: {
         modules: [''],
@@ -90,7 +105,6 @@ const initialData: ProgramData = {
     }
 };
 
-const categories = ['Manufacturing', 'Leadership', 'Technology', 'Business', 'Creative Arts', 'Health & Wellness'];
 const levels = ['Beginner', 'Intermediate', 'Advanced'];
 
 export default function CreateProgram() {
@@ -98,9 +112,27 @@ export default function CreateProgram() {
     const [currentStep, setCurrentStep] = useState(0);
     const [programData, setProgramData] = useState<ProgramData>(initialData);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSavingDraft, setIsSavingDraft] = useState(false);
+    const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [customCategories] = useState<string[]>([]);
+    const [programTypes, setProgramTypes] = useState<ProgramType[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+
+    // Fetch program types on component mount
+    useEffect(() => {
+        const fetchProgramTypes = async () => {
+            setLoadingCategories(true);
+            const types = await programTypeService.getAllProgramTypes();
+            setProgramTypes(types);
+            setLoadingCategories(false);
+        };
+        
+        fetchProgramTypes();
+    }, []);
 
     const steps = [
-        {id: 'basic', title: 'Basic Information', description: 'Program title, description, and media'},
+        {id: 'basic', title: 'Basic Information', description: 'Program title, type, registration category, and media'},
         {id: 'details', title: 'Program Details', description: 'Duration, pricing, and scheduling'},
         {id: 'curriculum', title: 'Curriculum & Outcomes', description: 'Modules, outcomes, and requirements'}
     ];
@@ -239,18 +271,23 @@ export default function CreateProgram() {
             case 0:
                 return programData.basic.title && programData.basic.description && programData.basic.category && programData.basic.level;
             case 1:
-                return programData.details.duration && programData.details.price >= 0 && programData.details.instructor;
+                return programData.details.price >= 0 && programData.details.instructor;
             case 2:
-                return programData.curriculum.modules.filter(m => m.trim()).length > 0 &&
-                    programData.curriculum.learningOutcomes.filter(o => o.trim()).length > 0;
+                return programData.curriculum.requirements.filter(r => r.trim()).length > 0;
             default:
                 return false;
         }
     };
 
     const handleNext = () => {
-        if (currentStep < steps.length - 1 && validateStep(currentStep)) {
-            setCurrentStep(currentStep + 1);
+        if (currentStep < steps.length - 1) {
+            if (validateStep(currentStep)) {
+                setCurrentStep(currentStep + 1);
+            } else {
+                toast.error('Please complete all required fields', {
+                    description: 'Fill in all required information before proceeding to the next step.'
+                });
+            }
         }
     };
 
@@ -265,14 +302,119 @@ export default function CreateProgram() {
 
         setIsSubmitting(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+            // Find the program type ID by name
+                const selectedProgramType = programTypes.find(type => type.name === programData.basic.category);
+            
+            // Transform form data to match backend API
+                const createRequest: CreateProgramRequest = {
+                    name: programData.basic.title,
+                    description: programData.basic.description,
+                    long_description: programData.basic.longDescription,
+                    year: programData.basic.year,
+                    level: programData.basic.level.toLowerCase(),
+                    thumbnail_url: programData.basic.thumbnail,
+                    video_url: programData.basic.video,
+                    category_label: programData.basic.categoryLabel || undefined,
+                    category_options: programData.basic.categoryOptions.filter(o => o.trim()),
+                    registration_fee: programData.details.price,
+                    capacity: programData.details.maxParticipants > 0 ? programData.details.maxParticipants : null,
+                    instructor: programData.details.instructor,
+                    start_date: programData.details.startDate,
+                    end_date: programData.details.endDate,
+                    featured: programData.details.featured,
+                    age_min: programData.details.ageMin > 0 ? programData.details.ageMin : null,
+                    age_max: programData.details.ageMax > 0 ? programData.details.ageMax : null,
+                    requires_ticket: programData.details.requiresTicket,
+                    active: programData.details.active,
+                    modules: programData.curriculum.modules.filter(m => m.trim()),
+                    learning_outcomes: programData.curriculum.learningOutcomes.filter(o => o.trim()),
+                    requirements: programData.curriculum.requirements.filter(r => r.trim()),
+                    type_id: selectedProgramType?.id
+                };
 
-        console.log('Program created:', programData);
-
-        setIsSubmitting(false);
-        router.push('/admin');
+            const result = await programService.createProgram(createRequest);
+            
+            if (result) {
+                console.log('Program created successfully:', result);
+                toast.success('Program created successfully!', {
+                    description: `"${result.name}" has been added to your programs.`
+                });
+                router.push('/dashboard');
+            } else {
+                throw new Error('Failed to create program');
+            }
+        } catch (error) {
+            console.error('Error creating program:', error);
+            toast.error('Failed to create program', {
+                description: 'Please check your inputs and try again.'
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
+
+    const handleSaveDraft = async () => {
+        setIsSavingDraft(true);
+
+        // Save to localStorage as draft
+        const draftKey = `program_draft_${Date.now()}`;
+        localStorage.setItem(draftKey, JSON.stringify({
+            ...programData,
+            savedAt: new Date().toISOString(),
+            currentStep
+        }));
+
+        // Simulate API call for saving draft
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        console.log('Draft saved:', programData);
+        
+        setIsSavingDraft(false);
+        
+        toast.success('Draft saved successfully!', {
+            description: 'Your progress has been saved and you can continue later.'
+        });
+    };
+
+    const handleAddNewCategory = async () => {
+        if (!newCategoryName.trim()) {
+            toast.error('Category name required', {
+                description: 'Please enter a category name.'
+            });
+            return;
+        }
+        
+        if (allCategories.map(c => c.name).includes(newCategoryName.trim())) {
+            toast.error('Category already exists', {
+                description: 'This category is already available in the dropdown.'
+            });
+            return;
+        }
+        
+        if (newCategoryName.trim()) {
+            try {
+                const newProgramType = await programTypeService.createProgramType(newCategoryName.trim());
+                if (newProgramType) {
+                    setProgramTypes(prev => [...prev, newProgramType]);
+                    updateData('basic', 'category', newProgramType.name);
+                    setNewCategoryName('');
+                    setShowNewCategoryDialog(false);
+                    toast.success('Category added successfully!', {
+                        description: `"${newProgramType.name}" is now available in the dropdown.`
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to create category:', error);
+                toast.error('Failed to create category', {
+                    description: error instanceof Error ? error.message : 'Unknown error occurred'
+                });
+            }
+        }
+    };
+
+    // Combine backend program types and custom categories
+    const allCategories = [...programTypes, ...customCategories.map(name => ({ id: -1, name, description: '', form_key: '' }))];
 
     const progress = ((currentStep + 1) / steps.length) * 100;
 
@@ -284,7 +426,7 @@ export default function CreateProgram() {
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between py-4">
                             <Link href="/dashboard">
-                                <Button variant="ghost" className="text-blue-700 hover:bg-blue-50">
+                                <Button variant="ghost" className="text-theme-primary text-white hover:bg-blue-50">
                                     <ArrowLeft className="w-4 h-4 mr-2"/>
                                     Back to Admin
                                 </Button>
@@ -351,7 +493,7 @@ export default function CreateProgram() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="space-y-2">
                                             <Label htmlFor="title">Program Title *</Label>
                                             <Input
@@ -363,21 +505,83 @@ export default function CreateProgram() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="category">Category *</Label>
-                                            <Select value={programData.basic.category}
-                                                    onValueChange={(value) => updateData('basic', 'category', value)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select category"/>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {categories.map((category) => (
-                                                        <SelectItem key={category} value={category}>
-                                                            {category}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <Label htmlFor="category">Type *</Label>
+                                            <div className="flex gap-2">
+                                                <Select value={programData.basic.category}
+                                                        onValueChange={(value) => updateData('basic', 'category', value)}
+                                                        disabled={loadingCategories}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder={loadingCategories ? "Loading types..." : "Select type"}/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {allCategories.map((category) => (
+                                                            <SelectItem key={`${category.id}-${category.name}`} value={category.name}>
+                                                                <span>
+                                                                    {category.name}
+                                                                    {category.id === -1 && (
+                                                                        <span className="ml-2 text-xs text-blue-600">(Custom)</span>
+                                                                    )}
+                                                                </span>
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <Button 
+                                                    type="button"
+                                                    variant="outline" 
+                                                    size="sm"
+                                                    className="px-3"
+                                                    title="Add New Type"
+                                                    onClick={() => setShowNewCategoryDialog(true)}
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+
                                         </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="year">Program Year</Label>
+                                                <Input
+                                                    id="year"
+                                                    type="number"
+                                                    value={programData.basic.year}
+                                                    onChange={(e) => updateData('basic', 'year', parseInt(e.target.value) || new Date().getFullYear())}
+                                                    placeholder="2024"
+                                                />
+                                            </div>
+
+                                        <div className="space-y-2 md:col-span-1">
+                                            <Label htmlFor="catLabel">Registration Category Label</Label>
+                                            <Input
+                                              id="catLabel"
+                                              value={programData.basic.categoryLabel}
+                                              onChange={(e) => updateData('basic', 'categoryLabel', e.target.value)}
+                                              placeholder="e.g., Age Category, School level."
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label>Registration Category Options</Label>
+                                            {/* render as dynamic list similar to curriculum arrays */}
+                                            <div className="space-y-2">
+                                              {programData.basic.categoryOptions.map((opt, idx) => (
+                                                <div key={idx} className="flex gap-2">
+                                                  <Input
+                                                    value={opt}
+                                                    onChange={(e) => updateArrayItem('basic', 'categoryOptions', idx, e.target.value)}
+                                                    placeholder={idx === 0 ? 'e.g., 3-5 Years, Secondary, University' : 'Option'}
+                                                  />
+                                                  <Button type="button" variant="outline" onClick={() => removeArrayItem('basic', 'categoryOptions', idx)}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                  </Button>
+                                                </div>
+                                              ))}
+                                              <Button type="button" variant="secondary" onClick={() => addArrayItem('basic', 'categoryOptions')}>
+                                                <Plus className="w-4 h-4 mr-1" /> Add Option
+                                              </Button>
+                                            </div>
+                                        </div>
+
                                     </div>
 
                                     <div className="space-y-2">
@@ -426,7 +630,7 @@ export default function CreateProgram() {
                                                 id="thumbnail"
                                                 value={programData.basic.thumbnail}
                                                 onChange={(e) => updateData('basic', 'thumbnail', e.target.value)}
-                                                placeholder="https://example.com/image.jpg"
+                                                placeholder="https://drive.google.com/file/d/FILE_ID/view"
                                             />
                                         </div>
                                     </div>
@@ -437,8 +641,14 @@ export default function CreateProgram() {
                                             id="video"
                                             value={programData.basic.video}
                                             onChange={(e) => updateData('basic', 'video', e.target.value)}
-                                            placeholder="https://example.com/video.mp4"
+                                            placeholder="https://drive.google.com/file/d/FILE_ID/view"
                                         />
+                                    </div>
+
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                        <p className="text-sm text-blue-700">
+                                            💡 <strong>Google Drive Integration:</strong> Upload your media files to Google Drive, make them public, and copy the shareable links for both thumbnail and video URLs.
+                                        </p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -452,23 +662,13 @@ export default function CreateProgram() {
                                         Program Details
                                     </CardTitle>
                                     <CardDescription>
-                                        Configure pricing, duration, and scheduling
+                                        Configure pricing, capacity, and scheduling
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <Label htmlFor="duration">Duration *</Label>
-                                            <Input
-                                                id="duration"
-                                                value={programData.details.duration}
-                                                onChange={(e) => updateData('details', 'duration', e.target.value)}
-                                                placeholder="e.g., 8 weeks"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="price">Price ($) *</Label>
+                                            <Label htmlFor="price">Price (UGX) *</Label>
                                             <Input
                                                 id="price"
                                                 type="number"
@@ -522,17 +722,65 @@ export default function CreateProgram() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id="featured"
-                                            checked={programData.details.featured}
-                                            // onCheckedChange={(checked) => updateData('details', 'featured', checked)}
-                                            onCheckedChange={(checked) =>
-                                                updateData('details', 'featured', checked === true)
-                                            }
+                                    {/* Age Requirements */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ageMin">Minimum Age</Label>
+                                            <Input
+                                                id="ageMin"
+                                                type="number"
+                                                value={programData.details.ageMin || ''}
+                                                onChange={(e) => updateData('details', 'ageMin', parseInt(e.target.value) || 0)}
+                                                placeholder="e.g., 16"
+                                            />
+                                        </div>
 
-                                        />
-                                        <Label htmlFor="featured">Featured Program</Label>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ageMax">Maximum Age</Label>
+                                            <Input
+                                                id="ageMax"
+                                                type="number"
+                                                value={programData.details.ageMax || ''}
+                                                onChange={(e) => updateData('details', 'ageMax', parseInt(e.target.value) || 0)}
+                                                placeholder="e.g., 25"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Program Options */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="featured"
+                                                checked={programData.details.featured}
+                                                onCheckedChange={(checked) =>
+                                                    updateData('details', 'featured', checked === true)
+                                                }
+                                            />
+                                            <Label htmlFor="featured">Featured Program</Label>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="requiresTicket"
+                                                checked={programData.details.requiresTicket}
+                                                onCheckedChange={(checked) =>
+                                                    updateData('details', 'requiresTicket', checked === true)
+                                                }
+                                            />
+                                            <Label htmlFor="requiresTicket">Requires Ticket</Label>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="active"
+                                                checked={programData.details.active}
+                                                onCheckedChange={(checked) =>
+                                                    updateData('details', 'active', checked === true)
+                                                }
+                                            />
+                                            <Label htmlFor="active">Program Active</Label>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -622,9 +870,9 @@ export default function CreateProgram() {
 
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Requirements</CardTitle>
+                                        <CardTitle>Requirements *</CardTitle>
                                         <CardDescription>
-                                            Prerequisites and requirements for this program
+                                            Prerequisites and requirements for this program (required)
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -676,9 +924,14 @@ export default function CreateProgram() {
                         </Button>
 
                         <div className="flex gap-2">
-                            <Button variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                            <Button 
+                                variant="outline" 
+                                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                onClick={handleSaveDraft}
+                                disabled={isSavingDraft}
+                            >
                                 <Save className="w-4 h-4 mr-2"/>
-                                Save Draft
+                                {isSavingDraft ? 'Saving...' : 'Save Draft'}
                             </Button>
 
                             {currentStep < steps.length - 1 ? (
@@ -703,6 +956,49 @@ export default function CreateProgram() {
                     </div>
                 </div>
             </div>
+
+            {/* Add New Category Dialog */}
+            {showNewCategoryDialog && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="newCategory">Category Name</Label>
+                                <Input
+                                    id="newCategory"
+                                    value={newCategoryName}
+                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                    placeholder="e.g., Digital Marketing"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            handleAddNewCategory();
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowNewCategoryDialog(false);
+                                        setNewCategoryName('');
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleAddNewCategory}
+                                    disabled={!newCategoryName.trim()}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    Add Category
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
 
     );
