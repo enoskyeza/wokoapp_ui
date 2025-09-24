@@ -1,0 +1,53 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+
+export interface ProgramType {
+  id: number;
+  name: string;
+  description: string;
+  form_key: string;
+}
+
+export const programTypeService = {
+  async getAllProgramTypes(): Promise<ProgramType[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/register/program-types/`);
+      if (!response.ok) {
+        console.error(`Failed to fetch program types: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch program types: ${response.status}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : (data.results || []); // Handle both paginated and non-paginated responses
+    } catch (error) {
+      console.error('Error fetching program types:', error);
+      // Return empty array on error so the form still works
+      return [];
+    }
+  },
+
+  async createProgramType(name: string, description: string = ''): Promise<ProgramType | null> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/register/program-types/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          form_key: name.toLowerCase().replace(/\s+/g, '_')
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`Failed to create program type: ${response.status} ${response.statusText}`, errorData);
+        throw new Error(`Failed to create program type: ${response.status} ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating program type:', error);
+      throw error; // Re-throw to let the calling code handle it
+    }
+  }
+};
