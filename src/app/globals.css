@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal scrolling but allow vertical */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#__next {
+  overflow-x: hidden;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
