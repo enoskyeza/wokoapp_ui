@@ -1,7 +1,8 @@
 'use client';
+// export const dynamic = 'force-dynamic';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,14 @@ interface ConditionalRule {
   field: string;
   op: 'equals' | 'not_equals' | 'contains' | 'is_empty' | 'not_empty';
   value?: string;
+}
+
+export default function CreateForm() {
+  return (
+    <Suspense fallback={<div className="p-6"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div><p className="text-center text-gray-600">Loading...</p></div>}>
+      <CreateFormInner />
+    </Suspense>
+  );
 }
 
 interface ConditionalLogic {
@@ -143,8 +152,9 @@ const initialFormData: FormData = {
   ]
 };
 
-export default function CreateForm() {
+function CreateFormInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,6 +173,30 @@ export default function CreateForm() {
       setPrograms(mapped)
     })()
   }, [])
+
+  // Handle resuming drafts
+  useEffect(() => {
+    const isResume = searchParams.get('resume') === 'true';
+    if (isResume) {
+      try {
+        const resumeData = localStorage.getItem('form_builder_resume_draft');
+        if (resumeData) {
+          const parsedData = JSON.parse(resumeData);
+          setFormData(parsedData);
+          
+          // Clean up the resume data
+          localStorage.removeItem('form_builder_resume_draft');
+          
+          toast.success('Draft loaded successfully!', {
+            description: 'You can continue editing your form.'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading resume draft:', error);
+        toast.error('Failed to load draft');
+      }
+    }
+  }, [searchParams])
 
   const updateBasicData = (field: string, value: string) => {
     setFormData(prev => ({

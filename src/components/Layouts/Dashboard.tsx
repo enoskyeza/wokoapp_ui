@@ -97,7 +97,7 @@ const Dashboard = ({children}: {children: ReactNode}) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -342,8 +342,8 @@ const Dashboard = ({children}: {children: ReactNode}) => {
         </div>
 
         {/* Page content */}
-        <main className="py-6 pb-20 lg:pb-6 bg-white">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
+        <main className="bg-white overflow-x-hidden">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 pb-20 lg:pb-6">{children}</div>
         </main>
       </div>
 

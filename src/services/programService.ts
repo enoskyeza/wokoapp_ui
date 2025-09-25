@@ -131,5 +131,66 @@ export const programService = {
       console.error('Error fetching dashboard stats:', error);
       return null;
     }
+  },
+
+  async getProgramById(id: string): Promise<Program | null> {
+    try {
+      const response = await fetch(`${API_BASE}/programs/${id}/`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch program: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching program:', error);
+      return null;
+    }
+  },
+
+  async updateProgram(id: string, programData: Partial<CreateProgramRequest>): Promise<Program | null> {
+    try {
+      const response = await fetch(`${API_BASE}/programs/${id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(programData),
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `Failed to update program: ${response.status} ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          console.error('Program update failed:', errorData);
+          errorMessage = errorData.detail || errorData.message || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          console.error('Non-JSON error response:', errorText);
+          errorMessage = `Server error (${response.status}). Please check the server logs.`;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating program:', error);
+      return null;
+    }
+  },
+
+  async deleteProgram(id: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${API_BASE}/programs/${id}/`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete program: ${response.status} ${response.statusText}`);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting program:', error);
+      return false;
+    }
   }
 };

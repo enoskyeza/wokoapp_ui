@@ -19,6 +19,8 @@ import {
     Filter,
     SortAsc,
     SortDesc,
+    Clock,
+    Save,
 } from 'lucide-react';
 import {Input} from '@/components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -27,6 +29,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {ParticipantProvider} from "@/context/ParticipantContext";
 import DashboardLayout from "@/components/Layouts/Dashboard";
 import { Skeleton } from '@/components/ui/skeleton';
+import DraftsList from '@/components/Forms/DraftsList';
+import SavedFormsList from '@/components/Forms/SavedFormsList';
 
 function DashboardContent() {
     const router = useRouter();
@@ -140,16 +144,16 @@ function DashboardContent() {
     return (
         <ParticipantProvider>
             <DashboardLayout>
-                <div className="">
+                <div className="space-y-6 overflow-x-hidden">
                     {/* Error handling */}
                     {dashboardError && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex-shrink-0">
                             <p className="text-red-600">Error loading dashboard data: {dashboardError}</p>
                         </div>
                     )}
                     
                     {/* Stats Overview */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 flex-shrink-0">
                         {[0,1,2,3].map((i) => (
                           <Card key={i}>
                             <CardContent className="pt-6">
@@ -177,9 +181,15 @@ function DashboardContent() {
                     {/* Main Content */}
                     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                         <TabsList className="grid w-full grid-cols-2 bg-gray-200">
-                            <TabsTrigger value="programs">Programs Management</TabsTrigger>
-                            <TabsTrigger value="forms">Forms Management</TabsTrigger>
-                        </TabsList>
+                                <TabsTrigger value="programs" className="text-xs sm:text-sm">
+                                    <span className="hidden sm:inline">Programs Management</span>
+                                    <span className="sm:hidden">Programs</span>
+                                </TabsTrigger>
+                                <TabsTrigger value="forms" className="text-xs sm:text-sm">
+                                    <span className="hidden sm:inline">Forms Management</span>
+                                    <span className="sm:hidden">Forms</span>
+                                </TabsTrigger>
+                            </TabsList>
 
                         <TabsContent value="programs" className="mt-6">
                             <Card>
@@ -190,7 +200,7 @@ function DashboardContent() {
                                             <CardDescription>Manage your skilling programs</CardDescription>
                                         </div>
                                         <Link href="/dashboard/programs/create">
-                                            <Button color={"blue"} className=" hover:bg-blue-700">
+                                            <Button className="bg-blue-600 hover:bg-blue-700">
                                                 <Plus className="w-4 h-4 mr-2"/>
                                                 Create Program
                                             </Button>
@@ -329,10 +339,12 @@ function DashboardContent() {
                                                                 View
                                                             </Button>
                                                         </Link>
-                                                        <Button variant="outline">
-                                                            <Edit className="w-4 h-4 mr-1"/>
-                                                            Edit
-                                                        </Button>
+                                                        <Link href={`/dashboard/programs/${program.id}/edit`}>
+                                                            <Button variant="outline">
+                                                                <Edit className="w-4 h-4 mr-1"/>
+                                                                Edit
+                                                            </Button>
+                                                        </Link>
                                                         <Button variant="outline"
                                                                 className="text-red-600 hover:text-red-700">
                                                             <Trash2 className="w-4 h-4 mr-1"/>
@@ -350,77 +362,43 @@ function DashboardContent() {
                         <TabsContent value="forms" className="mt-6">
                             <Card>
                                 <CardHeader>
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                                         <div>
-                                            <CardTitle>Registration Forms</CardTitle>
-                                            <CardDescription>Manage custom registration forms for your
-                                                programs</CardDescription>
+                                            <CardTitle>Form Management</CardTitle>
+                                            <CardDescription>Manage your registration forms and drafts</CardDescription>
                                         </div>
                                         <Link href="/dashboard/forms/create">
-                                            <Button color={'blue'} className=" hover:bg-blue-700">
+                                            <Button className="bg-blue-600 hover:bg-blue-700">
                                                 <Plus className="w-4 h-4 mr-2"/>
-                                                Create Form
+                                                Create New Form
                                             </Button>
                                         </Link>
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        {dashboardLoading ? (
-                                            <div className="text-center py-8">
-                                                <p className="text-gray-500">Loading forms...</p>
-                                            </div>
-                                        ) : forms.length === 0 ? (
-                                            <div className="text-center py-8">
-                                                <p className="text-gray-500">No forms found</p>
-                                            </div>
-                                        ) : (
-                                            forms.map((form) => (
-                                                <div key={form.id}
-                                                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <h3 className="font-semibold text-gray-900">{form.name}</h3>
-                                                            <Badge variant="outline"
-                                                                   className="border-blue-200 text-blue-700">
-                                                                {form.programTitle}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                                                              <span className="flex items-center gap-1">
-                                                                <FileText className="w-4 h-4"/>
-                                                                  {form.fields} fields
-                                                              </span>
-                                                              <span className="flex items-center gap-1">
-                                                                  <Users className="w-4 h-4"/>
-                                                                  {form.submissions} submissions
-                                                              </span>
-                                                            <span>Created: {new Date(form.createdAt).toLocaleDateString()}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button variant="outline">
-                                                            <Eye className="w-4 h-4 mr-1"/>
-                                                            Preview
-                                                        </Button>
-                                                        <Button variant="outline">
-                                                            <Edit className="w-4 h-4 mr-1"/>
-                                                            Edit
-                                                        </Button>
-                                                        <Button variant="outline">
-                                                            <BarChart3 className="w-4 h-4 mr-1"/>
-                                                            Analytics
-                                                        </Button>
-                                                        <Button variant="outline"
-                                                                className="text-red-600 hover:text-red-700">
-                                                            <Trash2 className="w-4 h-4 mr-1"/>
-                                                            Delete
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
+                                    {/* Form Management Tabs */}
+                                    <Tabs defaultValue="saved" className="space-y-4">
+                                        <TabsList className="grid w-full grid-cols-2 lg:w-96">
+                                            <TabsTrigger value="saved" className="flex items-center gap-2">
+                                                <Save className="w-4 h-4" />
+                                                <span className="hidden sm:inline">Saved Forms</span>
+                                                <span className="sm:hidden">Saved</span>
+                                            </TabsTrigger>
+                                            <TabsTrigger value="drafts" className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4" />
+                                                <span className="hidden sm:inline">Drafts</span>
+                                                <span className="sm:hidden">Drafts</span>
+                                            </TabsTrigger>
+                                        </TabsList>
+
+                                        <TabsContent value="saved" className="space-y-4">
+                                            <SavedFormsList />
+                                        </TabsContent>
+
+                                        <TabsContent value="drafts" className="space-y-4">
+                                            <DraftsList />
+                                        </TabsContent>
+                                    </Tabs>
                                 </CardContent>
                             </Card>
                         </TabsContent>
