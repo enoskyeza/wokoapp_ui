@@ -34,6 +34,7 @@ interface Program {
   start_date?: string;
   end_date?: string;
   capacity?: number | null;
+  active?: boolean;
 }
 
 // Helper: format duration from start/end dates
@@ -141,6 +142,7 @@ function mapApiToProgram(
     start_date: p.start_date,
     end_date: p.end_date,
     capacity: p.capacity ?? null,
+    active: (p as unknown as { active?: boolean }).active ?? true,
   };
 }
 
@@ -291,11 +293,23 @@ function RegisterPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedCategory === 'All') {
-      setFilteredPrograms(programs);
-    } else {
-      setFilteredPrograms(programs.filter(program => program.category === selectedCategory));
+    let list = programs;
+    // Hide archived/inactive
+    list = list.filter(p => p.active !== false);
+    // Category filter
+    if (selectedCategory !== 'All') {
+      list = list.filter(program => program.category === selectedCategory);
     }
+    // Sort: featured first, then newest (approximate by numeric id desc)
+    list = [...list].sort((a, b) => {
+      const af = a.featured ? 1 : 0;
+      const bf = b.featured ? 1 : 0;
+      if (af !== bf) return bf - af;
+      const at = Number(a.id) || 0;
+      const bt = Number(b.id) || 0;
+      return bt - at;
+    });
+    setFilteredPrograms(list);
   }, [selectedCategory, programs]);
 
   useEffect(() => {

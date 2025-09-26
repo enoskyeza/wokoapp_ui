@@ -73,7 +73,7 @@ interface Program {
 
 interface FormField {
   id: string;
-  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number';
+  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number' | 'file';
   label: string;
   placeholder?: string;
   required: boolean;
@@ -255,8 +255,55 @@ export default function ProgramEditPage() {
     }));
   };
 
-  const handlePreviewForm = (form: ProgramForm) => {
-    setPreviewForm(form);
+  const handlePreviewForm = async (form: ProgramForm) => {
+    try {
+      // Try to get full structure (fields) for preview
+      const structure = await programFormService.getFormStructure(form.id);
+      if (structure && Array.isArray(structure.fields)) {
+        const mapType = (t: string): FormField['type'] => {
+          if (t === 'dropdown') return 'select';
+          if (t === 'phone') return 'tel';
+          if (t === 'file') return 'file';
+          return (t as FormField['type']) || 'text';
+        };
+
+        // Group by order buckets (100s) similar to backend; default to one step if order missing
+        const groups: Record<string, FormField[]> = {};
+        const items = structure.fields;
+        items.forEach((f) => {
+          const order = typeof f.order === 'number' ? f.order : 0;
+          const bucket = Math.floor(order / 100);
+          const key = `custom-${bucket}`;
+          const ff: FormField = {
+            id: (f.id ? String(f.id) : (f.field_name || f.label)),
+            type: mapType(f.field_type || (f as any).type),
+            label: f.label || f.field_name || 'Field',
+            placeholder: f.help_text || '',
+            required: !!(f.is_required ?? f.required),
+            options: Array.isArray(f.options) ? f.options : undefined,
+          };
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(ff);
+        });
+
+        const dynamicSteps: FormStep[] = Object.keys(groups)
+          .sort()
+          .map((key, idx) => ({
+            id: key,
+            title: `Additional Information ${idx + 1}`,
+            description: 'Program-specific requirements',
+            fields: groups[key],
+          }));
+
+        setPreviewForm({ ...form, steps: dynamicSteps });
+      } else {
+        // Fallback: show just static steps
+        setPreviewForm(form);
+      }
+    } catch (e) {
+      console.error('Failed to load form structure for preview', e);
+      setPreviewForm(form);
+    }
     setShowPreview(true);
   };
 

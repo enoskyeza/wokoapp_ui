@@ -50,7 +50,11 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
     onChange(newData);
   };
 
-  const updateParticipant = (index: number, field: keyof ParticipantData, value: any) => {
+  const updateParticipant = <K extends keyof ParticipantData>(
+    index: number,
+    field: K,
+    value: ParticipantData[K]
+  ) => {
     const newData = [...data];
     newData[index] = {
       ...newData[index],
@@ -159,8 +163,8 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="M">Male</SelectItem>
-                    <SelectItem value="F">Female</SelectItem>
+                    <SelectItem value="M" className="text-left">Male</SelectItem>
+                    <SelectItem value="F" className="text-left">Female</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -197,7 +201,7 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
                     </SelectTrigger>
                     <SelectContent>
                       {program.category_options.map((option) => (
-                        <SelectItem key={option} value={option}>
+                        <SelectItem key={option} value={option} className="text-left">
                           {option}
                         </SelectItem>
                       ))}

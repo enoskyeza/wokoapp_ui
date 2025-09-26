@@ -25,6 +25,7 @@ export interface FormField {
   allowed_file_types?: string[]
   max_file_size?: number
   conditional_logic?: Record<string, unknown>
+  per_participant?: boolean
 }
 
 export interface FormStep {
@@ -32,6 +33,7 @@ export interface FormStep {
   title: string
   description: string
   editable: boolean
+  per_participant?: boolean
   fields: FormField[]
 }
 
@@ -102,11 +104,21 @@ export interface ParticipantData {
   category_value?: string
 }
 
+export interface ParticipantCustomFieldPayload {
+  participant_index: number
+  values: Record<string, unknown>
+}
+
+export interface CustomFieldPayload {
+  global?: Record<string, unknown>
+  per_participant?: ParticipantCustomFieldPayload[]
+}
+
 export interface HybridRegistrationPayload {
   program: number
   guardian: GuardianData
   participants: ParticipantData[]
-  custom_fields?: Record<string, unknown>
+  custom_fields?: CustomFieldPayload
 }
 
 export interface RegistrationResult {
@@ -144,6 +156,20 @@ export const registrationService = {
     const headers = buildAuthHeaders()
     
     // Clean up payload - handle null vs empty string requirements per backend serializer
+    const cleanedCustomFields = payload.custom_fields
+      ? {
+          ...(payload.custom_fields.global ? { global: payload.custom_fields.global } : {}),
+          ...(payload.custom_fields.per_participant && payload.custom_fields.per_participant.length > 0
+            ? {
+                per_participant: payload.custom_fields.per_participant.map(entry => ({
+                  participant_index: entry.participant_index,
+                  values: entry.values || {},
+                })),
+              }
+            : {}),
+        }
+      : undefined
+
     const cleanedPayload = {
       ...payload,
       guardian: {
@@ -162,7 +188,8 @@ export const registrationService = {
           address: p.school_at_registration.address?.trim() || '', // allow_blank=True but NOT allow_null=True
           phone_number: p.school_at_registration.phone_number?.trim() || null, // allow_null=True
         }
-      }))
+      })),
+      custom_fields: cleanedCustomFields,
     }
     
     try {

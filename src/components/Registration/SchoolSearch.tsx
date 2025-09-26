@@ -181,31 +181,22 @@ export function SchoolSearch({ value, onChange }: SchoolSearchProps) {
                 <div
                   key={school.id}
                   onClick={() => selectSchool(school)}
-                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 text-left"
                 >
                   <div className="flex items-start gap-3">
                     <Building2 className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{school.name}</p>
+                      <p className="font-medium text-gray-900 truncate text-left">{school.name}</p>
                       {school.address && (
-                        <p className="text-sm text-gray-500 truncate">{school.address}</p>
+                        <p className="text-sm text-gray-500 truncate text-left">{school.address}</p>
                       )}
                       {school.phone_number && (
-                        <p className="text-sm text-gray-500">{school.phone_number}</p>
+                        <p className="text-sm text-gray-500 text-left">{school.phone_number}</p>
                       )}
                     </div>
                   </div>
                 </div>
               ))}
-              <div className="border-t border-gray-200">
-                <button
-                  onClick={handleAddNewSchool}
-                  className="w-full p-3 text-left hover:bg-gray-50 flex items-center gap-2 text-blue-600"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add "{query}" as new school
-                </button>
-              </div>
             </>
           ) : (
             <div className="p-3">
@@ -215,10 +206,23 @@ export function SchoolSearch({ value, onChange }: SchoolSearchProps) {
                 className="w-full p-2 text-center hover:bg-gray-50 flex items-center justify-center gap-2 text-blue-600 rounded"
               >
                 <Plus className="w-4 h-4" />
-                Add "{query}" as new school
+                Add &ldquo;{query}&rdquo; as new school
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {!value.id && !showAddForm && query.trim().length >= 2 && (
+        <div className="mt-2 text-sm text-gray-600">
+          Can&apos;t find your school?
+          <button
+            type="button"
+            onClick={handleAddNewSchool}
+            className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Click here to add it.
+          </button>
         </div>
       )}
 

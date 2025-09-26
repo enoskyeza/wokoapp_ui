@@ -22,7 +22,9 @@ import {
     Clock,
     Save,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {Input} from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -47,6 +49,7 @@ function DashboardContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+    const [showArchived, setShowArchived] = useState(false);
 
     // Get unique categories for filter dropdown
     const categories = useMemo(() => {
@@ -57,6 +60,11 @@ function DashboardContent() {
     // Filter and sort programs
     const filteredAndSortedPrograms = useMemo(() => {
         let filtered = programs;
+
+        // Hide archived by default unless toggled
+        if (!showArchived) {
+            filtered = filtered.filter(p => p.status === 'active');
+        }
 
         // Apply search filter
         if (searchQuery.trim()) {
@@ -78,7 +86,7 @@ function DashboardContent() {
         });
 
         return filtered;
-    }, [programs, searchQuery, categoryFilter, sortOrder]);
+    }, [programs, searchQuery, categoryFilter, sortOrder, showArchived]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -90,6 +98,23 @@ function DashboardContent() {
                 return 'bg-gray-100 text-gray-800';
             default:
                 return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const handleArchive = async (programId: string | number, title: string) => {
+        const id = String(programId);
+        if (!confirm(`Archive program "${title}"?`)) return;
+        try {
+            const ok = await (await import('@/services/programService')).programService.deleteProgram(id);
+            if (ok) {
+                toast.success('Program archived', { description: `"${title}" has been archived.` });
+                router.refresh();
+            } else {
+                toast.error('Failed to archive program');
+            }
+        } catch (e) {
+            console.error('Archive failed', e);
+            toast.error('Failed to archive program');
         }
     };
 
@@ -255,6 +280,12 @@ function DashboardContent() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
+
+                                        {/* Show Archived Toggle */}
+                                        <div className="flex items-center gap-2">
+                                            <Checkbox id="show-archived" checked={showArchived} onCheckedChange={(v) => setShowArchived(Boolean(v))} />
+                                            <label htmlFor="show-archived" className="text-sm text-gray-700">Show archived</label>
+                                        </div>
                                     </div>
                                     
                                     {/* Results Counter */}
@@ -320,9 +351,14 @@ function DashboardContent() {
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-3 mb-2">
                                                             <h3 className="font-semibold text-gray-900">{program.title}</h3>
-                                                            <Badge className={getStatusColor(program.status)}>
-                                                                {program.status}
-                                                            </Badge>
+                                                            {(() => {
+                                                              const statusLabel = program.status === 'active' ? 'active' : 'archived';
+                                                              return (
+                                                                <Badge className={getStatusColor(statusLabel)}>
+                                                                  {statusLabel}
+                                                                </Badge>
+                                                              );
+                                                            })()}
                                                         </div>
                                                         <div className="flex items-center gap-4 text-sm text-gray-600">
                                                               <span className="flex items-center gap-1">
@@ -345,10 +381,13 @@ function DashboardContent() {
                                                                 Edit
                                                             </Button>
                                                         </Link>
-                                                        <Button variant="outline"
-                                                                className="text-red-600 hover:text-red-700">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="text-gray-700 hover:text-gray-900"
+                                                            onClick={() => handleArchive(program.id, program.title)}
+                                                        >
                                                             <Trash2 className="w-4 h-4 mr-1"/>
-                                                            Delete
+                                                            Archive
                                                         </Button>
                                                     </div>
                                                 </div>

@@ -1,3 +1,5 @@
+import type { FormFieldPayload } from '@/services/formsService';
+
 enum Env {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production',
@@ -24,7 +26,7 @@ export interface FormField {
   max_value?: number;
   allowed_file_types?: string;
   max_file_size?: number;
-  conditional_logic?: any;
+  conditional_logic?: unknown;
 }
 
 export interface FormStep {
@@ -34,9 +36,38 @@ export interface FormStep {
   fields: FormField[];
 }
 
+// Backend structure returned by /forms/{id}/structure/
+export interface FormStructureField {
+  id?: number | string;
+  field_name?: string;
+  label: string;
+  field_type: string;
+  is_required?: boolean;
+  required?: boolean;
+  help_text?: string;
+  options?: string[];
+  order?: number;
+  max_length?: number | null;
+  min_value?: number | null;
+  max_value?: number | null;
+  allowed_file_types?: string[] | null;
+  max_file_size?: number | null;
+  conditional_logic?: unknown;
+}
+
+export interface FormStructure {
+  id?: number | string;
+  title?: string;
+  name?: string;
+  description?: string;
+  program?: number | string;
+  fields: FormStructureField[];
+}
+
 export interface ProgramForm {
   id: string;
   name: string;
+  title?: string;
   description?: string;
   fields: number;
   submissions: number;
@@ -54,7 +85,7 @@ export interface FormResponse {
   guardian_email: string;
   guardian_phone: string;
   created_at: string;
-  responses: Record<string, any>;
+  responses: Record<string, unknown>;
 }
 
 export const programFormService = {
@@ -75,10 +106,23 @@ export const programFormService = {
       }
       
       const data = await response.json();
-      const forms = data.results || data;
+      type BackendProgramForm = {
+        id: number | string;
+        title?: string;
+        name?: string;
+        description?: string;
+        fields?: number | unknown[];
+        submissions?: number;
+        is_active?: boolean;
+        isActive?: boolean;
+        created_at?: string;
+        createdAt?: string;
+        steps?: unknown[];
+      };
+      const forms: BackendProgramForm[] = data.results || data;
       
       // Transform backend data to frontend format
-      return forms.map((form: any) => ({
+      return forms.map((form) => ({
         id: form.id?.toString() || '',
         name: form.title || form.name || 'Untitled Form',
         description: form.description || '',
@@ -86,7 +130,7 @@ export const programFormService = {
         submissions: typeof form.submissions === 'number' ? form.submissions : 0,
         isActive: Boolean(form.is_active || form.isActive),
         createdAt: form.created_at || form.createdAt || new Date().toISOString(),
-        steps: Array.isArray(form.steps) ? form.steps : []
+        steps: [] as FormStep[]
       }));
     } catch (error) {
       console.error('Error fetching program forms:', error);
@@ -96,12 +140,18 @@ export const programFormService = {
 
   async inactivateForm(programId: string, formId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/inactivate/`, {
+      // Try nested endpoint first
+      let response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/inactivate/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
+      if (response.status === 404) {
+        // Fallback to flat endpoint
+        response = await fetch(`${API_BASE}/program_forms/${formId}/inactivate/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`Failed to inactivate form: ${response.status} ${response.statusText}`);
@@ -114,11 +164,25 @@ export const programFormService = {
     }
   },
 
+  async getFormStructure(formId: string): Promise<FormStructure | null> {
+    try {
+      const response = await fetch(`${API_BASE}/program_forms/${formId}/structure/`);
+      if (!response.ok) {
+        return null;
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching form structure:', error);
+      return null;
+    }
+  },
+
   async getFormById(formId: string): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/forms/${formId}/`);
+      const response = await fetch(`${API_BASE}/program_forms/${formId}/`);
       if (!response.ok) {
-        throw new Error(`Failed to fetch form: ${response.status} ${response.statusText}`);
+        // Gracefully return null to let callers show fallback UI
+        return null;
       }
       return await response.json();
     } catch (error) {
@@ -129,12 +193,20 @@ export const programFormService = {
 
   async setActiveForm(programId: string, formId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/set-active/`, {
+      // Try nested endpoint first
+      let response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/set-active/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+      if (response.status === 404) {
+        // Fallback to flat endpoint
+        response = await fetch(`${API_BASE}/program_forms/${formId}/set-active/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
       
       if (!response.ok) {
         throw new Error(`Failed to set active form: ${response.status} ${response.statusText}`);
@@ -149,7 +221,7 @@ export const programFormService = {
 
   async deleteForm(formId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE}/forms/${formId}/`, {
+      const response = await fetch(`${API_BASE}/program_forms/${formId}/`, {
         method: 'DELETE',
       });
       
@@ -166,7 +238,7 @@ export const programFormService = {
 
   async getFormResponses(formId: string): Promise<FormResponse[]> {
     try {
-      const response = await fetch(`${API_BASE}/forms/${formId}/responses/`);
+      const response = await fetch(`${API_BASE}/program_forms/${formId}/responses/`);
       if (!response.ok) {
         throw new Error(`Failed to fetch form responses: ${response.status} ${response.statusText}`);
       }
@@ -185,7 +257,7 @@ export const programFormService = {
     steps: FormStep[];
   }): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/forms/`, {
+      const response = await fetch(`${API_BASE}/program_forms/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,13 +287,13 @@ export const programFormService = {
   },
 
   async updateForm(formId: string, formData: {
-    name?: string;
+    title?: string;
     description?: string;
-    steps?: FormStep[];
+    fields?: FormFieldPayload[];
   }): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/forms/${formId}/`, {
-        method: 'PUT',
+      const response = await fetch(`${API_BASE}/program_forms/${formId}/`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
