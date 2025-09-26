@@ -1,0 +1,32 @@
+do a thorough analysis of our project. how we have implented form creation, program creation and all. 
+
+almost everything works. below is the app context form a layman view
+SO to give you some user context we had forms that were working. registration forms, you can check the form at regPage0.tsx. we were able to create multiple participants and all. remember this si a self registration form, so a guardin can register one or more of their children so we intended to make it easier for them. by not creating a new form on each register. to also prevent recreating guardians.
+then later we had the idea of extending these forms. since we cant always design the forms in the back end. i cam up with the idea of form builders. a scenario is for toyfestivals we were considering 3to 17 years. but this time we want o extend to 23 years and those of 23 we expect more details, including options for them to upload their project files for review. so not to redo the previous form logic. and also for lact of better implementation of the dynamic addition of participants, like how we have it that we can eevn add upto 5 participanst. idint know hwo to implement that on the formbuilder. i decided to have 2 sections or steps be dynamic since they are even modal related fields that create the modal directly i thought it would be better to use thos 2 defaults and have additional steps or fields for the other users.with conditional rendering.
+also dding programs options to allow for multiple prgrams running at the same time.
+in light of this could you
+review my implementation visaview what i intend to archive with the sytem.
+could you suggest a much better implementation to archiev what i want? that might be of better performance, well optimised as well as will provide very good User experience.
+
+
+almost everything works.but a couple of things.
+
+1. we add program categories with category options when creating a a programme. but these are not reflected on the program edit page.
+
+2. the registration submits very well but.
+the layout of the fields. like the design of the form is not the best, i dont know what we can do about it such that users can edit the form layout(more so creating things like columns to determing how many fields per row. or to selet if they want filed to cover entire page).
+
+3. how do we incoperate the program category. in our forms  as you can see we have dynamic forms but with 2 static steps. then other things we add dynamically. but we dont include the program category anywhere yet we need it for filtering. it is an optional field but we should have it in the forms somewhere such that when user are registering they will able to fill this field with its options. (i thought of removing it and adding it to the dynamic forms but then we would not be able to use it on the program dashboard. so i think we just need to improve on our form builder handling)
+
+4. we need to have a single source of truth for form creation and form editing. everywhere we have  the edit button on the form ti should take us to the edit vieew(which is similar or should be similar to the create view but with preloaded data ) places where we can edid forms from are. on dashboard, form mnagement table and then the saved form. when e click edit it should be able to fetch and populate the fields and also allow for updating. then the other are is on tht peorgram edit page, the form managemenr section
+
+then se need single source of truth for all previews. our preview should be the same from all the preview buttons. on the form create section, the form management saved form section and the edit progrma page form management tab section. 
+
+currently the dashboard/ form management tab displays the forms well with their preview and edti but they all showing "form editing coming soon" or "form preview coming soon"
+
+then also as i mentioned the edit is curently not working. it doesnt preload the forms.
+
+
+6. am thinking we can even improve the form edit or creation by adding a preview toggle on each field that would toggle between the field create view, and the preview view that allows user to edit the layout it could like maybe just change that field card it sef flip it to show the field and like sections divided into 4. and the sure can increase the length of the field to fill like 3 sections or fill like 4 section or 2 sections. this we can use when the user saves we can use to adjust. and also the noninteractive preview at the top of the edit or create page can now show how the fields look in reference to tother fields. or how they are laid out. the preview on the filed card is just for that specific field.
+
+so on all these analyse the code current implementation and let me know your thought on how best to archieve or implmemnt these. no coding just explanations. 
