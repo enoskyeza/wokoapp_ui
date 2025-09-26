@@ -62,6 +62,8 @@ interface Program {
   modules: string[];
   learning_outcomes: string[];
   requirements: string[];
+  category_label?: string;
+  category_options?: string[];
   type: {
     id: number;
     name: string;
@@ -145,7 +147,11 @@ export default function ProgramEditPage() {
     // Curriculum arrays
     modules: [] as string[],
     learning_outcomes: [] as string[],
-    requirements: [] as string[]
+    requirements: [] as string[],
+    
+    // Category fields
+    category_label: '',
+    category_options: [] as string[]
   });
 
   const loadProgramData = useCallback(async () => {
@@ -203,7 +209,11 @@ export default function ProgramEditPage() {
         // Curriculum arrays
         modules: programData.modules || [],
         learning_outcomes: programData.learning_outcomes || [],
-        requirements: programData.requirements || []
+        requirements: programData.requirements || [],
+        
+        // Category fields
+        category_label: (programData as any).category_label || '',
+        category_options: (programData as any).category_options || []
       });
       
     } catch (error) {
@@ -244,7 +254,7 @@ export default function ProgramEditPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number | boolean) => {
+  const handleInputChange = (field: string, value: string | number | boolean | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: field === 'active' || field === 'featured' || field === 'requires_ticket' 
@@ -255,56 +265,9 @@ export default function ProgramEditPage() {
     }));
   };
 
-  const handlePreviewForm = async (form: ProgramForm) => {
-    try {
-      // Try to get full structure (fields) for preview
-      const structure = await programFormService.getFormStructure(form.id);
-      if (structure && Array.isArray(structure.fields)) {
-        const mapType = (t: string): FormField['type'] => {
-          if (t === 'dropdown') return 'select';
-          if (t === 'phone') return 'tel';
-          if (t === 'file') return 'file';
-          return (t as FormField['type']) || 'text';
-        };
-
-        // Group by order buckets (100s) similar to backend; default to one step if order missing
-        const groups: Record<string, FormField[]> = {};
-        const items = structure.fields;
-        items.forEach((f) => {
-          const order = typeof f.order === 'number' ? f.order : 0;
-          const bucket = Math.floor(order / 100);
-          const key = `custom-${bucket}`;
-          const ff: FormField = {
-            id: (f.id ? String(f.id) : (f.field_name || f.label)),
-            type: mapType(f.field_type || (f as any).type),
-            label: f.label || f.field_name || 'Field',
-            placeholder: f.help_text || '',
-            required: !!(f.is_required ?? f.required),
-            options: Array.isArray(f.options) ? f.options : undefined,
-          };
-          if (!groups[key]) groups[key] = [];
-          groups[key].push(ff);
-        });
-
-        const dynamicSteps: FormStep[] = Object.keys(groups)
-          .sort()
-          .map((key, idx) => ({
-            id: key,
-            title: `Additional Information ${idx + 1}`,
-            description: 'Program-specific requirements',
-            fields: groups[key],
-          }));
-
-        setPreviewForm({ ...form, steps: dynamicSteps });
-      } else {
-        // Fallback: show just static steps
-        setPreviewForm(form);
-      }
-    } catch (e) {
-      console.error('Failed to load form structure for preview', e);
-      setPreviewForm(form);
-    }
-    setShowPreview(true);
+  const handlePreviewForm = (form: ProgramForm) => {
+    // Navigate to unified form preview page
+    router.push(`/dashboard/forms/${form.id}/preview`);
   };
 
   const handleSetActiveForm = async (formId: string) => {
@@ -513,14 +476,14 @@ export default function ProgramEditPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="type_id">Program Category *</Label>
+                      <Label htmlFor="type_id">Project Type *</Label>
                       <select
                         id="type_id"
                         value={formData.type_id || ''}
                         onChange={(e) => handleInputChange('type_id', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">Select a category...</option>
+                        <option value="">Select a project type...</option>
                         {programTypes.map((type) => (
                           <option key={type.id} value={type.id}>
                             {type.name}
@@ -528,7 +491,7 @@ export default function ProgramEditPage() {
                         ))}
                       </select>
                       {programTypes.length === 0 && (
-                        <p className="text-sm text-gray-500">Loading categories...</p>
+                        <p className="text-sm text-gray-500">Loading project types...</p>
                       )}
                     </div>
                   </div>
@@ -553,6 +516,47 @@ export default function ProgramEditPage() {
                       placeholder="Comprehensive program description"
                       rows={5}
                     />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Participant Categories */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Participant Categories</CardTitle>
+                  <CardDescription>
+                    Optional categorization for participants (e.g., age groups, skill levels)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="category_label">Category Label</Label>
+                    <Input
+                      id="category_label"
+                      value={formData.category_label || ''}
+                      onChange={(e) => handleInputChange('category_label', e.target.value)}
+                      placeholder="e.g., Age Group, Skill Level, Division"
+                    />
+                    <p className="text-sm text-gray-500">
+                      This will be shown as a field label in registration forms
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category_options">Category Options</Label>
+                    <Textarea
+                      id="category_options"
+                      value={Array.isArray(formData.category_options) ? formData.category_options.join('\n') : ''}
+                      onChange={(e) => {
+                        const options = e.target.value.split('\n').filter(option => option.trim() !== '');
+                        handleInputChange('category_options', options);
+                      }}
+                      placeholder="Enter each option on a new line:&#10;6-9 years&#10;10-13 years&#10;14-17 years"
+                      rows={4}
+                    />
+                    <p className="text-sm text-gray-500">
+                      Enter each category option on a new line. Leave empty if no categories are needed.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
