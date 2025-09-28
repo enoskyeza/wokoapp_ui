@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { submitApproval } from '@/services/registrationsService'
 import type { FetchedRegistration } from '@/types'
@@ -30,9 +31,12 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
     setError(null)
     try {
       await submitApproval({ registration: registration.id, status: 'paid' })
+      toast.success('Payment approved')
       onCompleted()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve payment')
+      const message = err instanceof Error ? err.message : 'Failed to approve payment'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
       setDialog(null)
@@ -49,9 +53,12 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
     setError(null)
     try {
       await submitApproval({ registration: registration.id, status: 'paid', amount: partialAmount })
+      toast.success('Partial payment recorded')
       onCompleted()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to record payment')
+      const message = err instanceof Error ? err.message : 'Failed to record payment'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
       closeDialogs()
@@ -64,9 +71,12 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
     setError(null)
     try {
       await submitApproval({ registration: registration.id, status: 'cancelled' })
+      toast.success('Registration cancelled')
       onCompleted()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel registration')
+      const message = err instanceof Error ? err.message : 'Failed to cancel registration'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
       closeDialogs()

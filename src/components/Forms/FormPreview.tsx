@@ -16,11 +16,7 @@ import {
   ArrowLeft, 
   ArrowRight,
   User,
-  Users,
-  Calendar,
-  Phone,
-  Mail,
-  MapPin
+  Users
 } from 'lucide-react';
 
 interface FormField {
@@ -30,6 +26,8 @@ interface FormField {
   placeholder?: string;
   required: boolean;
   options?: string[];
+  columnSpan?: number | null;
+  helpText?: string;
 }
 
 interface FormStep {
@@ -37,6 +35,7 @@ interface FormStep {
   title: string;
   description: string;
   fields: FormField[];
+  layoutColumns?: number | null;
 }
 
 interface FormPreviewProps {
@@ -53,6 +52,7 @@ const staticSteps: FormStep[] = [
     id: 'guardian',
     title: 'Guardian Information',
     description: 'Primary guardian or parent contact details',
+    layoutColumns: 2,
     fields: [
       { id: 'guardian_name', type: 'text', label: 'Full Name', required: true },
       { id: 'guardian_email', type: 'email', label: 'Email Address', required: true },
@@ -64,6 +64,7 @@ const staticSteps: FormStep[] = [
     id: 'participants',
     title: 'Participant Information',
     description: 'Details about the program participants',
+    layoutColumns: 2,
     fields: [
       { id: 'participant_name', type: 'text', label: 'Participant Name', required: true },
       { id: 'participant_age', type: 'number', label: 'Age', required: true },
@@ -73,23 +74,56 @@ const staticSteps: FormStep[] = [
   }
 ];
 
+const COLUMN_CLASS_MAP: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-4',
+};
+
+const clampColumnCount = (value?: number | null) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 1;
+  }
+  return Math.min(4, Math.max(1, Math.floor(numeric)));
+};
+
+const clampColumnSpan = (value?: number | null, columns = 1) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return Math.max(1, columns);
+  }
+  return Math.min(columns, Math.max(1, Math.floor(numeric)));
+};
+
 export default function FormPreview({ isOpen, onClose, formName, formDescription, steps }: FormPreviewProps) {
   const [previewStep, setPreviewStep] = useState(0);
   
   // Combine static steps with dynamic steps
   const allSteps = [...staticSteps, ...steps];
+  const activeStep = allSteps[previewStep];
+  const activeStepColumns = clampColumnCount(activeStep?.layoutColumns ?? 1);
+  const activeGridClass = COLUMN_CLASS_MAP[activeStepColumns] ?? COLUMN_CLASS_MAP[1];
 
-  const renderField = (field: FormField) => {
+  const renderField = (field: FormField, columns: number) => {
     const fieldId = `preview_${field.id}`;
-    
+    const span = clampColumnSpan(field.columnSpan, columns);
+    const commonProps = {
+      key: field.id,
+      className: 'space-y-2',
+      style: { gridColumn: `span ${span} / span ${span}` },
+    } as const;
+
     switch (field.type) {
       case 'textarea':
         return (
-          <div key={field.id} className="space-y-2 md:col-span-2">
+          <div {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+            {field.helpText && <p className="text-xs text-gray-500">{field.helpText}</p>}
             <Textarea
               id={fieldId}
               placeholder={field.placeholder}
@@ -101,11 +135,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'select':
         return (
-          <div key={field.id} className="space-y-2">
+          <div {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+            {field.helpText && <p className="text-xs text-gray-500">{field.helpText}</p>}
             <select
               id={fieldId}
               disabled
@@ -121,11 +156,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'checkbox':
         return (
-          <div key={field.id} className={`space-y-2 ${(field.options || []).length > 3 ? 'md:col-span-2' : ''}`}>
+          <div {...commonProps}>
             <Label>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+            {field.helpText && <p className="text-xs text-gray-500">{field.helpText}</p>}
             <div className="space-y-2">
               {field.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
@@ -141,11 +177,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'radio':
         return (
-          <div key={field.id} className={`space-y-2 ${(field.options || []).length > 3 ? 'md:col-span-2' : ''}`}>
+          <div {...commonProps}>
             <Label>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+            {field.helpText && <p className="text-xs text-gray-500">{field.helpText}</p>}
             <RadioGroup disabled>
               {field.options?.map((option, index) => (
                 <div key={index} className="flex items-center space-x-2">
@@ -161,11 +198,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       default:
         return (
-          <div key={field.id} className="space-y-2">
+          <div {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
+            {field.helpText && <p className="text-xs text-gray-500">{field.helpText}</p>}
             <Input
               id={fieldId}
               type={field.type}
@@ -216,9 +254,9 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-2xl font-bold text-gray-900">{formName || 'Form Preview'}</h2>
-              <Badge variant="outline" className="border-blue-200 text-blue-700">
-                Step {previewStep + 1} of {allSteps.length}
-              </Badge>
+          <Badge variant="outline" className="border-blue-200 text-blue-700">
+            Step {previewStep + 1} of {allSteps.length}
+          </Badge>
             </div>
             {formDescription && (
               <p className="text-gray-600 mb-4">{formDescription}</p>
@@ -261,12 +299,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
 
           {/* Step Content */}
           <div className="space-y-6">
-            {allSteps[previewStep] && (
+            {activeStep && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    {getStepIcon(allSteps[previewStep].id)}
-                    {allSteps[previewStep].title}
+                    {getStepIcon(activeStep.id)}
+                    {activeStep.title}
                     {previewStep < staticSteps.length && (
                       <Badge variant="secondary" className="ml-2 text-xs">
                         System Managed
@@ -274,12 +312,12 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
                     )}
                   </CardTitle>
                   <CardDescription>
-                    {allSteps[previewStep].description}
+                    {activeStep.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {allSteps[previewStep].fields.map(renderField)}
+                  <div className={`grid gap-6 ${activeGridClass}`}>
+                    {activeStep.fields.map((field) => renderField(field, activeStepColumns))}
                   </div>
                 </CardContent>
               </Card>

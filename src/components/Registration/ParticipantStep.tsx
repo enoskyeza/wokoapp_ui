@@ -63,17 +63,17 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
     onChange(newData);
   };
 
-  const validateAge = (age: number): boolean => {
+  const getAgeWarning = (age: number): string | null => {
     if (program.age_min && age < program.age_min) {
-      toast.error(`Minimum age for this program is ${program.age_min}`);
-      return false;
+      return `Minimum age is ${program.age_min}`;
     }
     if (program.age_max && age > program.age_max) {
-      toast.error(`Maximum age for this program is ${program.age_max}`);
-      return false;
+      return `Maximum age is ${program.age_max}`;
     }
-    return true;
+    return null;
   };
+
+  const requiresCategory = Boolean(program.category_label && program.category_options && program.category_options.length > 0);
 
   return (
     <div className="space-y-6">
@@ -177,26 +177,34 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
                   type="number"
                   value={participant.age_at_registration}
                   onChange={(e) => {
-                    const age = parseInt(e.target.value);
-                    if (validateAge(age)) {
-                      updateParticipant(index, 'age_at_registration', age);
-                    }
+                    const raw = e.target.value;
+                    const age = Number(raw);
+                    if (Number.isNaN(age)) return;
+                    updateParticipant(index, 'age_at_registration', age);
                   }}
                   min={program.age_min || 1}
                   max={program.age_max || 100}
                   placeholder="Enter age"
+                  className={getAgeWarning(participant.age_at_registration) ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   required
                 />
+                {getAgeWarning(participant.age_at_registration) && (
+                  <p className="text-xs text-red-500">
+                    {getAgeWarning(participant.age_at_registration)}
+                  </p>
+                )}
               </div>
 
               {program.category_label && program.category_options && program.category_options.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="block text-left text-black font-medium">{program.category_label}</Label>
+                  <Label className="block text-left text-black font-medium">
+                    {program.category_label} <span className="text-red-500">*</span>
+                  </Label>
                   <Select
                     value={participant.category_value || ''}
                     onValueChange={(value) => updateParticipant(index, 'category_value', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={requiresCategory && !participant.category_value ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}>
                       <SelectValue placeholder={`Select ${program.category_label.toLowerCase()}`} />
                     </SelectTrigger>
                     <SelectContent>
@@ -207,6 +215,9 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
                       ))}
                     </SelectContent>
                   </Select>
+                  {requiresCategory && !participant.category_value && (
+                    <p className="text-xs text-red-500">{program.category_label} is required.</p>
+                  )}
                 </div>
               )}
             </div>

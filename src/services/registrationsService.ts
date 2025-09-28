@@ -26,6 +26,10 @@ export async function submitApproval(payload: {
     })
   } catch (err) {
     const axiosErr = err as AxiosError<{ detail?: string }>
+    const status = axiosErr.response?.status
+    if (status === 401 || status === 403) {
+      throw new Error('You need to sign in to perform this action.')
+    }
     const message = axiosErr.response?.data?.detail ?? axiosErr.message
     throw new Error(message)
   }

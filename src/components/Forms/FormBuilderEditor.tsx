@@ -73,6 +73,7 @@ export interface FormField {
   allowed_file_types?: string[] | null;
   max_file_size?: number | null;
   conditional_logic?: ConditionalLogic;
+  columnSpan?: number;
 }
 
 export interface FormStep {
@@ -80,6 +81,9 @@ export interface FormStep {
   title: string;
   description: string;
   fields: FormField[];
+  key?: string;
+  perParticipant?: boolean;
+  layoutColumns?: number;
 }
 
 interface FormBuilderData {
@@ -89,6 +93,9 @@ interface FormBuilderData {
     programId: string;
   };
   steps: FormStep[];
+  layoutConfig: {
+    columns: number;
+  };
 }
 
 interface ProgramOption {
@@ -124,6 +131,7 @@ const defaultStaticSteps: FormStep[] = [
     id: 'static-guardian',
     title: 'Guardian Information',
     description: '',
+    layoutColumns: 2,
     fields: [
       { id: 'guardian-first-name', field_name: 'guardian_first_name', type: 'text', label: 'First Name', required: true },
       { id: 'guardian-last-name', field_name: 'guardian_last_name', type: 'text', label: 'Last Name', required: true },
@@ -137,6 +145,7 @@ const defaultStaticSteps: FormStep[] = [
     id: 'static-participants',
     title: 'Participant Information',
     description: '',
+    layoutColumns: 2,
     fields: [
       {
         id: 'participants-list',
@@ -156,6 +165,29 @@ const defaultStaticSteps: FormStep[] = [
   },
 ];
 
+const COLUMN_CLASS_MAP: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-4',
+};
+
+const clampColumnCount = (value?: number | null) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 1;
+  }
+  return Math.min(4, Math.max(1, Math.floor(numeric)));
+};
+
+const clampColumnSpan = (value: number | null | undefined, columns: number) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return Math.max(1, columns);
+  }
+  return Math.min(columns, Math.max(1, Math.floor(numeric)));
+};
+
 const defaultFormData: FormBuilderData = {
   basic: {
     name: '',
@@ -174,11 +206,60 @@ const defaultFormData: FormBuilderData = {
           label: 'Sample Field',
           field_name: 'sample_field',
           required: false,
+          columnSpan: 4,
         },
       ],
+      key: 'step-1',
+      perParticipant: true,
+      layoutColumns: 4,
     },
   ],
+  layoutConfig: {
+    columns: 4,
+  },
 };
+
+function normalizeFormData(data?: Partial<FormBuilderData> | null): FormBuilderData {
+  const baseColumns = data?.layoutConfig?.columns ?? 4;
+  const baseSteps = Array.isArray(data?.steps) && data?.steps.length
+    ? data!.steps!.map((step, index) => {
+        const layoutColumns = step?.layoutColumns ?? baseColumns;
+        const fields = Array.isArray(step?.fields)
+          ? step!.fields!.map((field, fieldIndex) => ({
+              ...field,
+              id: field?.id || `field-${index}-${fieldIndex}-${Date.now()}`,
+              field_name: field?.field_name || slugify(field?.label || `field-${index}-${fieldIndex}`),
+              columnSpan: field?.columnSpan ?? layoutColumns,
+            }))
+          : [];
+        const key = step?.key || step?.id || `step-${index + 1}`;
+        return {
+          id: step?.id || key,
+          key,
+          title: step?.title || `Step ${index + 1}`,
+          description: step?.description || '',
+          fields,
+          perParticipant: step?.perParticipant ?? true,
+          layoutColumns,
+        } as FormStep;
+      })
+    : defaultFormData.steps.map((step) => ({
+        ...step,
+        fields: step.fields.map((field) => ({ ...field })),
+      }));
+
+  return {
+    basic: {
+      name: data?.basic?.name ?? '',
+      description: data?.basic?.description ?? '',
+      programId: data?.basic?.programId ?? '',
+    },
+    steps: baseSteps,
+    layoutConfig: {
+      columns: baseColumns,
+    },
+  };
+}
 
 interface FormBuilderEditorProps {
   formId?: string;
@@ -207,6 +288,7 @@ function createFieldFromPayload(payload: FormFieldPayload, idPrefix = 'field'): 
     max_file_size: payload.max_file_size ?? null,
     order: payload.order,
     conditional_logic: payload.conditional_logic as ConditionalLogic | undefined,
+    columnSpan: payload.column_span ?? 4,
   };
 }
 
@@ -241,6 +323,7 @@ function useInitialData(formId?: string) {
               programId: programIdValue,
             },
             steps: defaultFormData.steps,
+            layoutConfig: { columns: 4 },
           };
 
           if (!cancelled) {
@@ -250,42 +333,100 @@ function useInitialData(formId?: string) {
         }
 
         const programId = structure.program;
-        const stepsByBucket = new Map<number, FormField[]>();
+        const layoutColumns = structure.layout_config?.columns
+          ? Number(structure.layout_config.columns)
+          : 4;
         const structureFields = Array.isArray(structure.fields) ? structure.fields : [];
-
-        structureFields.forEach((field) => {
-          const order = typeof field.order === 'number' ? field.order : 0;
-          const bucket = Math.floor(order / 100);
-          const payload: FormFieldPayload = {
-            field_name: field.field_name || slugify(field.label),
-            label: field.label,
-            field_type: field.field_type as FormFieldPayload['field_type'],
-            is_required: Boolean(field.is_required ?? field.required),
-            help_text: field.help_text,
-            order,
-            options: field.options,
-            max_length: field.max_length ?? null,
-            min_value: field.min_value ?? null,
-            max_value: field.max_value ?? null,
-            allowed_file_types: field.allowed_file_types ?? undefined,
-            max_file_size: field.max_file_size ?? undefined,
-            conditional_logic: field.conditional_logic as FormFieldPayload['conditional_logic'],
-          };
-          const builderField = createFieldFromPayload(payload, `existing-${bucket}`);
-          if (!stepsByBucket.has(bucket)) {
-            stepsByBucket.set(bucket, []);
+        const dynamicFields = structureFields.filter((field) => !field.is_static);
+        const fieldMap = new Map<string, typeof dynamicFields[number]>();
+        dynamicFields.forEach((field) => {
+          const key = field.field_name || String(field.id || '');
+          if (key) {
+            fieldMap.set(key, field);
           }
-          stepsByBucket.get(bucket)!.push(builderField);
         });
 
-        const sortedSteps: FormStep[] = Array.from(stepsByBucket.entries())
-          .sort((a, b) => a[0] - b[0])
-          .map(([idx, fields], position) => ({
-            id: `step-${idx}`,
-            title: `Additional Information ${position + 1}`,
-            description: 'Program-specific requirements',
-            fields,
-          }));
+        const structureSteps = Array.isArray(structure.steps) ? structure.steps : [];
+        const dynamicStepsFromStructure = structureSteps.filter((step) => !step.is_static);
+
+        const mappedStepsFromMetadata: FormStep[] = dynamicStepsFromStructure.map((step, index) => {
+          const key = step.key || step.title || `step-${index + 1}`;
+          const fields = Array.isArray(step.fields) ? step.fields : [];
+          const builderFields = fields.map((field, fieldIndex) => {
+            const lookupKey = field.field_name || String(field.id || field.name || `field-${fieldIndex}`);
+            const source = lookupKey && fieldMap.has(lookupKey) ? fieldMap.get(lookupKey)! : field;
+            const payload: FormFieldPayload = {
+              field_name: source.field_name || slugify(source.label || `field-${fieldIndex}`),
+              label: source.label,
+              field_type: source.field_type as FormFieldPayload['field_type'],
+              is_required: Boolean(source.is_required ?? source.required),
+              help_text: source.help_text,
+              order: typeof source.order === 'number' ? source.order : undefined,
+              options: source.options,
+              max_length: source.max_length ?? null,
+              min_value: source.min_value ?? null,
+              max_value: source.max_value ?? null,
+              allowed_file_types: source.allowed_file_types ?? undefined,
+              max_file_size: source.max_file_size ?? undefined,
+              conditional_logic: source.conditional_logic as FormFieldPayload['conditional_logic'],
+              column_span: source.column_span ?? layoutColumns,
+              step_key: source.step_key || key,
+            };
+            return createFieldFromPayload(payload, `existing-${index}`);
+          });
+
+          return {
+            id: key,
+            key,
+            title: step.title || `Additional Information ${index + 1}`,
+            description: step.description || '',
+            fields: builderFields,
+            perParticipant: step.per_participant ?? true,
+            layoutColumns: step.layout?.columns ? Number(step.layout.columns) : layoutColumns,
+          };
+        });
+
+        let finalSteps = mappedStepsFromMetadata;
+        if (!finalSteps.length) {
+          const stepsByBucket = new Map<number, FormField[]>();
+          dynamicFields.forEach((field) => {
+            const order = typeof field.order === 'number' ? field.order : 0;
+            const bucket = Math.floor(order / 100);
+            const payload: FormFieldPayload = {
+              field_name: field.field_name || slugify(field.label),
+              label: field.label,
+              field_type: field.field_type as FormFieldPayload['field_type'],
+              is_required: Boolean(field.is_required ?? field.required),
+              help_text: field.help_text,
+              order,
+              options: field.options,
+              max_length: field.max_length ?? null,
+              min_value: field.min_value ?? null,
+              max_value: field.max_value ?? null,
+              allowed_file_types: field.allowed_file_types ?? undefined,
+              max_file_size: field.max_file_size ?? undefined,
+              conditional_logic: field.conditional_logic as FormFieldPayload['conditional_logic'],
+              column_span: field.column_span ?? layoutColumns,
+            };
+            const builderField = createFieldFromPayload(payload, `existing-${bucket}`);
+            if (!stepsByBucket.has(bucket)) {
+              stepsByBucket.set(bucket, []);
+            }
+            stepsByBucket.get(bucket)!.push(builderField);
+          });
+
+          finalSteps = Array.from(stepsByBucket.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(([idx, fields], position) => ({
+              id: `step-${idx}`,
+              key: `step-${idx}`,
+              title: `Additional Information ${position + 1}`,
+              description: 'Program-specific requirements',
+              fields,
+              perParticipant: true,
+              layoutColumns,
+            }));
+        }
 
         const mapped: FormBuilderData = {
           basic: {
@@ -293,7 +434,10 @@ function useInitialData(formId?: string) {
             description: structure.description || '',
             programId: programId ? String(programId) : '',
           },
-          steps: sortedSteps.length ? sortedSteps : defaultFormData.steps,
+          steps: finalSteps.length ? finalSteps : defaultFormData.steps,
+          layoutConfig: {
+            columns: layoutColumns,
+          },
         };
 
         if (!cancelled) {
@@ -316,38 +460,75 @@ function useInitialData(formId?: string) {
 }
 
 function buildPayload(data: FormBuilderData): CreateProgramFormPayload {
-  const allFields: FormField[] = data.steps.flatMap((step, sIdx) =>
-    step.fields.map((field, fIdx) => ({
-      ...field,
-      order: sIdx * 100 + fIdx + 1,
-    })),
-  );
-
   const mapType = (type: FieldTypeUI): FormFieldPayload['field_type'] => {
     if (type === 'select') return 'dropdown';
     if (type === 'tel') return 'phone';
     return type as FormFieldPayload['field_type'];
   };
 
+  const stepsPayload = data.steps.map((step, sIdx) => {
+    const stepKey = step.key || step.id || `step-${sIdx + 1}`;
+    const layoutColumns = step.layoutColumns ?? data.layoutConfig.columns ?? 4;
+    const fields = step.fields.map((field, fIdx) => {
+      const order = sIdx * 100 + fIdx + 1;
+      return {
+        order,
+        payload: {
+          field_name: field.field_name?.trim() || slugify(field.label) || `field_${sIdx}_${fIdx}`,
+          label: field.label,
+          field_type: mapType(field.type),
+          is_required: field.required,
+          help_text: field.help_text,
+          order,
+          options: field.options,
+          max_length: field.max_length ?? null,
+          min_value: field.min_value ?? null,
+          max_value: field.max_value ?? null,
+          allowed_file_types: field.allowed_file_types ?? null,
+          max_file_size: field.max_file_size ?? null,
+          conditional_logic: field.conditional_logic,
+          column_span: field.columnSpan ?? layoutColumns,
+          step_key: stepKey,
+        } satisfies FormFieldPayload,
+      };
+    });
+
+    return {
+      meta: {
+        key: stepKey,
+        title: step.title || `Step ${sIdx + 1}`,
+        description: step.description || '',
+        order: sIdx + 1,
+        per_participant: step.perParticipant ?? true,
+        layout: { columns: layoutColumns },
+      },
+      fields,
+    };
+  });
+
+  const fieldsPayload = stepsPayload.flatMap((step) => step.fields.map((entry) => entry.payload));
+  const stepsMetadata = stepsPayload.map((step) => ({
+    key: step.meta.key,
+    title: step.meta.title,
+    description: step.meta.description,
+    order: step.meta.order,
+    per_participant: step.meta.per_participant,
+    layout: step.meta.layout,
+    fields: step.fields.map((entry) => ({
+      field_name: entry.payload.field_name,
+      column_span: entry.payload.column_span,
+    })),
+  }));
+
   return {
     program: Number(data.basic.programId),
     title: data.basic.name,
     description: data.basic.description,
-    fields: allFields.map((field) => ({
-      field_name: field.field_name?.trim() || slugify(field.label),
-      label: field.label,
-      field_type: mapType(field.type),
-      is_required: field.required,
-      help_text: field.help_text,
-      order: field.order,
-      options: field.options,
-      max_length: field.max_length ?? null,
-      min_value: field.min_value ?? null,
-      max_value: field.max_value ?? null,
-      allowed_file_types: field.allowed_file_types ?? null,
-      max_file_size: field.max_file_size ?? null,
-      conditional_logic: field.conditional_logic,
-    })),
+    layout_config: {
+      columns: data.layoutConfig.columns ?? 4,
+    },
+    steps: stepsMetadata,
+    fields: fieldsPayload,
   };
 }
 
@@ -355,7 +536,17 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { loading, initialData, notFound } = useInitialData(formId);
-  const [formData, setFormData] = useState<FormBuilderData>(initialData ?? defaultFormData);
+  const [formData, setFormData] = useState<FormBuilderData>(() => {
+    const normalized = normalizeFormData(initialData ?? defaultFormData);
+    // Ensure programId is never null for Select component
+    return {
+      ...normalized,
+      basic: {
+        ...normalized.basic,
+        programId: normalized.basic.programId || ''
+      }
+    };
+  });
   const [programs, setPrograms] = useState<ProgramOption[]>([]);
   const [activeStep, setActiveStep] = useState(0);
   const [showPreview, setShowPreview] = useState(false);
@@ -368,14 +559,24 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      const normalized = normalizeFormData(initialData);
+      // Ensure programId is never null for Select component
+      setFormData({
+        ...normalized,
+        basic: {
+          ...normalized.basic,
+          programId: normalized.basic.programId || ''
+        }
+      });
     }
   }, [initialData]);
 
   useEffect(() => {
     (async () => {
       const list = await programService.getAllPrograms();
-      setPrograms(list.map((p) => ({ id: String(p.id), title: p.name })));
+      // Filter out inactive/archived programs - only show active programs in dropdown
+      const activePrograms = list.filter((p) => p.active === true);
+      setPrograms(activePrograms.map((p) => ({ id: String(p.id), title: p.name })));
     })();
   }, []);
 
@@ -386,8 +587,8 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
         try {
           const resumeData = localStorage.getItem('form_builder_resume_draft');
           if (resumeData) {
-            const parsed: FormBuilderData = JSON.parse(resumeData);
-            setFormData(parsed);
+            const parsed = JSON.parse(resumeData) as Partial<FormBuilderData>;
+            setFormData(normalizeFormData(parsed));
             localStorage.removeItem('form_builder_resume_draft');
             toast.success('Draft loaded successfully!', {
               description: 'You can continue editing your form.',
@@ -412,24 +613,49 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
   };
 
   const addStep = () => {
+    const timestamp = Date.now();
+    const nextIndex = formData.steps.length;
     const newStep: FormStep = {
-      id: `step-${Date.now()}`,
-      title: `Step ${formData.steps.length + 1}`,
+      id: `step-${timestamp}`,
+      key: `step-${timestamp}`,
+      title: `Step ${nextIndex + 1}`,
       description: 'New form step',
       fields: [],
+      perParticipant: true,
+      layoutColumns: formData.layoutConfig.columns,
     };
     setFormData((prev) => ({
       ...prev,
       steps: [...prev.steps, newStep],
     }));
-    setActiveStep(formData.steps.length);
+    setActiveStep(nextIndex);
   };
 
-  const updateStep = (index: number, key: keyof FormStep, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      steps: prev.steps.map((step, idx) => (idx === index ? { ...step, [key]: value } : step)),
-    }));
+  const updateStep = (index: number, key: keyof FormStep, value: FormStep[keyof FormStep]) => {
+    setFormData((prev) => {
+      const steps = prev.steps.map((step, idx) => {
+        if (idx !== index) return step;
+
+        if (key === 'layoutColumns') {
+          const columns = clampColumnCount(value as number);
+          return {
+            ...step,
+            layoutColumns: columns,
+            fields: step.fields.map((field) => ({
+              ...field,
+              columnSpan: clampColumnSpan(field.columnSpan, columns),
+            })),
+          };
+        }
+
+        return { ...step, [key]: value };
+      });
+
+      return {
+        ...prev,
+        steps,
+      };
+    });
   };
 
   const removeStep = (index: number) => {
@@ -449,6 +675,9 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
 
   const addField = (stepIndex: number) => {
     const generatedName = slugify(`field_${Date.now()}`);
+    const targetColumns = clampColumnCount(
+      formData.steps[stepIndex]?.layoutColumns ?? formData.layoutConfig.columns,
+    );
     const newField: FormField = {
       id: `field-${Date.now()}`,
       type: 'text',
@@ -456,6 +685,7 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
       required: false,
       field_name: generatedName,
       conditional_logic: { mode: 'all', rules: [] },
+      columnSpan: targetColumns,
     };
     setFormData((prev) => ({
       ...prev,
@@ -470,6 +700,7 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
       const steps = prev.steps.map((step, sIdx) => {
         if (sIdx !== stepIndex) return step;
 
+        const stepColumns = clampColumnCount(step.layoutColumns ?? prev.layoutConfig.columns);
         const fields = step.fields.map((field, fIdx) => {
           if (fIdx !== fieldIndex) return field;
 
@@ -485,6 +716,12 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
           if (typeof updates.field_name === 'string') {
             const trimmed = updates.field_name.trim();
             nextField.field_name = trimmed ? slugify(trimmed) : slugify(nextField.label || `field_${Date.now()}`);
+          }
+
+          if (Object.prototype.hasOwnProperty.call(updates, 'columnSpan')) {
+            nextField.columnSpan = clampColumnSpan(Number(nextField.columnSpan), stepColumns);
+          } else {
+            nextField.columnSpan = clampColumnSpan(nextField.columnSpan, stepColumns);
           }
 
           return nextField;
@@ -541,6 +778,8 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
           title: payload.title,
           description: payload.description,
           fields: payload.fields,
+          steps: payload.steps,
+          layout_config: payload.layout_config,
         });
         toast.success('Form updated successfully');
       } else {
@@ -652,6 +891,10 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
   };
 
   const renderPreviewStep = (step: FormStep) => {
+    const defaultColumns = clampColumnCount(formData.layoutConfig.columns);
+    const columns = clampColumnCount(step.layoutColumns ?? defaultColumns);
+    const gridColumnsClass = COLUMN_CLASS_MAP[columns] ?? COLUMN_CLASS_MAP[1];
+
     return (
       <Card key={step.id}>
         <CardHeader>
@@ -661,31 +904,39 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
           </CardTitle>
           <CardDescription>{step.description}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {step.fields.map((field) => {
-            const ctx: ConditionContext = {
-              guardian: {},
-              participant: {},
-              answers: previewAnswers,
-            };
-            const group = field.conditional_logic as ConditionGroup | undefined;
-            const visible = evaluateConditions(group, ctx);
-            if (!visible) return null;
+        <CardContent>
+          <div className={`grid gap-4 ${gridColumnsClass}`}>
+            {step.fields.map((field) => {
+              const ctx: ConditionContext = {
+                guardian: {},
+                participant: {},
+                answers: previewAnswers,
+              };
+              const group = field.conditional_logic as ConditionGroup | undefined;
+              const visible = evaluateConditions(group, ctx);
+              if (!visible) return null;
 
-            const key = field.field_name || slugifyLabel(field.label);
-            return (
-              <div key={field.id} className="space-y-2">
-                <Label className="text-sm font-medium text-gray-800">
-                  {field.label}
-                  {field.required && <span className="text-red-500 ml-1">*</span>}
-                </Label>
-                {field.help_text && <p className="text-xs text-gray-500">{field.help_text}</p>}
-                {renderPreviewField(field, previewAnswers[key], (val) =>
-                  setPreviewAnswers((prev) => ({ ...prev, [key]: val })),
-                )}
-              </div>
-            );
-          })}
+              const key = field.field_name || slugifyLabel(field.label);
+              const span = clampColumnSpan(field.columnSpan, columns);
+
+              return (
+                <div
+                  key={field.id}
+                  className="space-y-2"
+                  style={{ gridColumn: `span ${span} / span ${span}` }}
+                >
+                  <Label className="text-sm font-medium text-gray-800">
+                    {field.label}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                  </Label>
+                  {field.help_text && <p className="text-xs text-gray-500">{field.help_text}</p>}
+                  {renderPreviewField(field, previewAnswers[key], (val) =>
+                    setPreviewAnswers((prev) => ({ ...prev, [key]: val })),
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
     );
@@ -793,7 +1044,7 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
                 <div className="space-y-2">
                   <Label>Associated Program</Label>
                   <Select
-                    value={formData.basic.programId}
+                    value={formData.basic.programId || ''}
                     onValueChange={(value) => updateBasic('programId', value)}
                   >
                     <SelectTrigger>
@@ -810,25 +1061,96 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Default Column Layout</Label>
+                  <Select
+                    value={String(formData.layoutConfig.columns)}
+                    onValueChange={(value) =>
+                      setFormData((prev) => {
+                        const columns = clampColumnCount(Number(value));
+                        return {
+                          ...prev,
+                          layoutConfig: {
+                            ...prev.layoutConfig,
+                            columns,
+                          },
+                          steps: prev.steps.map((step) => {
+                            const nextColumns = clampColumnCount(step.layoutColumns ?? columns);
+                            return {
+                              ...step,
+                              layoutColumns: nextColumns,
+                              fields: step.fields.map((field) => ({
+                                ...field,
+                                columnSpan: clampColumnSpan(field.columnSpan ?? columns, nextColumns),
+                              })),
+                            };
+                          }),
+                        };
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4].map((option) => (
+                        <SelectItem key={option} value={String(option)} className="text-left">
+                          {option} column{option > 1 ? 's' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    Used as the default span for new steps and fields (max 4 columns).
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <Label>Steps</Label>
-                  <div className="space-y-2">
-                    {formData.steps.map((step, index) => (
-                      <button
-                        key={step.id}
-                        type="button"
-                        onClick={() => setActiveStep(index)}
-                        className={`w-full text-left px-3 py-2 rounded border ${
-                          activeStep === index
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm">{step.title || `Step ${index + 1}`}</span>
-                          <Badge variant="outline">Step {index + 1}</Badge>
-                        </div>
-                      </button>
-                    ))}
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">System Steps</p>
+                      <div className="mt-2 space-y-2">
+                        {defaultStaticSteps.map((step, index) => (
+                          <div
+                            key={step.id}
+                            className="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-left text-gray-600"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">{step.title}</span>
+                              <Badge variant="secondary" className="text-xs">
+                                Step {index + 1}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Managed by the platform</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Custom Steps</p>
+                      <div className="mt-2 space-y-2">
+                        {formData.steps.map((step, index) => (
+                          <button
+                            key={step.id}
+                            type="button"
+                            onClick={() => setActiveStep(index)}
+                            className={`w-full text-left px-3 py-2 rounded border transition-colors ${
+                              activeStep === index
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 hover:border-blue-200 hover:bg-blue-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-sm">{step.title || `Custom Step ${index + 1}`}</span>
+                              <Badge variant="outline">
+                                Step {index + defaultStaticSteps.length + 1}
+                              </Badge>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   <Button variant="outline" size="sm" className="w-full" onClick={addStep}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -840,16 +1162,19 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
           </div>
 
           <div className="lg:col-span-3 space-y-6">
-            <Card>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Layout className="w-5 h-5 text-blue-600" />
                   Step Configuration
                 </CardTitle>
-                <CardDescription>Define the fields that appear in each step.</CardDescription>
+                <CardDescription>
+                  Configure the fields shown to applicants after the two system steps. You are editing step
+                  {` ${activeStep + defaultStaticSteps.length + 1}`} in the application flow.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Step Title</Label>
                     <Input
@@ -865,6 +1190,34 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
                       onChange={(event) => updateStep(activeStep, 'description', event.target.value)}
                       placeholder="Step description"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Columns</Label>
+                    <Select
+                      value={String(formData.steps[activeStep]?.layoutColumns ?? formData.layoutConfig.columns)}
+                      onValueChange={(value) => updateStep(activeStep, 'layoutColumns', Number(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4].map((option) => (
+                          <SelectItem key={option} value={String(option)} className="text-left">
+                            {option} column{option > 1 ? 's' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`per-participant-${activeStep}`}
+                        checked={formData.steps[activeStep]?.perParticipant ?? true}
+                        onCheckedChange={(checked) => updateStep(activeStep, 'perParticipant', Boolean(checked))}
+                      />
+                      <Label htmlFor={`per-participant-${activeStep}`} className="text-sm text-gray-600">
+                        Repeat per participant
+                      </Label>
+                    </div>
                   </div>
                 </div>
 
@@ -949,19 +1302,39 @@ function FormBuilderEditorInner({ formId }: FormBuilderEditorProps) {
                                 placeholder="Placeholder text"
                               />
                             </div>
-                            <div className="space-y-2">
-                              <Label>Help Text</Label>
-                              <Input
-                                value={field.help_text || ''}
-                                onChange={(event) => updateField(activeStep, fieldIndex, { help_text: event.target.value })}
-                                placeholder="Help text for applicants"
-                              />
-                            </div>
-                            <div className="flex items-center gap-2 pt-6">
-                              <Checkbox
-                                id={`required-${field.id}`}
-                                checked={field.required}
-                                onCheckedChange={(checked) =>
+                          <div className="space-y-2">
+                            <Label>Help Text</Label>
+                            <Input
+                              value={field.help_text || ''}
+                              onChange={(event) => updateField(activeStep, fieldIndex, { help_text: event.target.value })}
+                              placeholder="Help text for applicants"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Column Span</Label>
+                            <Select
+                              value={String(field.columnSpan ?? formData.steps[activeStep]?.layoutColumns ?? formData.layoutConfig.columns)}
+                              onValueChange={(value) =>
+                                updateField(activeStep, fieldIndex, { columnSpan: Number(value) })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[1, 2, 3, 4].map((option) => (
+                                  <SelectItem key={option} value={String(option)} className="text-left">
+                                    Span {option} column{option > 1 ? 's' : ''}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-center gap-2 pt-6">
+                            <Checkbox
+                              id={`required-${field.id}`}
+                              checked={field.required}
+                              onCheckedChange={(checked) =>
                                   updateField(activeStep, fieldIndex, { required: Boolean(checked) })
                                 }
                               />

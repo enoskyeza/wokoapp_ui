@@ -1,24 +1,28 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { 
-  Edit3, 
-  Trash2, 
-  Calendar, 
-  FileText, 
+import {
+  Edit3,
+  Trash2,
+  Calendar,
+  FileText,
   Search,
   Eye,
-  Users
+  Users,
+  Loader2,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { FormTemplate } from '@/services/dashboardService';
+import { programFormService } from '@/services/programFormService';
+import FormPreview from '@/components/Forms/FormPreview';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,9 +35,49 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+type PreviewField = {
+  id: string;
+  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'number';
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[];
+  columnSpan?: number | null;
+  helpText?: string;
+};
+
+type PreviewStep = {
+  id: string;
+  title: string;
+  description: string;
+  fields: PreviewField[];
+  layoutColumns?: number | null;
+};
+
+const clampColumnCount = (value?: number | null) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 1;
+  }
+  return Math.min(4, Math.max(1, Math.floor(numeric)));
+};
+
+const clampColumnSpan = (value?: number | null, columns = 1) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return Math.max(1, columns);
+  }
+  return Math.min(columns, Math.max(1, Math.floor(numeric)));
+};
+
 export default function SavedFormsList() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: dashboardData, isLoading: loading, error } = useDashboardData();
+  const { data: dashboardData, isLoading: loading, error, refresh } = useDashboardData();
+  const router = useRouter();
+  const [previewData, setPreviewData] = useState<{ name: string; description?: string; steps: PreviewStep[] } | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewingId, setPreviewingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   
   // Use forms data from dashboard API
   const forms = useMemo(() => dashboardData?.forms || [], [dashboardData?.forms]);
@@ -49,18 +93,123 @@ export default function SavedFormsList() {
     if (!dateString) return 'Unknown';
     return new Date(dateString).toLocaleDateString();
   };
+  const mapFieldType = (type: string): PreviewField['type'] => {
+    switch (type) {
+      case 'textarea':
+        return 'textarea';
+      case 'email':
+        return 'email';
+      case 'number':
+        return 'number';
+      case 'date':
+        return 'date';
+      case 'dropdown':
+        return 'select';
+      case 'radio':
+        return 'radio';
+      case 'checkbox':
+        return 'checkbox';
+      case 'phone':
+        return 'tel';
+      default:
+        return 'text';
+    }
+  };
 
-  const deleteForm = async (form: FormTemplate) => {
+  const handleViewForm = async (form: FormTemplate) => {
+    setPreviewingId(form.id);
     try {
-      // TODO: Implement actual delete API call
-      // await fetch(`/api/register/program_forms/${form.id}/`, { method: 'DELETE' });
-      
-      toast.success('Form deleted', {
-        description: `"${form.name}" has been removed`
+      const structure = await programFormService.getFormStructure(form.id);
+      if (!structure) {
+        toast.error('Unable to load form preview');
+        return;
+      }
+
+      const dynamicSteps = Array.isArray(structure.steps)
+        ? structure.steps.filter((step) => !step.is_static)
+        : [];
+
+      const fallbackColumns = clampColumnCount(structure.layout_config?.columns ?? 1);
+
+      const previewSteps: PreviewStep[] = dynamicSteps.map((step, index) => {
+        const stepColumns = clampColumnCount(
+          (step.layout && 'columns' in step.layout ? Number(step.layout.columns) : undefined) ?? fallbackColumns,
+        );
+        const fields = Array.isArray(step.fields)
+          ? step.fields.map((field, fieldIndex) => {
+              const rawSpan =
+                field && typeof field === 'object' && 'column_span' in field
+                  ? Number((field as { column_span?: number | null }).column_span)
+                  : undefined;
+              const span = clampColumnSpan(rawSpan, stepColumns);
+              const rawOptions = Array.isArray(field.options)
+                ? field.options.map((option) => {
+                    if (typeof option === 'string') return option;
+                    if (option && typeof option === 'object') {
+                      const obj = option as { label?: string; value?: string };
+                      return obj.label ?? obj.value ?? '';
+                    }
+                    return '';
+                  })
+                : undefined;
+
+              return {
+                id: String(field.field_name || field.id || `${index}-${fieldIndex}`),
+                type: mapFieldType(String(field.field_type)),
+                label: field.label,
+                placeholder: field.help_text || '',
+                required: Boolean(field.is_required ?? field.required),
+                options: rawOptions?.filter((option) => option),
+                columnSpan: span,
+                helpText: field.help_text,
+              };
+            }).filter((field) => Boolean(field.label))
+          : [];
+
+        return {
+          id: step.key || step.title || `step-${index + 1}`,
+          title: step.title || `Additional Information ${index + 1}`,
+          description: step.description || '',
+          fields,
+          layoutColumns: stepColumns,
+        };
+      }).filter((step) => step.fields.length > 0);
+
+      setPreviewData({
+        name: form.name,
+        description: structure.description || form.programTitle,
+        steps: previewSteps,
       });
+      setPreviewOpen(true);
+    } catch (error) {
+      console.error('Error loading form preview:', error);
+      toast.error('Failed to load form preview');
+    } finally {
+      setPreviewingId(null);
+    }
+  };
+
+  const handleEditForm = (form: FormTemplate) => {
+    router.push(`/dashboard/forms/${form.id}/edit`);
+  };
+
+  const handleDeleteForm = async (form: FormTemplate) => {
+    setDeletingId(form.id);
+    try {
+      const success = await programFormService.deleteForm(form.id);
+      if (!success) {
+        toast.error('Failed to delete form');
+        return;
+      }
+      toast.success('Form deleted', {
+        description: `"${form.name}" has been removed`,
+      });
+      refresh();
     } catch (error) {
       console.error('Error deleting form:', error);
-      toast.error('Failed to delete form');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete form');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -91,6 +240,12 @@ export default function SavedFormsList() {
           {filteredForms.length} form{filteredForms.length !== 1 ? 's' : ''} found
         </p>
       </div>
+
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+          Failed to refresh forms: {error}
+        </div>
+      )}
 
       {/* Empty state */}
       {filteredForms.length === 0 && !loading && (
@@ -162,56 +317,62 @@ export default function SavedFormsList() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 pt-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     className="flex-1"
-                    onClick={() => {
-                      // TODO: Navigate to form preview/view
-                      toast.info('Form preview coming soon');
-                    }}
+                    onClick={() => handleViewForm(form)}
+                    disabled={previewingId === form.id}
                   >
-                    <Eye className="w-3 h-3 mr-1" />
+                    {previewingId === form.id ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Eye className="w-3 h-3 mr-1" />
+                    )}
                     View
                   </Button>
-                  
-                  <Button 
-                    size="sm" 
+
+                  <Button
+                    size="sm"
                     variant="outline"
-                    onClick={() => {
-                      // TODO: Navigate to form edit
-                      toast.info('Form editing coming soon');
-                    }}
+                    onClick={() => handleEditForm(form)}
                   >
                     <Edit3 className="w-3 h-3 mr-1" />
                     Edit
                   </Button>
-                  
+
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        disabled={deletingId === form.id}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        {deletingId === form.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Form</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete &quot;{form.name}&quot;? 
-                          This will also remove all associated form responses. 
-                          This action cannot be undone.
+                          Are you sure you want to delete &quot;{form.name}&quot;? This will also remove all associated form responses. This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => deleteForm(form)}
+                        <AlertDialogAction
+                          onClick={() => handleDeleteForm(form)}
                           className="bg-red-600 hover:bg-red-700"
+                          disabled={deletingId === form.id}
                         >
+                          {deletingId === form.id ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : null}
                           Delete
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -224,6 +385,18 @@ export default function SavedFormsList() {
         </div>
       )}
 
+      {previewData && (
+        <FormPreview
+          isOpen={previewOpen}
+          onClose={() => {
+            setPreviewOpen(false);
+            setPreviewData(null);
+          }}
+          formName={previewData.name}
+          formDescription={previewData.description}
+          steps={previewData.steps}
+        />
+      )}
     </div>
   );
 }

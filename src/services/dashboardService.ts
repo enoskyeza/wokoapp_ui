@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios'
 
+import { buildAuthHeaders } from '@/lib/authHeaders'
+
 import { FetchedRegistration, Pagination, Program as ProgramModel } from '@/types'
 
 // Base API URL depending on environment
@@ -85,7 +87,10 @@ export interface ProgramDashboardData {
 export class DashboardService {
   static async getDashboardStats(): Promise<DashboardData> {
     try {
-      const response = await axios.get<DashboardData>(`${API_BASE}/programs/dashboard-stats/`)
+      const response = await axios.get<DashboardData>(`${API_BASE}/programs/dashboard-stats/`, {
+        withCredentials: true,
+        headers: buildAuthHeaders(),
+      })
       return response.data
     } catch (err) {
       const axiosErr = err as AxiosError
@@ -100,7 +105,11 @@ export class DashboardService {
     try {
       const response = await axios.get<ProgramDashboardData>(
         `${API_BASE}/programs/${programId}/dashboard/`,
-        { params }
+        {
+          params,
+          withCredentials: true,
+          headers: buildAuthHeaders(),
+        }
       )
       return response.data
     } catch (err) {

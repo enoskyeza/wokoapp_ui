@@ -137,7 +137,7 @@ const SideNav = ({sideBar, setSideBar}: SideNavProps) => {
                                     src="/logo.png"
                                     width={64}
                                     height={32}
-                                    className="h-8 w-auto"
+                                    className="h-8 w-16"
                                 />
                                 <h3 className="font-bold text-blue-600">WokoApp</h3>
                             </div>

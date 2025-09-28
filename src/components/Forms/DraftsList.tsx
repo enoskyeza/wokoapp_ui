@@ -9,7 +9,6 @@ import {
   Trash2, 
   Calendar, 
   FileText, 
-  AlertCircle,
   Play
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,9 +25,25 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+interface FormBuilderBasicMeta {
+  name?: string;
+  programId?: number | string;
+}
+
+interface DraftStepSnapshot {
+  fields?: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
+
+interface FormBuilderDraft {
+  basic?: FormBuilderBasicMeta;
+  steps?: DraftStepSnapshot[];
+  [key: string]: unknown;
+}
+
 interface DraftItem {
   key: string;
-  data: any;
+  data: FormBuilderDraft;
   timestamp: number;
   formName: string;
   programName: string;
@@ -55,17 +70,22 @@ export default function DraftsList() {
         const key = localStorage.key(i);
         if (key && key.startsWith('form_builder_draft_')) {
           try {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            const timestamp = parseInt(key.replace('form_builder_draft_', ''));
-            
+            const rawValue = localStorage.getItem(key) ?? '{}';
+            const data = JSON.parse(rawValue) as FormBuilderDraft;
+            const timestamp = Number.parseInt(key.replace('form_builder_draft_', ''), 10);
+
+            const stepCount = data.steps?.length ?? 0;
+            const fieldCount = data.steps?.reduce((total, step) => total + (step.fields?.length ?? 0), 0) ?? 0;
+            const programName = data.basic?.programId ? `Program ${String(data.basic.programId)}` : 'No Program Selected';
+
             draftItems.push({
               key,
               data,
               timestamp,
               formName: data.basic?.name || 'Untitled Form',
-              programName: data.basic?.programId ? `Program ${data.basic.programId}` : 'No Program Selected',
-              stepCount: data.steps?.length || 0,
-              fieldCount: data.steps?.reduce((total: number, step: any) => total + (step.fields?.length || 0), 0) || 0
+              programName,
+              stepCount,
+              fieldCount,
             });
           } catch (error) {
             console.error('Error parsing draft:', key, error);
@@ -273,7 +293,7 @@ export default function DraftsList() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Draft</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete "{draft.formName}"? 
+                        Are you sure you want to delete &ldquo;{draft.formName}&rdquo;? 
                         This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>

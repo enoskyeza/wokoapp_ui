@@ -254,6 +254,10 @@ function RegisterPage() {
           programService.getAllPrograms(),
           programService.getDashboardStats(),
         ]);
+        
+        // Filter out inactive/archived programs - only show active programs for registration
+        const activeApiPrograms = apiPrograms.filter(p => p.active === true);
+        
         const enrollmentsById = new Map<string, number>();
         const enrollmentsByTitle = new Map<string, number>();
         if (stats?.programs) {
@@ -263,7 +267,7 @@ function RegisterPage() {
             if (pr.id) enrollmentsById.set(String(pr.id), pr.enrollments ?? 0);
           }
         }
-        const mapped = apiPrograms.map(p => mapApiToProgram(p, enrollmentsById, enrollmentsByTitle));
+        const mapped = activeApiPrograms.map(p => mapApiToProgram(p, enrollmentsById, enrollmentsByTitle));
         
         // Check for active forms
         const programsWithActiveForms = await checkActiveFormsForPrograms(mapped);

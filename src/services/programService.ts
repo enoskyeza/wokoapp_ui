@@ -63,6 +63,8 @@ export interface Program {
   modules: string[];
   learning_outcomes: string[];
   requirements: string[];
+  category_label?: string;
+  category_options?: string[];
   type: {
     id: number;
     name: string;

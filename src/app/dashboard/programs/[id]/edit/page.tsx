@@ -212,8 +212,8 @@ export default function ProgramEditPage() {
         requirements: programData.requirements || [],
         
         // Category fields
-        category_label: (programData as any).category_label || '',
-        category_options: (programData as any).category_options || []
+        category_label: programData.category_label || '',
+        category_options: programData.category_options || []
       });
       
     } catch (error) {
@@ -260,6 +260,8 @@ export default function ProgramEditPage() {
       [field]: field === 'active' || field === 'featured' || field === 'requires_ticket' 
         ? value === 'true' || value === true
         : field === 'year' || field === 'registration_fee' || field === 'capacity' || field === 'age_min' || field === 'age_max'
+        ? value === '' ? null : Number(value)
+        : field === 'type_id'
         ? value === '' ? null : Number(value)
         : value
     }));
@@ -479,7 +481,7 @@ export default function ProgramEditPage() {
                       <Label htmlFor="type_id">Project Type *</Label>
                       <select
                         id="type_id"
-                        value={formData.type_id || ''}
+                        value={formData.type_id ? String(formData.type_id) : ''}
                         onChange={(e) => handleInputChange('type_id', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >

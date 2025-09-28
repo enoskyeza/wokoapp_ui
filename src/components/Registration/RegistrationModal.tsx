@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, Fragment } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,11 +14,14 @@ import {
   type GuardianData,
   type ParticipantData,
   type CustomFieldPayload,
+  type RegistrationResult,
 } from '@/services/registrationService';
 import { GuardianStep } from './GuardianStep';
 import { ParticipantStep } from './ParticipantStep';
 import { DynamicStep, type DynamicStepProps } from './DynamicStep';
 import { evaluateConditions, type ConditionGroup, type ConditionContext } from './conditionUtils';
+import SuccessModalDialog from '@/components/utils/RegisterSuccessModal';
+import type { FormParticipant } from '@/types';
 
 interface RegistrationModalProps {
   programId: number;
@@ -48,6 +51,12 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
   const [formStructure, setFormStructure] = useState<RegistrationFormStructure | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [successPayload, setSuccessPayload] = useState<{
+    guardian: string;
+    participants: FormParticipant[];
+    report: RegistrationResult['report'];
+  } | null>(null);
 
   const [guardianData, setGuardianData] = useState<GuardianData>({
     first_name: '',
@@ -102,6 +111,20 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
     });
   };
 
+  const createEmptyParticipant = useCallback((): ParticipantData => ({
+    first_name: '',
+    last_name: '',
+    email: '',
+    gender: 'M',
+    age_at_registration: formStructure?.program.age_min ?? 5,
+    school_at_registration: {
+      name: '',
+      address: '',
+      phone_number: '',
+    },
+    category_value: '',
+  }), [formStructure?.program.age_min]);
+
   useEffect(() => {
     ensureParticipantFieldState(participantsData.length);
   }, [participantsData.length]);
@@ -112,7 +135,30 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
       const structure = await registrationService.getRegistrationForm(programId);
       setFormStructure(structure);
       setCurrentStep(0);
+      setGuardianData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone_number: '',
+        profession: '',
+        address: '',
+      });
+      setParticipantsData([{
+        first_name: '',
+        last_name: '',
+        email: '',
+        gender: 'M',
+        age_at_registration: structure.program.age_min ?? 5,
+        school_at_registration: {
+          name: '',
+          address: '',
+          phone_number: '',
+        },
+        category_value: '',
+      }]);
       setCustomFieldsState(emptyCustomFieldState);
+      setSuccessPayload(null);
+      setSuccessModalOpen(false);
     } catch (error) {
       console.error('Error loading form structure:', error);
       toast.error('Failed to load registration form');
@@ -127,6 +173,13 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
       void loadFormStructure();
     }
   }, [isOpen, programId, loadFormStructure]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSuccessModalOpen(false);
+      setSuccessPayload(null);
+    }
+  }, [isOpen]);
 
   const buildContext = useCallback((participantIndex?: number): ConditionContext => {
     const answers: Record<string, unknown> = {
@@ -225,6 +278,10 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         toast.error('Please add at least one participant');
         return false;
       }
+      const minAge = formStructure?.program.age_min;
+      const maxAge = formStructure?.program.age_max;
+      const requiresCategory = Boolean(formStructure?.program.category_label && formStructure?.program.category_options?.length);
+      const categoryLabel = formStructure?.program.category_label ?? 'Category';
       for (const participant of participantsData) {
         if (!participant.first_name.trim() || !participant.last_name.trim()) {
           toast.error('Please fill in all required participant fields');
@@ -233,6 +290,18 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         const school = participant.school_at_registration;
         if (!school.id && !school.name?.trim()) {
           toast.error('Please select or enter a school for all participants');
+          return false;
+        }
+        if (minAge && participant.age_at_registration < minAge) {
+          toast.error(`Participant age must be at least ${minAge}`);
+          return false;
+        }
+        if (maxAge && participant.age_at_registration > maxAge) {
+          toast.error(`Participant age must not exceed ${maxAge}`);
+          return false;
+        }
+        if (requiresCategory && !participant.category_value) {
+          toast.error(`${categoryLabel} is required for each participant`);
           return false;
         }
       }
@@ -385,10 +454,43 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
       };
 
       const result = await registrationService.submitRegistration(payload);
-      toast.success('Registration submitted successfully!', {
-        description: `${result.participants.length} participant(s) registered for ${result.guardian}`,
+      const participantMap = new Map<string, ParticipantData>();
+      participantsData.forEach((participant) => {
+        const key = `${participant.first_name.trim().toLowerCase()}|${participant.last_name.trim().toLowerCase()}`;
+        participantMap.set(key, participant);
       });
-      onClose();
+
+      const summaryParticipants: FormParticipant[] = result.participants.map((registered) => {
+        const key = `${registered.first_name.trim().toLowerCase()}|${registered.last_name.trim().toLowerCase()}`;
+        const match = participantMap.get(key);
+        return {
+          first_name: registered.first_name,
+          last_name: registered.last_name,
+          email: match?.email ?? '',
+          age: match?.age_at_registration ?? (formStructure.program.age_min ?? 0),
+          gender: match?.gender ?? 'M',
+          school: match?.school_at_registration.name ?? '',
+        };
+      });
+
+      setSuccessPayload({
+        guardian: result.guardian,
+        participants: summaryParticipants,
+        report: result.report,
+      });
+      setSuccessModalOpen(true);
+
+      setGuardianData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone_number: '',
+        profession: '',
+        address: '',
+      });
+      setParticipantsData([createEmptyParticipant()]);
+      setCustomFieldsState(emptyCustomFieldState);
+      setCurrentStep(0);
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('Registration failed', {
@@ -418,29 +520,51 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
 
   const currentStepData = allSteps[currentStep];
   const isStaticStep = currentStep < formStructure.form_structure.static_steps.length;
+  const shareLink = typeof window !== 'undefined'
+    ? `${window.location.origin}/register/programs/${(formStructure.program.id ?? programId)}`
+    : '';
+  const programName = formStructure.program.name;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto text-gray-900"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="bg-white shadow-sm border-b border-blue-100 rounded-t-lg">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                <span className="font-medium text-gray-800">Register for Program</span>
-              </div>
-              <div className="text-right">
-                <Button variant="ghost" onClick={onClose} className="text-gray-600 hover:text-gray-800">
-                  <X className="w-4 h-4 mr-2" />
-                  Close
-                </Button>
+    <Fragment>
+      {successPayload && (
+        <SuccessModalDialog
+          isOpen={successModalOpen}
+          setIsOpen={(open) => {
+            setSuccessModalOpen(open);
+            if (!open) {
+              setSuccessPayload(null);
+              onClose();
+            }
+          }}
+          participants={successPayload.participants}
+          report={successPayload.report}
+          program={programName}
+          eventLink={shareLink}
+        />
+      )}
+
+      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+        <div
+          className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto text-gray-900"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <header className="bg-white shadow-sm border-b border-blue-100 rounded-t-lg">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between py-4">
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium text-gray-800">Register for Program</span>
+                </div>
+                <div className="text-right">
+                  <Button variant="ghost" onClick={onClose} className="text-gray-600 hover:text-gray-800">
+                    <X className="w-4 h-4 mr-2" />
+                    Close
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
@@ -576,6 +700,7 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Fragment>
   );
 }

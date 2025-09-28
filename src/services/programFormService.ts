@@ -1,4 +1,5 @@
 import type { FormFieldPayload } from '@/services/formsService';
+import { buildAuthHeaders } from '@/lib/authHeaders';
 
 enum Env {
   DEVELOPMENT = 'development',
@@ -8,6 +9,193 @@ enum Env {
 const API_BASE = process.env.NODE_ENV === Env.PRODUCTION
   ? 'https://kyeza.pythonanywhere.com/register'
   : 'http://127.0.0.1:8000/register'
+
+const createAuthHeaders = (headers?: HeadersInit): Headers => {
+  const merged = new Headers(headers ?? {});
+  const authHeaders = buildAuthHeaders();
+  Object.entries(authHeaders).forEach(([key, value]) => {
+    if (value && !merged.has(key)) {
+      merged.set(key, value);
+    }
+  });
+  return merged;
+};
+
+const normalizeFormIdentifier = (value: string | number): string => {
+  const str = String(value).trim();
+  const match = str.match(/(\d+)$/);
+  return match ? match[1] : str;
+};
+
+const clampColumns = (value?: number | null, fallback = 4) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return fallback;
+  return Math.min(4, Math.max(1, Math.floor(numeric)));
+};
+
+const clampColumnSpan = (value?: number | null, columns = 1) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return columns;
+  return Math.min(columns, Math.max(1, Math.floor(numeric)));
+};
+
+const normalizeOptions = (options: unknown): string[] | undefined => {
+  if (!Array.isArray(options)) return undefined;
+  const normalized = options
+    .map((option) => {
+      if (typeof option === 'string') return option;
+      if (option && typeof option === 'object') {
+        const candidate = option as { label?: string; value?: string };
+        return candidate.label ?? candidate.value ?? '';
+      }
+      return '';
+    })
+    .filter((option) => Boolean(option));
+  return normalized.length ? normalized : undefined;
+};
+
+const createAuthRequest = (input: string, init: RequestInit = {}) => {
+  const headers = createAuthHeaders(init.headers);
+  return fetch(input, { ...init, headers, credentials: 'include' });
+};
+
+const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
+  if (!raw || typeof raw !== 'object') return null;
+  const record = raw as Record<string, unknown>;
+
+  const baseColumns = clampColumns(
+    record?.layout_config && typeof record.layout_config === 'object'
+      ? (record.layout_config as Record<string, unknown>).columns as number | undefined
+      : record?.layout && typeof record.layout === 'object'
+        ? (record.layout as Record<string, unknown>).columns as number | undefined
+        : (record.columns as number | undefined),
+  );
+
+  const sourceFields: unknown[] = Array.isArray(record.fields) ? (record.fields as unknown[]) : [];
+  if (!sourceFields.length) return null;
+
+  const normalizedFields: FormStructureField[] = sourceFields.map((field, index) => {
+    const fieldRecord = (field ?? {}) as Record<string, unknown>;
+    const stepKey = (fieldRecord.step_key ?? fieldRecord.step ?? fieldRecord.meta_step_key) as string | undefined;
+    const orderValue = fieldRecord.order as number | undefined;
+    const columnSpan = clampColumnSpan(fieldRecord.column_span as number | null | undefined, baseColumns);
+
+    return {
+      id: (fieldRecord.id ?? fieldRecord.field_name ?? `field-${index}`) as string | number,
+      field_name: (fieldRecord.field_name ?? fieldRecord.name ?? `field_${index}`) as string,
+      label: (fieldRecord.label ?? fieldRecord.name ?? `Field ${index + 1}`) as string,
+      field_type: (fieldRecord.field_type ?? fieldRecord.type ?? 'text') as string,
+      is_required: Boolean(fieldRecord.is_required ?? fieldRecord.required),
+      required: Boolean(fieldRecord.required ?? fieldRecord.is_required),
+      help_text: (fieldRecord.help_text ?? fieldRecord.placeholder ?? '') as string,
+      options: normalizeOptions(fieldRecord.options),
+      order: typeof orderValue === 'number' ? orderValue : index + 1,
+      max_length: (fieldRecord.max_length ?? null) as number | null,
+      min_value: (fieldRecord.min_value ?? null) as number | null,
+      max_value: (fieldRecord.max_value ?? null) as number | null,
+      allowed_file_types: (fieldRecord.allowed_file_types ?? null) as string[] | null,
+      max_file_size: (fieldRecord.max_file_size ?? null) as number | null,
+      conditional_logic: fieldRecord.conditional_logic,
+      is_static: Boolean(fieldRecord.is_static),
+      column_span: columnSpan,
+      step_key: stepKey,
+    };
+  });
+
+  const metadataSteps: unknown[] = Array.isArray(record.steps) ? (record.steps as unknown[]) : [];
+  let steps: FormStructureStep[] = [];
+
+  if (metadataSteps.length) {
+    steps = metadataSteps
+      .map((step, index) => {
+        const stepRecord = (step ?? {}) as Record<string, unknown>;
+        const key = (stepRecord.key ?? stepRecord.step_key ?? stepRecord.id ?? `step-${index + 1}`) as string;
+        const stepColumns = clampColumns(
+          stepRecord.layout && typeof stepRecord.layout === 'object'
+            ? (stepRecord.layout as Record<string, unknown>).columns as number | undefined
+            : undefined,
+          baseColumns,
+        );
+
+        const stepFields = normalizedFields
+          .filter((field) => {
+            if (field.step_key) return field.step_key === key;
+            const order = field.order ?? (index + 1) * 100;
+            const bucket = Math.floor((order - 1) / 100) + 1;
+            return `step-${bucket}` === key;
+          })
+          .map((field) => ({
+            ...field,
+            column_span: clampColumnSpan(field.column_span, stepColumns),
+          }));
+
+        if (!stepFields.length) return null;
+
+        return {
+          key,
+          title: (stepRecord.title ?? `Step ${index + 1}`) as string,
+          description: (stepRecord.description ?? '') as string,
+          order: (stepRecord.order as number | undefined) ?? index + 1,
+          per_participant: Boolean(stepRecord.per_participant ?? true),
+          layout: { columns: stepColumns },
+          is_static: Boolean(stepRecord.is_static),
+          fields: stepFields,
+        } satisfies FormStructureStep;
+      })
+      .filter((step): step is FormStructureStep => Boolean(step));
+  }
+
+  if (!steps.length) {
+    const grouped = new Map<string, FormStructureField[]>();
+
+    normalizedFields.forEach((field) => {
+      const order = field.order ?? 0;
+      const bucket = Math.max(1, Math.floor((order - 1) / 100) + 1);
+      const key = field.step_key || `step-${bucket}`;
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key)!.push({
+        ...field,
+        column_span: clampColumnSpan(field.column_span, baseColumns),
+      });
+    });
+
+    steps = Array.from(grouped.entries()).map(([key, fields], index) => ({
+      key,
+      title: `Additional Information ${index + 1}`,
+      description: '',
+      order: index + 1,
+      per_participant: true,
+      layout: { columns: baseColumns },
+      fields,
+    }));
+  }
+
+  return {
+    id: record.id ?? record.pk ?? null,
+    title: (record.title ?? record.name ?? '') as string,
+    description: (record.description ?? '') as string,
+    program: record.program ?? record.program_id ?? null,
+    fields: normalizedFields,
+    steps,
+    layout_config: { columns: baseColumns },
+  };
+};
+
+const fetchFormDetailStructure = async (formId: string): Promise<FormStructure | null> => {
+  try {
+    const detailResponse = await createAuthRequest(`${API_BASE}/program_forms/${formId}/`);
+    if (!detailResponse.ok) {
+      return null;
+    }
+    const data = await detailResponse.json();
+    return normalizeStructureFromDetail(data);
+  } catch (error) {
+    console.error('Error fetching form detail:', error);
+    return null;
+  }
+};
+
+const authFetch = createAuthRequest;
 
 export interface FormField {
   id: string;
@@ -27,6 +215,9 @@ export interface FormField {
   allowed_file_types?: string;
   max_file_size?: number;
   conditional_logic?: unknown;
+  column_span?: number;
+  step_key?: string;
+  is_static?: boolean;
 }
 
 export interface FormStep {
@@ -34,6 +225,9 @@ export interface FormStep {
   title: string;
   description: string;
   fields: FormField[];
+  key?: string;
+  per_participant?: boolean;
+  layout_columns?: number;
 }
 
 // Backend structure returned by /forms/{id}/structure/
@@ -53,6 +247,23 @@ export interface FormStructureField {
   allowed_file_types?: string[] | null;
   max_file_size?: number | null;
   conditional_logic?: unknown;
+  is_static?: boolean;
+  column_span?: number | null;
+  step_key?: string;
+}
+
+export interface FormStructureStep {
+  key: string;
+  title: string;
+  description?: string;
+  order?: number;
+  is_static?: boolean;
+  per_participant?: boolean;
+  layout?: {
+    columns?: number;
+    [key: string]: unknown;
+  };
+  fields: FormStructureField[];
 }
 
 export interface FormStructure {
@@ -62,6 +273,11 @@ export interface FormStructure {
   description?: string;
   program?: number | string;
   fields: FormStructureField[];
+  steps?: FormStructureStep[];
+  layout_config?: {
+    columns?: number;
+    [key: string]: unknown;
+  };
 }
 
 export interface ProgramForm {
@@ -92,11 +308,11 @@ export const programFormService = {
   async getProgramForms(programId: string): Promise<ProgramForm[]> {
     try {
       // Try the nested endpoint first
-      let response = await fetch(`${API_BASE}/programs/${programId}/forms/`);
+      let response = await authFetch(`${API_BASE}/programs/${programId}/forms/`);
       
       // If 404, try the flat endpoint as fallback
       if (response.status === 404) {
-        response = await fetch(`${API_BASE}/program_forms/?program=${programId}`);
+        response = await authFetch(`${API_BASE}/program_forms/?program=${programId}`);
       }
       
       if (!response.ok) {
@@ -141,13 +357,14 @@ export const programFormService = {
   async inactivateForm(programId: string, formId: string): Promise<boolean> {
     try {
       // Try nested endpoint first
-      let response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/inactivate/`, {
+      const targetId = normalizeFormIdentifier(formId);
+      let response = await authFetch(`${API_BASE}/programs/${programId}/forms/${targetId}/inactivate/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       if (response.status === 404) {
         // Fallback to flat endpoint
-        response = await fetch(`${API_BASE}/program_forms/${formId}/inactivate/`, {
+        response = await authFetch(`${API_BASE}/program_forms/${targetId}/inactivate/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -165,21 +382,39 @@ export const programFormService = {
   },
 
   async getFormStructure(formId: string): Promise<FormStructure | null> {
+    const targetId = normalizeFormIdentifier(formId);
+
     try {
-      const response = await fetch(`${API_BASE}/program_forms/${formId}/structure/`);
-      if (!response.ok) {
-        return null;
+      const response = await authFetch(`${API_BASE}/program_forms/${targetId}/structure/`);
+      if (response.ok) {
+        const raw = await response.json();
+        const fields: FormStructureField[] = Array.isArray(raw.fields) ? raw.fields : [];
+        const steps: FormStructureStep[] = Array.isArray(raw.steps) ? raw.steps : [];
+        const layout_config = raw.layout_config && typeof raw.layout_config === 'object'
+          ? raw.layout_config
+          : { columns: 4 };
+        return {
+          ...raw,
+          fields,
+          steps,
+          layout_config,
+        };
       }
-      return await response.json();
+
+      console.warn(
+        `Structure endpoint responded with ${response.status} ${response.statusText}; attempting fallback structure for form ${targetId}`,
+      );
     } catch (error) {
-      console.error('Error fetching form structure:', error);
-      return null;
+      console.error('Primary structure fetch failed, attempting fallback:', error);
     }
+
+    return fetchFormDetailStructure(targetId);
   },
 
   async getFormById(formId: string): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/program_forms/${formId}/`);
+      const targetId = normalizeFormIdentifier(formId);
+      const response = await authFetch(`${API_BASE}/program_forms/${targetId}/`);
       if (!response.ok) {
         // Gracefully return null to let callers show fallback UI
         return null;
@@ -194,7 +429,8 @@ export const programFormService = {
   async setActiveForm(programId: string, formId: string): Promise<boolean> {
     try {
       // Try nested endpoint first
-      let response = await fetch(`${API_BASE}/programs/${programId}/forms/${formId}/set-active/`, {
+      const targetId = normalizeFormIdentifier(formId);
+      let response = await authFetch(`${API_BASE}/programs/${programId}/forms/${targetId}/set-active/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +438,7 @@ export const programFormService = {
       });
       if (response.status === 404) {
         // Fallback to flat endpoint
-        response = await fetch(`${API_BASE}/program_forms/${formId}/set-active/`, {
+        response = await authFetch(`${API_BASE}/program_forms/${targetId}/set-active/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -221,7 +457,8 @@ export const programFormService = {
 
   async deleteForm(formId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE}/program_forms/${formId}/`, {
+      const targetId = normalizeFormIdentifier(formId);
+      const response = await authFetch(`${API_BASE}/program_forms/${targetId}/`, {
         method: 'DELETE',
       });
       
@@ -238,7 +475,8 @@ export const programFormService = {
 
   async getFormResponses(formId: string): Promise<FormResponse[]> {
     try {
-      const response = await fetch(`${API_BASE}/program_forms/${formId}/responses/`);
+      const targetId = normalizeFormIdentifier(formId);
+      const response = await authFetch(`${API_BASE}/program_forms/${targetId}/responses/`);
       if (!response.ok) {
         throw new Error(`Failed to fetch form responses: ${response.status} ${response.statusText}`);
       }
@@ -257,7 +495,7 @@ export const programFormService = {
     steps: FormStep[];
   }): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/program_forms/`, {
+      const response = await authFetch(`${API_BASE}/program_forms/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -290,9 +528,12 @@ export const programFormService = {
     title?: string;
     description?: string;
     fields?: FormFieldPayload[];
+    steps?: Array<Record<string, unknown>>;
+    layout_config?: Record<string, unknown>;
   }): Promise<ProgramForm | null> {
     try {
-      const response = await fetch(`${API_BASE}/program_forms/${formId}/`, {
+      const targetId = normalizeFormIdentifier(formId);
+      const response = await authFetch(`${API_BASE}/program_forms/${targetId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
