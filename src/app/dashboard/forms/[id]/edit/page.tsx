@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
 
 import DashboardLayout from '@/components/Layouts/Dashboard';
-import { FormBuilderEditor } from '@/components/Forms/FormBuilderEditor';
+import { FormBuilderEditor } from '@/components/Forms/FormBuilder/FormBuilderEditor';
 
 function EditFormContent() {
   const params = useParams();

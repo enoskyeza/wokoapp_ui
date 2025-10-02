@@ -39,6 +39,19 @@ const clampColumnSpan = (value?: number | null, columns = 1) => {
   return Math.min(columns, Math.max(1, Math.floor(numeric)));
 };
 
+type ConditionOp = 'equals' | 'not_equals' | 'contains' | 'is_empty' | 'not_empty' | '>' | '>=' | '<' | '<=';
+
+interface ConditionRule {
+  field: string;
+  op: ConditionOp;
+  value?: string | number | boolean | null;
+}
+
+export interface ConditionalLogicConfig {
+  mode: 'all' | 'any';
+  rules: ConditionRule[];
+}
+
 const normalizeOptions = (options: unknown): string[] | undefined => {
   if (!Array.isArray(options)) return undefined;
   const normalized = options
@@ -57,6 +70,32 @@ const normalizeOptions = (options: unknown): string[] | undefined => {
 const createAuthRequest = (input: string, init: RequestInit = {}) => {
   const headers = createAuthHeaders(init.headers);
   return fetch(input, { ...init, headers, credentials: 'include' });
+};
+
+const normalizeConditionalLogic = (raw: unknown): ConditionalLogicConfig | undefined => {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const record = raw as Record<string, unknown>;
+  const incomingRules = Array.isArray(record.rules) ? (record.rules as unknown[]) : [];
+  if (!incomingRules.length) return undefined;
+
+  const cleanedRules: ConditionRule[] = [];
+  incomingRules.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    const rule = entry as Record<string, unknown>;
+    const field = typeof rule.field === 'string' ? rule.field.trim() : '';
+    const op = typeof rule.op === 'string' ? (rule.op as ConditionOp) : undefined;
+    if (!field || !op) return;
+    cleanedRules.push({
+      field,
+      op,
+      value: rule.value as ConditionRule['value'],
+    });
+  });
+
+  if (!cleanedRules.length) return undefined;
+
+  const mode = record.mode === 'any' ? 'any' : 'all';
+  return { mode, rules: cleanedRules };
 };
 
 const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
@@ -95,7 +134,7 @@ const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
       max_value: (fieldRecord.max_value ?? null) as number | null,
       allowed_file_types: (fieldRecord.allowed_file_types ?? null) as string[] | null,
       max_file_size: (fieldRecord.max_file_size ?? null) as number | null,
-      conditional_logic: fieldRecord.conditional_logic,
+      conditional_logic: normalizeConditionalLogic(fieldRecord.conditional_logic),
       is_static: Boolean(fieldRecord.is_static),
       column_span: columnSpan,
       step_key: stepKey,
@@ -139,6 +178,7 @@ const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
           per_participant: Boolean(stepRecord.per_participant ?? true),
           layout: { columns: stepColumns },
           is_static: Boolean(stepRecord.is_static),
+          conditional_logic: normalizeConditionalLogic(stepRecord.conditional_logic),
           fields: stepFields,
         } satisfies FormStructureStep;
       })
@@ -166,6 +206,7 @@ const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
       order: index + 1,
       per_participant: true,
       layout: { columns: baseColumns },
+      conditional_logic: undefined,
       fields,
     }));
   }
@@ -214,7 +255,7 @@ export interface FormField {
   max_value?: number;
   allowed_file_types?: string;
   max_file_size?: number;
-  conditional_logic?: unknown;
+  conditional_logic?: ConditionalLogicConfig;
   column_span?: number;
   step_key?: string;
   is_static?: boolean;
@@ -228,6 +269,7 @@ export interface FormStep {
   key?: string;
   per_participant?: boolean;
   layout_columns?: number;
+  conditional_logic?: ConditionalLogicConfig;
 }
 
 // Backend structure returned by /forms/{id}/structure/
@@ -246,7 +288,7 @@ export interface FormStructureField {
   max_value?: number | null;
   allowed_file_types?: string[] | null;
   max_file_size?: number | null;
-  conditional_logic?: unknown;
+  conditional_logic?: ConditionalLogicConfig;
   is_static?: boolean;
   column_span?: number | null;
   step_key?: string;
@@ -263,6 +305,7 @@ export interface FormStructureStep {
     columns?: number;
     [key: string]: unknown;
   };
+  conditional_logic?: ConditionalLogicConfig;
   fields: FormStructureField[];
 }
 

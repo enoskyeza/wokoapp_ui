@@ -16,15 +16,17 @@ import {
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import Cookies from 'js-cookie';
 
 type SidebarState = 'expanded' | 'collapsed' | 'hidden';
 
 const Dashboard = ({children}: {children: ReactNode}) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarState, setSidebarState] = useState<SidebarState>('collapsed');
 
@@ -93,6 +95,26 @@ const Dashboard = ({children}: {children: ReactNode}) => {
       case 'collapsed': return 'lg:ml-16';
       case 'hidden': return 'lg:ml-0';
       default: return 'lg:ml-16';
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      // Clear cookies on client side
+      Cookies.remove('authToken', { path: '/' });
+      Cookies.remove('userData', { path: '/' });
+      
+      // Call logout API to clear server-side cookies if any
+      await fetch('/api/logout', { method: 'POST' });
+      
+      // Redirect to login page
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect to login even if API call fails
+      Cookies.remove('authToken', { path: '/' });
+      Cookies.remove('userData', { path: '/' });
+      router.push('/login');
     }
   };
 
@@ -330,6 +352,7 @@ const Dashboard = ({children}: {children: ReactNode}) => {
                   <MenuItem>
                     <button
                       type="button"
+                      onClick={handleLogout}
                       className="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 data-[focus]:bg-gray-50"
                     >
                       Logout

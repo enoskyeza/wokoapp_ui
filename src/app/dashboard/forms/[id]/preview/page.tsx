@@ -4,13 +4,12 @@ import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
 
 import DashboardLayout from '@/components/Layouts/Dashboard';
-import { FormBuilderEditor } from '@/components/Forms/FormBuilderEditor';
+import { FormBuilderEditor } from '@/components/Forms/FormBuilder/FormBuilderEditor';
 
 function PreviewFormContent() {
   const params = useParams();
   const formId = params.id as string;
   
-  // Use the same FormBuilderEditor but trigger preview mode
   return <FormBuilderEditor formId={formId} previewMode={true} />;
 }
 
