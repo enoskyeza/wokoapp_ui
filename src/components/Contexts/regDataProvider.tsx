@@ -1,5 +1,13 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  useRef,
+} from 'react'
 import axios, { AxiosError } from 'axios'
 import { Program, School } from '@/types'
 
@@ -57,59 +65,78 @@ export function RegistrationProvider({ children }: { children: ReactNode }) {
 
     // New filter state for programs
   const [programTypeFilter, setProgramTypeFilter] = useState<number | null>(null)
-  const [activeFilter, setActiveFilter] = useState<boolean | null>(null)
+  const [activeFilter, setActiveFilter] = useState<boolean | null>(true)
 
   // Fetch schools from API
-  const fetchSchools = async () => {
+  const schoolFetchSignatureRef = useRef<string | null>(null)
+  const programFetchSignatureRef = useRef<string | null>(null)
+
+  const fetchSchools = useCallback(async (options?: { force?: boolean }) => {
+    const signature = schoolQuery.trim().toLowerCase()
+    if (!options?.force && schoolFetchSignatureRef.current === signature) {
+      return
+    }
     setIsLoading(true)
     setError(null)
     try {
+      schoolFetchSignatureRef.current = signature
       // build URL with optional search query
-      const url = `${API_BASE}/schools/${schoolQuery ? `?search=${encodeURIComponent(schoolQuery)}` : ''}`
+      const baseUrl = `${API_BASE}/schools/`
+      const url = schoolQuery
+        ? `${baseUrl}?search=${encodeURIComponent(schoolQuery)}`
+        : baseUrl
       const response = await axios.get<School[]>(url)
       setSchools(response.data)
     } catch (err) {
       const axiosErr = err as AxiosError
       setError(axiosErr.response?.data ?? axiosErr.message)
+      schoolFetchSignatureRef.current = null
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [schoolQuery])
 
   // Fetch programs from API
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async (options?: { force?: boolean }) => {
+    const signature = JSON.stringify({ programTypeFilter, activeFilter })
+    if (!options?.force && programFetchSignatureRef.current === signature) {
+      return
+    }
     setIsLoading(true)
     setError(null)
     try {
+      programFetchSignatureRef.current = signature
             // Build query params based on filters
       const params = new URLSearchParams()
       if (programTypeFilter !== null) params.append('type', String(programTypeFilter))
       if (activeFilter !== null) params.append('active', String(activeFilter))
 
 
-      const queryString = params.toString() ? `?${params.toString()}` : ''
-      const url = `${API_BASE}/programs${queryString}`
+      const baseUrl = `${API_BASE}/programs/`
+      const queryString = params.toString()
+      const url = queryString ? `${baseUrl}?${params.toString()}` : baseUrl
 
       const response = await axios.get<Program[]>(url)
       setPrograms(response.data)
     } catch (err) {
       const axiosErr = err as AxiosError
       setError(axiosErr.response?.data ?? axiosErr.message)
+      programFetchSignatureRef.current = null
     } finally {
       setIsLoading(false)
     }
-  }
-
-  useEffect(() => {
-    void fetchPrograms()
   }, [programTypeFilter, activeFilter])
 
   useEffect(() => {
-    void fetchSchools()
-  }, [schoolQuery])
+    void fetchPrograms()
+  }, [fetchPrograms])
 
-  const refreshSchools = () => fetchSchools()
-  const refreshPrograms = () => fetchPrograms()
+  useEffect(() => {
+    void fetchSchools()
+  }, [fetchSchools])
+
+  const refreshSchools = useCallback(() => fetchSchools({ force: true }), [fetchSchools])
+  const refreshPrograms = useCallback(() => fetchPrograms({ force: true }), [fetchPrograms])
 
   return (
     <RegistrationDataContext.Provider value={{
