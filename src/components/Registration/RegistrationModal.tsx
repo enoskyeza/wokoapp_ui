@@ -111,12 +111,12 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
     });
   };
 
-  const createEmptyParticipant = useCallback((): ParticipantData => ({
+  const createEmptyParticipant = useCallback((ageMin?: number): ParticipantData => ({
     first_name: '',
     last_name: '',
     email: '',
     gender: 'M',
-    age_at_registration: formStructure?.program.age_min ?? 5,
+    age_at_registration: ageMin ?? formStructure?.program.age_min ?? 5,
     school_at_registration: {
       name: '',
       address: '',
@@ -124,6 +124,20 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
     },
     category_value: '',
   }), [formStructure?.program.age_min]);
+
+  const resetFormState = useCallback(() => {
+    setGuardianData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone_number: '',
+      profession: '',
+      address: '',
+    });
+    setParticipantsData([createEmptyParticipant()]);
+    setCustomFieldsState(emptyCustomFieldState);
+    setCurrentStep(0);
+  }, [createEmptyParticipant]);
 
   useEffect(() => {
     ensureParticipantFieldState(participantsData.length);
@@ -143,19 +157,7 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         profession: '',
         address: '',
       });
-      setParticipantsData([{
-        first_name: '',
-        last_name: '',
-        email: '',
-        gender: 'M',
-        age_at_registration: structure.program.age_min ?? 5,
-        school_at_registration: {
-          name: '',
-          address: '',
-          phone_number: '',
-        },
-        category_value: '',
-      }]);
+      setParticipantsData([createEmptyParticipant(structure.program.age_min)]);
       setCustomFieldsState(emptyCustomFieldState);
       setSuccessPayload(null);
       setSuccessModalOpen(false);
@@ -166,7 +168,7 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
     } finally {
       setLoading(false);
     }
-  }, [programId, onClose]);
+  }, [programId, onClose, createEmptyParticipant]);
 
   useEffect(() => {
     if (isOpen && programId) {
@@ -479,18 +481,6 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         report: result.report,
       });
       setSuccessModalOpen(true);
-
-      setGuardianData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone_number: '',
-        profession: '',
-        address: '',
-      });
-      setParticipantsData([createEmptyParticipant()]);
-      setCustomFieldsState(emptyCustomFieldState);
-      setCurrentStep(0);
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('Registration failed', {
@@ -534,6 +524,7 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
             setSuccessModalOpen(open);
             if (!open) {
               setSuccessPayload(null);
+              resetFormState();
               onClose();
             }
           }}
@@ -544,11 +535,12 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         />
       )}
 
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
-        <div
-          className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto text-gray-900"
-          onClick={(e) => e.stopPropagation()}
-        >
+      {!successModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto text-gray-900"
+            onClick={(e) => e.stopPropagation()}
+          >
           <header className="bg-white shadow-sm border-b border-blue-100 rounded-t-lg">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between py-4">
@@ -699,8 +691,9 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
             </div>
           </div>
         </div>
-      </div>
-      </div>
+          </div>
+        </div>
+      )}
     </Fragment>
   );
 }

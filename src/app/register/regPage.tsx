@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {useRegistrationData} from "@/components/Contexts/regDataProvider";
 import Image from "next/image";
 
@@ -157,7 +157,13 @@ function RegisterPage() {
   const [programDetailsOpen, setProgramDetailsOpen] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const {isLoading, error, setActiveFilter} = useRegistrationData();
+  const {
+    programs: rawPrograms,
+    isLoading: contextLoading,
+    error,
+    activeFilter,
+    setActiveFilter,
+  } = useRegistrationData();
 
   const getLevelColor = (level: string) => {
     switch (level) {
@@ -180,7 +186,7 @@ function RegisterPage() {
     [programs]
   );
 
-  const isFetching = isLoading || loading;
+  const isFetching = contextLoading || loading;
 
 
   // Helper function to format price
@@ -202,7 +208,7 @@ function RegisterPage() {
   };
 
   // Function to check if programs have active forms
-  const checkActiveFormsForPrograms = async (programs: Program[]): Promise<Program[]> => {
+  const checkActiveFormsForPrograms = useCallback(async (programs: Program[]): Promise<Program[]> => {
     try {
       const updatedPrograms = await Promise.all(
         programs.map(async (program) => {
@@ -243,21 +249,35 @@ function RegisterPage() {
       console.error('Error checking active forms:', error);
       return programs.map(p => ({ ...p, hasActiveForm: false }));
     }
-  };
+  }, []); // Empty deps to prevent infinite loop
 
   useEffect(() => {
+    if (activeFilter !== true) {
+      setActiveFilter(true);
+    }
+  }, [activeFilter, setActiveFilter]);
+
+  useEffect(() => {
+    if (contextLoading) {
+      return;
+    }
+
+    if (!rawPrograms.length) {
+      setPrograms([]);
+      setFilteredPrograms([]);
+      setLoadError(null);
+      setLoading(false);
+      return;
+    }
+
     let mounted = true;
+    setLoading(true);
+    setLoadError(null);
+
     (async () => {
       try {
-        setLoading(true);
-        const [apiPrograms, stats] = await Promise.all([
-          programService.getAllPrograms(),
-          programService.getDashboardStats(),
-        ]);
-        
-        // Filter out inactive/archived programs - only show active programs for registration
-        const activeApiPrograms = apiPrograms.filter(p => p.active === true);
-        
+        const stats = await programService.getDashboardStats();
+
         const enrollmentsById = new Map<string, number>();
         const enrollmentsByTitle = new Map<string, number>();
         if (stats?.programs) {
@@ -267,34 +287,42 @@ function RegisterPage() {
             if (pr.id) enrollmentsById.set(String(pr.id), pr.enrollments ?? 0);
           }
         }
-        const mapped = activeApiPrograms.map(p => mapApiToProgram(p, enrollmentsById, enrollmentsByTitle));
-        
-        // Check for active forms
+
+        const activeApiPrograms = rawPrograms.filter(p => p.active !== false);
+        const mapped = activeApiPrograms.map(p =>
+          mapApiToProgram(p as ApiProgram, enrollmentsById, enrollmentsByTitle)
+        );
+
         const programsWithActiveForms = await checkActiveFormsForPrograms(mapped);
-        
-        // Temporary fallback: Set known active programs based on backend data
+
         const programsWithFallback = programsWithActiveForms.map(program => {
-          // Program 4 (Mentorship Program 2025) has active form
           if (program.id === '4') {
             return { ...program, hasActiveForm: true };
           }
           return program;
         });
-        
+
         if (mounted) {
           setPrograms(programsWithFallback);
           setFilteredPrograms(programsWithFallback);
         }
       } catch (e) {
         console.error('Failed to load programs', e);
-        setLoadError('Failed to load programs. Please try again later.');
-        toast.error('Failed to load programs');
+        if (mounted) {
+          setLoadError('Failed to load programs. Please try again later.');
+          toast.error('Failed to load programs');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     })();
-    return () => { mounted = false; };
-  }, []);
+
+    return () => {
+      mounted = false;
+    };
+  }, [rawPrograms, contextLoading, setFilteredPrograms]);
 
   useEffect(() => {
     let list = programs;

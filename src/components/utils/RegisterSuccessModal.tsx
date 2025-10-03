@@ -30,7 +30,7 @@ type InterfaceProps = {
 
 }
 
-function SuccessModalDialog({isOpen, setIsOpen, participants, report=[], program, eventLink}: InterfaceProps) {
+function SuccessModalDialog({isOpen, setIsOpen, participants, report = [], program, eventLink}: InterfaceProps) {
 
     const {setSelectedProgram, setStarted} = useRegistrationData()
 
@@ -40,38 +40,70 @@ function SuccessModalDialog({isOpen, setIsOpen, participants, report=[], program
         setSelectedProgram(null)
       }
 
+    const participantNames = participants
+      .map((participant) => `${participant.first_name} ${participant.last_name}`.trim())
+      .filter(Boolean)
+
+    const hasFailures = report.length > 0
+    const hasSuccesses = participantNames.length > 0
+
     return (
         <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
             <DialogTitle>
-                <p className="text-center text-lg font-semibold text-green-600">Successfully Registered!</p>
+                <p
+                  className={`text-center text-lg font-semibold ${
+                    hasFailures ? 'text-blue-600' : 'text-green-600'
+                  }`}
+                >
+                  {hasFailures ? 'Registration Unsuccessful' : 'Successfully Registered!'}
+                </p>
             </DialogTitle>
             <DialogBody>
                 <div>
-                    <p className="text-center mt-4 text-gray-600">
+                    {!hasFailures && hasSuccesses && (
+                      <p className="text-center mt-4 text-gray-600">
                         You have successfully registered{' '}
-                        {participants.map((participant, index) => (
-                            <span key={index} className="font-medium text-red-400">
-                                {participant.first_name.toUpperCase()} {participant.last_name.toUpperCase()}
-                                {index < participants.length - 1 && ', '}
-                            </span>
-                        ))}{' '}
-                        for the {`${program ? program : ''}`}! You will receive event details one week before
-                        the event.
-                    </p>
-
-                    {report.length > 0 && (
-                        <p className="mt-2 text-center text-red-400 text-sm italic">
-                            Skipped registration of{' '}
-                            {report.map((item, idx) => (
-                                <span key={idx} className="font-medium text-blue-800">
-                                    {item.name.toUpperCase()}
-                                    {idx < report.length - 1 ? ', ' : ''}
-                </span>
-                            ))}{' '}
-                            because they are already registered. Contact us for more details.
-                        </p>
+                        <span className="font-medium text-green-600">
+                          {participantNames.join(', ')}
+                        </span>
+                        {program ? ` for the ${program}!` : '!'} You will receive event details one week before the event.
+                      </p>
                     )}
-                    <SocialSharingSection eventLink={eventLink}/>
+
+                    {!hasFailures && !hasSuccesses && (
+                      <p className="text-center mt-4 text-gray-600">
+                        Registration completed successfully. You will receive event details one week before the event.
+                      </p>
+                    )}
+
+                    {hasFailures && (
+                      <div className="mt-4 space-y-2 text-center">
+                        {hasSuccesses && (
+                          <p className="text-gray-600">
+                            The following participants were registered successfully:{' '}
+                            <span className="font-medium text-green-600">{participantNames.join(', ')}</span>
+                          </p>
+                        )}
+                        <p className="text-red-500 text-sm font-medium">
+                          We could not complete registration for:
+                        </p>
+                        <ul className="space-y-1 text-sm text-red-500">
+                          {report.map((item, idx) => (
+                            <li key={`${item.name}-${idx}`}>
+                              <span className="font-semibold text-red-600">{item.name}</span>
+                              {item.reason ? ` — ${item.reason}` : ''}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="text-xs text-gray-500">
+                          Please review the details or contact support for assistance.
+                        </p>
+                      </div>
+                    )}
+
+                    {!hasFailures && (
+                      <SocialSharingSection eventLink={eventLink} />
+                    )}
                 </div>
             </DialogBody>
             <DialogActions>
