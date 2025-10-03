@@ -26,6 +26,8 @@ export interface FormField {
   max_file_size?: number
   conditional_logic?: Record<string, unknown>
   per_participant?: boolean
+  column_span?: number | null
+  columnSpan?: number | null
 }
 
 export interface FormStep {
@@ -35,6 +37,11 @@ export interface FormStep {
   editable: boolean
   per_participant?: boolean
   fields: FormField[]
+  layout?: {
+    columns?: number
+    [key: string]: unknown
+  }
+  layout_columns?: number | null
 }
 
 export interface RegistrationFormStructure {

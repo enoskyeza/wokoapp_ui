@@ -225,7 +225,7 @@ export function ParticipantStep({ data, onChange, program }: ParticipantStepProp
             {/* School Search Component */}
             <div className="space-y-2">
               <Label className="block text-left text-black font-medium">
-                School <span className="text-red-500">*</span>
+                School <span className="text-sm text-gray-500">(if no school, add N/A)</span> <span className="text-red-500">*</span>
               </Label>
               <SchoolSearch
                 value={participant.school_at_registration}

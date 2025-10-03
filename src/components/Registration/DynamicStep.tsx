@@ -17,6 +17,42 @@ interface ExtendedFormStep extends FormStep {
   per_participant?: boolean;
 }
 
+const COLUMN_CLASS_MAP: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-1 md:grid-cols-2',
+  3: 'grid-cols-1 md:grid-cols-3',
+  4: 'grid-cols-1 md:grid-cols-4',
+};
+
+const COLUMN_SPAN_CLASS_MAP: Record<number, string> = {
+  1: 'col-span-1',
+  2: 'col-span-1 md:col-span-2',
+  3: 'col-span-1 md:col-span-3',
+  4: 'col-span-1 md:col-span-4',
+};
+
+const clampColumnCount = (value?: number | null, fallback = 2) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return fallback;
+  }
+  return Math.min(4, Math.max(1, Math.floor(numeric)));
+};
+
+const clampColumnSpan = (value: number | null | undefined, columns: number) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 1;
+  }
+  return Math.min(columns, Math.max(1, Math.floor(numeric)));
+};
+
+const getStepColumns = (step: ExtendedFormStep): number => {
+  const layoutColumns = step.layout?.columns;
+  const legacyColumns = (step as { layout_columns?: number }).layout_columns;
+  return clampColumnCount(layoutColumns ?? legacyColumns ?? 2);
+};
+
 export interface DynamicStepProps {
   step: ExtendedFormStep;
   globalValues: Record<string, unknown>;
@@ -228,21 +264,28 @@ const renderField = (
   value: unknown,
   updateValue: (next: unknown) => void,
   visibilityContext: ConditionContext,
+  columns: number,
 ) => {
   const conditionGroup = field.conditional_logic as ConditionGroup | undefined;
   if (!evaluateConditions(conditionGroup, visibilityContext)) {
     return null;
   }
 
-  const spanTwoColumns =
+  const hasLargeContent =
     field.type === 'textarea' ||
     (field.type === 'checkbox' && (field.options || []).length > 3) ||
     (field.type === 'radio' && (field.options || []).length > 3);
 
+  const rawSpan = field.column_span ?? (field as { columnSpan?: number }).columnSpan;
+  const metadataSpan = rawSpan != null ? clampColumnSpan(rawSpan, columns) : undefined;
+  const fallbackSpan = hasLargeContent ? columns : 1;
+  const span = metadataSpan ?? fallbackSpan;
+  const spanClass = COLUMN_SPAN_CLASS_MAP[span] ?? COLUMN_SPAN_CLASS_MAP[1];
+
   return (
     <div
       key={field.name}
-      className={`space-y-2 ${spanTwoColumns ? 'md:col-span-2' : ''}`}
+      className={`space-y-2 ${spanClass}`}
     >
       <Label className="block text-left text-black font-medium text-sm">
         {field.label}
@@ -265,6 +308,8 @@ export function DynamicStep({
 }: DynamicStepProps) {
   const perParticipant = step.per_participant ?? false;
   const fields = step.fields || [];
+  const stepColumns = getStepColumns(step);
+  const gridClassName = `grid gap-6 ${COLUMN_CLASS_MAP[stepColumns] ?? COLUMN_CLASS_MAP[2]}`;
 
   if (perParticipant) {
     return (
@@ -292,13 +337,14 @@ export function DynamicStep({
                   Participant {index + 1}: {participant.first_name} {participant.last_name}
                 </h4>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className={gridClassName}>
                 {fields.map((field) =>
                   renderField(
                     field,
                     participantSpecific[field.name],
                     (value) => updateValue(field.name, value),
                     context,
+                    stepColumns,
                   ),
                 )}
               </div>
@@ -322,13 +368,14 @@ export function DynamicStep({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className={gridClassName}>
       {fields.map((field) =>
         renderField(
           field,
           globalValues[field.name],
           (value) => updateGlobalValue(field.name, value),
           globalContext,
+          stepColumns,
         ),
       )}
     </div>

@@ -110,7 +110,6 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
     const fieldId = `preview_${field.id}`;
     const span = clampColumnSpan(field.columnSpan, columns);
     const commonProps = {
-      key: field.id,
       className: 'space-y-2',
       style: { gridColumn: `span ${span} / span ${span}` },
     } as const;
@@ -118,7 +117,7 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
     switch (field.type) {
       case 'textarea':
         return (
-          <div {...commonProps}>
+          <div key={field.id} {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -135,7 +134,7 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'select':
         return (
-          <div {...commonProps}>
+          <div key={field.id} {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -156,7 +155,7 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'checkbox':
         return (
-          <div {...commonProps}>
+          <div key={field.id} {...commonProps}>
             <Label>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -177,7 +176,7 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       case 'radio':
         return (
-          <div {...commonProps}>
+          <div key={field.id} {...commonProps}>
             <Label>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
@@ -198,7 +197,7 @@ export default function FormPreview({ isOpen, onClose, formName, formDescription
         
       default:
         return (
-          <div {...commonProps}>
+          <div key={field.id} {...commonProps}>
             <Label htmlFor={fieldId}>
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}

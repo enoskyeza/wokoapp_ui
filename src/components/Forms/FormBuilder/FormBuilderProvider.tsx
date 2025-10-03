@@ -80,6 +80,13 @@ const defaultStaticSteps = [
 export function FormBuilderProvider({ children, formId }: FormBuilderProviderProps) {
   const store = useFormBuilderStore();
 
+  useEffect(() => {
+    store.reset();
+    return () => {
+      store.reset();
+    };
+  }, []);
+
   const isEditMode = Boolean(formId);
   const combinedSteps = [...defaultStaticSteps, ...store.formData.steps];
 
