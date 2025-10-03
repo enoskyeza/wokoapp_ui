@@ -79,7 +79,7 @@ export function ConditionalLogicEditor({
 
   return (
     <div className="space-y-2">
-      <Label>Conditional Logic</Label>
+      {/* <Label>Conditional Logic</Label> */}
       
       <div className="flex items-center gap-3">
         <span className="text-sm text-gray-600">Show this field if</span>
@@ -210,7 +210,7 @@ export function ConditionalLogicEditor({
       </div>
 
       {/* Help Text */}
-      {rules.length > 0 && (
+      {/* {rules.length > 0 && (
         <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
           <p className="font-medium">Available fields:</p>
           <ul className="mt-1 space-y-1">
@@ -225,7 +225,7 @@ export function ConditionalLogicEditor({
             Fields are based on actual backend data structure
           </p>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

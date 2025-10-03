@@ -219,6 +219,7 @@ export interface Program {
   year?: number;
   name: string;
   description?: string;
+  long_description?: string;
   start_date?: string;  // ISO date string
   end_date?: string;
   registration_fee?: number;
@@ -226,6 +227,15 @@ export interface Program {
   age_max?: number;
   capacity?: number;
   requires_ticket: boolean;
+  level?: string;
+  thumbnail_url?: string;
+  video_url?: string;
+  instructor?: string;
+  featured?: boolean;
+  modules?: string[];
+  learning_outcomes?: string[];
+  requirements?: string[];
+  active?: boolean;
   created_at: string;
   updated_at: string;
   category_label?: string | null;

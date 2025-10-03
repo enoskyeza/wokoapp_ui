@@ -101,7 +101,7 @@ export function FormBuilderProvider({ children, formId }: FormBuilderProviderPro
     };
 
     loadPrograms();
-  }, [store]);
+  }, []);
 
   // Load selected program data when programId changes
   useEffect(() => {

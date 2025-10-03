@@ -8,6 +8,12 @@ export { FieldRenderer } from './FieldRenderer';
 export { ConditionalLogicEditor } from './ConditionalLogicEditor';
 export { FormPreview } from './FormPreview';
 
+// Field configuration components
+export { FieldCard } from './FieldCard';
+export { FieldBasicConfig } from './FieldBasicConfig';
+export { FieldAdvancedConfig } from './FieldAdvancedConfig';
+export { FieldExpertConfig } from './FieldExpertConfig';
+
 // Types and utilities
 export * from './types';
 export * from './utils';
