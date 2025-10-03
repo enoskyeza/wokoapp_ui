@@ -139,7 +139,7 @@ export interface FormBuilderState {
 }
 
 // Default data
-const defaultFormData: FormBuilderData = {
+const createDefaultFormData = (): FormBuilderData => ({
   basic: {
     name: '',
     description: '',
@@ -168,9 +168,9 @@ const defaultFormData: FormBuilderData = {
   layoutConfig: {
     columns: 4,
   },
-};
+});
 
-const defaultUIState: FormBuilderUIState = {
+const createDefaultUIState = (): FormBuilderUIState => ({
   activeStep: 0,
   showPreview: false,
   previewStep: 0,
@@ -178,7 +178,7 @@ const defaultUIState: FormBuilderUIState = {
   isSaving: false,
   isLoading: false,
   notFound: false,
-};
+});
 
 // Utility functions
 const slugify = (value: string): string => {
@@ -211,10 +211,10 @@ export const useFormBuilderStore = create<FormBuilderState>()(
   subscribeWithSelector(
     immer((set, get) => ({
       // Initial state
-      formData: defaultFormData,
+      formData: createDefaultFormData(),
       programs: [],
       selectedProgram: null,
-      ui: defaultUIState,
+      ui: createDefaultUIState(),
       formId: undefined,
 
       // Setters
@@ -435,10 +435,10 @@ export const useFormBuilderStore = create<FormBuilderState>()(
 
       // Reset
       reset: () => set((state) => {
-        state.formData = defaultFormData;
+        state.formData = createDefaultFormData();
         state.programs = [];
         state.selectedProgram = null;
-        state.ui = defaultUIState;
+        state.ui = createDefaultUIState();
         state.formId = undefined;
       }),
     }))
