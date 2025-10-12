@@ -1,5 +1,6 @@
 import type { FormBuilderData, FormField, FormStep, FieldTypeUI } from './types';
 import type { CreateProgramFormPayload, FormFieldPayload } from '@/services/formsService';
+import type { ConditionalLogic, ConditionalRule } from '@/stores/formBuilderStore';
 
 // String utilities
 export function slugify(value: string): string {
@@ -36,6 +37,77 @@ export const COLUMN_CLASS_MAP: Record<number, string> = {
   4: 'grid-cols-1 md:grid-cols-4',
 };
 
+const allowedConditionalOps = new Set<ConditionalRule['op']>([
+  'equals',
+  'not_equals',
+  'contains',
+  'is_empty',
+  'not_empty',
+]);
+
+const normalizeConditionalLogic = (
+  logic?: ConditionalLogic | null,
+): ConditionalLogic | undefined => {
+  if (!logic || !Array.isArray(logic.rules) || logic.rules.length === 0) {
+    return undefined;
+  }
+
+  const mode: ConditionalLogic['mode'] = logic.mode === 'any' ? 'any' : 'all';
+
+  const rules = logic.rules
+    .map((rule) => {
+      if (!rule || typeof rule !== 'object') return null;
+      const field = rule.field?.trim();
+      const op = allowedConditionalOps.has(rule.op) ? rule.op : undefined;
+      if (!field || !op) return null;
+      const value =
+        rule.value == null || typeof rule.value === 'string'
+          ? (rule.value ?? '')
+          : String(rule.value);
+      return { field, op, value } satisfies ConditionalRule;
+    })
+    .filter((entry): entry is ConditionalRule => Boolean(entry));
+
+  if (!rules.length) {
+    return undefined;
+  }
+
+  return { mode, rules };
+};
+
+const serializeConditionalLogic = (
+  logic?: ConditionalLogic | null,
+): Record<string, unknown> | null => {
+  if (!logic || !Array.isArray(logic.rules) || logic.rules.length === 0) {
+    return null;
+  }
+
+  const rules = logic.rules
+    .map((rule) => {
+      if (!rule || typeof rule !== 'object') return null;
+      const field = rule.field?.trim();
+      const op = allowedConditionalOps.has(rule.op) ? rule.op : undefined;
+      if (!field || !op) return null;
+      const value =
+        rule.value == null || typeof rule.value === 'string'
+          ? rule.value
+          : String(rule.value);
+      return { field, op, value };
+    })
+    .filter((entry): entry is { field: string; op: ConditionalRule['op']; value?: unknown } =>
+      Boolean(entry),
+    );
+
+  if (!rules.length) {
+    return null;
+  }
+
+  return {
+    mode: logic.mode === 'any' ? 'any' : 'all',
+    rules,
+  };
+};
+
 // Form data normalization
 export function normalizeFormData(data?: Partial<FormBuilderData> | null): FormBuilderData {
   const baseColumns = data?.layoutConfig?.columns ?? 4;
@@ -59,6 +131,7 @@ export function normalizeFormData(data?: Partial<FormBuilderData> | null): FormB
           fields,
           perParticipant: step?.perParticipant ?? true,
           layoutColumns,
+          conditionalLogic: normalizeConditionalLogic(step?.conditionalLogic),
         } as FormStep;
       })
     : [
@@ -134,6 +207,7 @@ export function buildPayload(data: FormBuilderData): CreateProgramFormPayload {
   const stepsPayload = data.steps.map((step, sIdx) => {
     const stepKey = step.key || step.id || `step-${sIdx + 1}`;
     const layoutColumns = step.layoutColumns ?? data.layoutConfig.columns ?? 4;
+    const stepConditional = serializeConditionalLogic(step.conditionalLogic);
     const fields = step.fields.map((field, fIdx) => {
       const order = sIdx * 100 + fIdx + 1;
       return {
@@ -166,6 +240,7 @@ export function buildPayload(data: FormBuilderData): CreateProgramFormPayload {
         order: sIdx + 1,
         per_participant: step.perParticipant ?? true,
         layout: { columns: layoutColumns },
+        conditional_logic: stepConditional,
       },
       fields,
     };
@@ -183,6 +258,7 @@ export function buildPayload(data: FormBuilderData): CreateProgramFormPayload {
       field_name: entry.payload.field_name,
       column_span: entry.payload.column_span,
     })),
+    conditional_logic: step.meta.conditional_logic,
   }));
 
   return {

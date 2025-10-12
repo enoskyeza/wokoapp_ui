@@ -22,7 +22,21 @@ export function StepConditionalLogicEditor({
   const { store } = useFormBuilderContext();
   const { formData, selectedProgram } = store as any;
 
-  const rules = step.conditionalLogic?.rules || [];
+  const rawLogic = step.conditionalLogic || {};
+  const currentMode: ConditionalLogic['mode'] =
+    rawLogic.mode === 'any' || rawLogic.operator === 'or' ? 'any' : 'all';
+  const rules: ConditionalRule[] = Array.isArray(rawLogic.rules)
+    ? rawLogic.rules.map((rule: any) => ({
+        field: rule.field || '',
+        op:
+          (['equals', 'not_equals', 'contains', 'is_empty', 'not_empty'].includes(
+            rule.op || rule.operator,
+          )
+            ? rule.op || rule.operator
+            : 'equals') as ConditionalRule['op'],
+        value: rule.value ?? '',
+      }))
+    : [];
 
   // Get all available fields for conditional logic using real backend data
   const getAllAvailableFields = () => {
@@ -74,14 +88,10 @@ export function StepConditionalLogicEditor({
   const availableFields = getAllAvailableFields();
 
   const addRule = () => {
-    const newRule: ConditionalRule = {
-      field: '',
-      operator: 'equals',
-      value: '',
-    };
+    const newRule: ConditionalRule = { field: '', op: 'equals', value: '' };
 
     const updatedLogic: ConditionalLogic = {
-      operator: step.conditionalLogic?.operator || 'and',
+      mode: currentMode,
       rules: [...rules, newRule],
     };
 
@@ -89,14 +99,11 @@ export function StepConditionalLogicEditor({
   };
 
   const updateRule = (ruleIndex: number, updates: Partial<ConditionalRule>) => {
-    const updatedRules = rules.map((rule: any, index: number) =>
+    const updatedRules = rules.map((rule, index) =>
       index === ruleIndex ? { ...rule, ...updates } : rule
     );
 
-    const updatedLogic: ConditionalLogic = {
-      operator: step.conditionalLogic?.operator || 'and',
-      rules: updatedRules,
-    };
+    const updatedLogic: ConditionalLogic = { mode: currentMode, rules: updatedRules };
 
     (store as any).updateStepConditionalLogic(stepIndex, updatedLogic);
   };
@@ -109,16 +116,16 @@ export function StepConditionalLogicEditor({
       (store as any).updateStepConditionalLogic(stepIndex, undefined);
     } else {
       const updatedLogic: ConditionalLogic = {
-        operator: step.conditionalLogic?.operator || 'and',
+        mode: currentMode,
         rules: updatedRules,
       };
       (store as any).updateStepConditionalLogic(stepIndex, updatedLogic);
     }
   };
 
-  const updateLogicOperator = (operator: 'and' | 'or') => {
+  const updateLogicMode = (mode: 'all' | 'any') => {
     const updatedLogic: ConditionalLogic = {
-      operator,
+      mode,
       rules,
     };
     (store as any).updateStepConditionalLogic(stepIndex, updatedLogic);
@@ -150,15 +157,15 @@ export function StepConditionalLogicEditor({
             <div className="flex items-center gap-2">
               <Label className="text-xs">Show this step when:</Label>
               <Select
-                value={step.conditionalLogic?.operator || 'and'}
-                onValueChange={updateLogicOperator}
+                value={currentMode}
+                onValueChange={(value) => updateLogicMode(value as 'all' | 'any')}
               >
                 <SelectTrigger className="w-20 h-7 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="and">ALL</SelectItem>
-                  <SelectItem value="or">ANY</SelectItem>
+                  <SelectItem value="all">ALL</SelectItem>
+                  <SelectItem value="any">ANY</SelectItem>
                 </SelectContent>
               </Select>
               <Label className="text-xs">of these conditions are met:</Label>
@@ -195,8 +202,8 @@ export function StepConditionalLogicEditor({
 
                 {/* Operator Selection */}
                 <Select
-                  value={rule.operator}
-                  onValueChange={(value) => updateRule(ruleIndex, { operator: value })}
+                  value={rule.op}
+                  onValueChange={(value) => updateRule(ruleIndex, { op: value as ConditionalRule['op'] })}
                 >
                   <SelectTrigger className="w-24 h-8 text-xs">
                     <SelectValue />
@@ -205,16 +212,15 @@ export function StepConditionalLogicEditor({
                     <SelectItem value="equals">equals</SelectItem>
                     <SelectItem value="not_equals">not equals</SelectItem>
                     <SelectItem value="contains">contains</SelectItem>
-                    <SelectItem value="not_contains">not contains</SelectItem>
                     <SelectItem value="is_empty">is empty</SelectItem>
-                    <SelectItem value="is_not_empty">is not empty</SelectItem>
+                    <SelectItem value="not_empty">is not empty</SelectItem>
                   </SelectContent>
                 </Select>
 
                 {/* Value Input */}
-                {!['is_empty', 'is_not_empty'].includes(rule.operator) && (
+                {!['is_empty', 'not_empty'].includes(rule.op) && (
                   <Input
-                    value={rule.value}
+                    value={rule.value || ''}
                     onChange={(e) => updateRule(ruleIndex, { value: e.target.value })}
                     placeholder="Value"
                     className="flex-1 h-8 text-xs"

@@ -1,6 +1,19 @@
 import type { FormFieldPayload } from '@/services/formsService';
 import { buildAuthHeaders } from '@/lib/authHeaders';
 
+export type ConditionMode = 'all' | 'any';
+
+export interface ConditionRule {
+  field: string;
+  op: string;
+  value?: unknown;
+}
+
+export interface ConditionGroup {
+  mode: ConditionMode;
+  rules: ConditionRule[];
+}
+
 enum Env {
   DEVELOPMENT = 'development',
   PRODUCTION = 'production',
@@ -57,6 +70,30 @@ const normalizeOptions = (options: unknown): string[] | undefined => {
 const createAuthRequest = (input: string, init: RequestInit = {}) => {
   const headers = createAuthHeaders(init.headers);
   return fetch(input, { ...init, headers, credentials: 'include' });
+};
+
+const normalizeConditionGroup = (raw: unknown): ConditionGroup | undefined => {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const record = raw as Record<string, unknown>;
+  const rawRules = Array.isArray(record.rules) ? record.rules : [];
+  const rules = rawRules
+    .map((rule) => {
+      if (!rule || typeof rule !== 'object') return null;
+      const ruleRecord = rule as Record<string, unknown>;
+      const field = (ruleRecord.field ?? ruleRecord.field_name) as string | undefined;
+      const op = (ruleRecord.op ?? ruleRecord.operator) as string | undefined;
+      if (!field || !op) return null;
+      return {
+        field,
+        op,
+        value: ruleRecord.value,
+      } satisfies ConditionRule;
+    })
+    .filter((entry): entry is ConditionRule => Boolean(entry));
+  if (!rules.length) return undefined;
+  const rawMode = (record.mode ?? record.operator) as string | undefined;
+  const mode: ConditionMode = rawMode && ['any', 'or'].includes(rawMode) ? 'any' : 'all';
+  return { mode, rules };
 };
 
 const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
@@ -139,6 +176,7 @@ const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
           per_participant: Boolean(stepRecord.per_participant ?? true),
           layout: { columns: stepColumns },
           is_static: Boolean(stepRecord.is_static),
+          conditional_logic: normalizeConditionGroup(stepRecord.conditional_logic),
           fields: stepFields,
         } satisfies FormStructureStep;
       })
@@ -166,6 +204,7 @@ const normalizeStructureFromDetail = (raw: unknown): FormStructure | null => {
       order: index + 1,
       per_participant: true,
       layout: { columns: baseColumns },
+      conditional_logic: undefined,
       fields,
     }));
   }
@@ -263,6 +302,7 @@ export interface FormStructureStep {
     columns?: number;
     [key: string]: unknown;
   };
+  conditional_logic?: ConditionGroup;
   fields: FormStructureField[];
 }
 

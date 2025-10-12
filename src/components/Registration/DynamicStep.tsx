@@ -265,9 +265,13 @@ const renderField = (
   updateValue: (next: unknown) => void,
   visibilityContext: ConditionContext,
   columns: number,
+  additionalContexts?: ConditionContext[],
 ) => {
-  const conditionGroup = field.conditional_logic as ConditionGroup | undefined;
-  if (!evaluateConditions(conditionGroup, visibilityContext)) {
+  const conditionGroup = (field.conditional_logic as ConditionGroup | null) ?? undefined;
+  const contexts = additionalContexts && additionalContexts.length
+    ? [visibilityContext, ...additionalContexts]
+    : [visibilityContext];
+  if (!contexts.some((ctx) => evaluateConditions(conditionGroup, ctx))) {
     return null;
   }
 
@@ -324,10 +328,29 @@ export function DynamicStep({
             });
           };
 
+          const participantContext = {
+            ...(participant as unknown as Record<string, unknown>),
+            participant_category:
+              (participant as unknown as { participant_category?: string }).participant_category ??
+              (participant as unknown as { category_value?: string }).category_value ??
+              '',
+            category_value:
+              (participant as unknown as { category_value?: string }).category_value ??
+              (participant as unknown as { participant_category?: string }).participant_category ??
+              '',
+          };
+
+          const answers = normaliseAnswers(globalValues, participantSpecific);
+          const categoryValue = participantContext.category_value as string | undefined;
+          if (categoryValue !== undefined) {
+            (answers as Record<string, unknown>).participant_category = categoryValue;
+            (answers as Record<string, unknown>).category_value = categoryValue;
+          }
+
           const context: ConditionContext = {
             ...(baseContext || {}),
-            participant: participant as unknown as Record<string, unknown>,
-            answers: normaliseAnswers(globalValues, participantSpecific),
+            participant: participantContext,
+            answers,
           };
 
           return (
@@ -345,6 +368,7 @@ export function DynamicStep({
                     (value) => updateValue(field.name, value),
                     context,
                     stepColumns,
+                    undefined,
                   ),
                 )}
               </div>
@@ -367,6 +391,35 @@ export function DynamicStep({
     answers: normaliseAnswers(globalValues),
   };
 
+  const participantContexts: ConditionContext[] = participants.map((participant, index) => {
+    const participantSpecific = participantValues[index] || {};
+    const participantContext = {
+      ...(participant as unknown as Record<string, unknown>),
+      participant_category:
+        (participant as unknown as { participant_category?: string }).participant_category ??
+        (participant as unknown as { category_value?: string }).category_value ??
+        '',
+      category_value:
+        (participant as unknown as { category_value?: string }).category_value ??
+        (participant as unknown as { participant_category?: string }).participant_category ??
+        '',
+    };
+    const answers = normaliseAnswers(globalValues, participantSpecific);
+    const categoryValue = (participant as unknown as { category_value?: string }).category_value ??
+      (participant as unknown as { participant_category?: string }).participant_category ??
+      '';
+    if (categoryValue) {
+      (answers as Record<string, unknown>).participant_category = categoryValue;
+      (answers as Record<string, unknown>).category_value = categoryValue;
+    }
+
+    return {
+      ...(baseContext || {}),
+      participant: participantContext,
+      answers,
+    };
+  });
+
   return (
     <div className={gridClassName}>
       {fields.map((field) =>
@@ -376,6 +429,7 @@ export function DynamicStep({
           (value) => updateGlobalValue(field.name, value),
           globalContext,
           stepColumns,
+          participantContexts,
         ),
       )}
     </div>

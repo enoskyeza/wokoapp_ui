@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios'
 import { buildAuthHeaders } from '@/lib/authHeaders'
+import type { ConditionGroup } from '@/components/Registration/conditionUtils'
 
 enum Env {
   DEVELOPMENT = 'development',
@@ -42,6 +43,7 @@ export interface FormStep {
     [key: string]: unknown
   }
   layout_columns?: number | null
+  conditional_logic?: ConditionGroup | null
 }
 
 export interface RegistrationFormStructure {
