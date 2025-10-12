@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState } from 'react'
 import DashboardLayout from '@/components/Layouts/Dashboard'
 import CategoryDistributionChart from '@/components/ProgramDashboard/CategoryDistributionChart'
 import RegistrationActionMenu from '@/components/ProgramDashboard/RegistrationActionMenu'
+import ParticipantDetailsModal from '@/components/DetailViews/ParticipantDetailsModal'
+import StatusBadge from '@/components/ui/StatusBadge'
 import { useProgramDashboard } from '@/hooks/useProgramDashboard'
+import type { FetchedRegistration } from '@/types'
 
 interface ProgramDashboardScreenProps {
   programId: string
@@ -28,11 +31,23 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
   } = useProgramDashboard(programId, { page: 1 })
 
   const [search, setSearch] = useState<string>('')
+  const [selectedRegistration, setSelectedRegistration] = useState<FetchedRegistration | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     const currentSearch = typeof params.search === 'string' ? params.search : ''
     setSearch(currentSearch)
   }, [params.search])
+
+  const handleParticipantClick = (registration: FetchedRegistration) => {
+    setSelectedRegistration(registration)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedRegistration(null)
+  }
 
   const programName = useMemo(() => data?.program.name ?? 'Program Dashboard', [data?.program.name])
   const statusValue = useMemo(() => {
@@ -270,7 +285,10 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
                       {data.registrations.results.map((registration) => (
                         <tr key={registration.id}>
                           <td className="px-4 py-2">
-                            <div className="font-medium text-gray-900">
+                            <div 
+                              className="font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                              onClick={() => handleParticipantClick(registration)}
+                            >
                               {registration.participant.first_name} {registration.participant.last_name}
                             </div>
                             <div className="text-xs text-gray-500">
@@ -283,7 +301,9 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
                               ? `${registration.guardian_at_registration.first_name} ${registration.guardian_at_registration.last_name}`
                               : '—'}
                           </td>
-                          <td className="px-4 py-2 capitalize">{registration.status}</td>
+                          <td className="px-4 py-2">
+                            <StatusBadge status={registration.status} />
+                          </td>
                           <td className="px-4 py-2 text-right font-semibold text-gray-900">
                             {formatCurrency(registration.amount_due)}
                           </td>
@@ -325,6 +345,16 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
               )}
             </section>
           </div>
+        )}
+
+        {/* Participant Details Modal */}
+        {selectedRegistration && (
+          <ParticipantDetailsModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            registration={selectedRegistration}
+            onUpdate={() => void refresh()}
+          />
         )}
       </div>
     </DashboardLayout>

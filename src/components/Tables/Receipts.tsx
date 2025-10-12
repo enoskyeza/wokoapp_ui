@@ -15,13 +15,9 @@ function Receipts() {
     const { receipts, filters, setFilters, clearFilters } = useReceipts();
     const { programs } = useRegistrationData()
 
-    // const [isModalOpen, setIsModalOpen] = useState(false);
-    // const [selectedReceipt, setSelectedReceipt] = useState<number | null>(null);
-
-    // const handleSelectReceipt = (receiptId:number) => {
-    //     setIsModalOpen(true);
-    //     setSelectedReceipt(receiptId);
-    // }
+    const handleViewReceipt = (receiptId: number) => {
+        window.open(`${window.location.origin}/receipts/${receiptId}`, '_blank')
+    }
 
     type PaymentStatus = 'paid' | 'refunded';
 
@@ -144,14 +140,14 @@ function Receipts() {
                                 <td className="p-2">
                                     <div className="flex flex-col items-left">
                                         <p
-                                            // onClick={() => (handleSelectReceipt(receipt.id))}
-                                            className="text-gray-800 font-bold cursor-pointer hover:text-blue-400"
+                                            onClick={() => handleViewReceipt(receipt.id)}
+                                            className="text-gray-800 font-bold cursor-pointer hover:text-blue-600 transition-colors"
                                         >
                                             {`RCT-${String(receipt.id).padStart(3, '0')}`}
                                         </p>
                                         <p
-                                            // onClick={() => (handleSelectReceipt(receipt.id))}
-                                            className="text-gray-800 cursor-pointer hover:text-blue-400"
+                                            onClick={() => handleViewReceipt(receipt.id)}
+                                            className="text-gray-500 text-xs cursor-pointer hover:text-blue-600 transition-colors"
                                         >
                                             {`${receipt.registration}`}
                                         </p>

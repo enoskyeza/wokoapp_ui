@@ -29,7 +29,11 @@ const LoginPage: React.FC = () => {
             // Extract token and user from response
             const { token, user } = response.data;
 
-            // Set cookies for token and user
+            // Store token in localStorage for cross-origin API calls (primary storage)
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(user));
+
+            // Also set cookies for backward compatibility and SSR
             Cookies.set('authToken', token, {
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',

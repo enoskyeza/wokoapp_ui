@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from 'next/link';
 // import NotificationBell from "@/components/ActionButtons/notificationBell";
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 // const LOGOUT_URL = "/api/auth/logout/";
 
@@ -30,14 +31,27 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
 
     const handleLogout = async () => {
         try {
+            // Clear client-side storage
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            
+            // Clear cookies
+            Cookies.remove('authToken');
+            Cookies.remove('userData');
+            
+            // Call server-side logout endpoint
             const res = await fetch('/api/logout', { method: 'POST' });
             if (res.ok) {
                 router.push('/');
             } else {
                 console.error('Logout failed:', await res.json());
+                // Still redirect to login even if server logout fails
+                router.push('/');
             }
         } catch (error) {
             console.error('Logout error:', error);
+            // Still redirect to login even on error
+            router.push('/');
         }
     };
 

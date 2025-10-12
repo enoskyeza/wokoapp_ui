@@ -191,15 +191,33 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
       Object.assign(answers, customFieldsState.perParticipant[participantIndex]);
     }
 
-    const participant = typeof participantIndex === 'number'
-      ? (participantsData[participantIndex] || {})
-      : undefined;
+    let participant: Record<string, unknown> | undefined;
+    if (typeof participantIndex === 'number') {
+      const raw = participantsData[participantIndex] || {};
+      const normalizedCategory =
+        (raw as { category_value?: string }).category_value ??
+        (raw as { participant_category?: string }).participant_category ??
+        '';
+      participant = {
+        ...raw,
+        category_value: normalizedCategory,
+        participant_category: normalizedCategory,
+      } as Record<string, unknown>;
+      answers.category_value = normalizedCategory;
+      answers.participant_category = normalizedCategory;
+    }
 
-    return {
-      guardian: guardianData as unknown as Record<string, unknown>,
-      participant: participant as unknown as Record<string, unknown> | undefined,
+    const context: ConditionContext & Record<string, unknown> = {
+      guardian: { ...guardianData } as Record<string, unknown>,
+      participant,
       answers,
     };
+    if (typeof participantIndex === 'number' && participant) {
+      const normalizedCategory = (participant as { category_value?: string }).category_value ?? '';
+      context.category_value = normalizedCategory;
+      context.participant_category = normalizedCategory;
+    }
+    return context;
   }, [customFieldsState, guardianData, participantsData]);
 
   const stepIsVisible = useCallback((stepIndex: number): boolean => {
@@ -207,7 +225,8 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
     const step = allSteps[stepIndex];
     if (!step) return false;
 
-    const stepCond = (step as unknown as { conditional_logic?: ConditionGroup }).conditional_logic;
+    const stepCondRaw = (step as { conditional_logic?: ConditionGroup | null }).conditional_logic;
+    const stepCond = stepCondRaw ?? undefined;
     const perParticipant = (step as { per_participant?: boolean }).per_participant ?? false;
 
     if (perParticipant) {
@@ -215,20 +234,63 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         const ctx = buildContext(idx);
         if (!evaluateConditions(stepCond, ctx)) return false;
         return step.fields.some((field) => {
-          const group = field.conditional_logic as ConditionGroup | undefined;
+          const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
           return evaluateConditions(group, ctx);
         });
       });
     }
 
-    const ctx = buildContext();
-    if (!evaluateConditions(stepCond, ctx)) return false;
+    const globalContext = buildContext();
+    const participantContexts = participantsData.map((_, idx) => buildContext(idx));
+    const allContexts = [globalContext, ...participantContexts];
+
+    if (!allContexts.some((ctx) => evaluateConditions(stepCond, ctx))) {
+      return false;
+    }
+
     if (step.fields.length === 0) return true;
+
     return step.fields.some((field) => {
-      const group = field.conditional_logic as ConditionGroup | undefined;
-      return evaluateConditions(group, ctx);
+      const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
+      return allContexts.some((ctx) => evaluateConditions(group, ctx));
     });
   }, [allSteps, buildContext, formStructure, participantsData]);
+
+  const visibleStepFlags = useMemo(
+    () => allSteps.map((_, idx) => stepIsVisible(idx)),
+    [allSteps, stepIsVisible],
+  );
+
+  const stepVisiblePositions = useMemo(() => {
+    let counter = 0;
+    return visibleStepFlags.map((flag) => (flag ? ++counter : 0));
+  }, [visibleStepFlags]);
+
+  const visibleStepEntries = useMemo(
+    () =>
+      allSteps
+        .map((step, index) => ({ step, index }))
+        .filter((_, idx) => visibleStepFlags[idx]),
+    [allSteps, visibleStepFlags],
+  );
+
+  const stepRenderEntries = visibleStepEntries.length
+    ? visibleStepEntries
+    : allSteps.map((step, index) => ({ step, index }));
+
+  const totalVisibleSteps = visibleStepEntries.length;
+
+  const currentStepPosition = stepVisiblePositions[currentStep] || 0;
+
+  const safeTotalSteps = useMemo(() => {
+    if (totalVisibleSteps > 0) return totalVisibleSteps;
+    return Math.max(allSteps.length, 1);
+  }, [allSteps.length, totalVisibleSteps]);
+
+  const currentStepDisplay = useMemo(() => {
+    if (currentStepPosition > 0) return currentStepPosition;
+    return Math.min(currentStep + 1, safeTotalSteps);
+  }, [currentStep, currentStepPosition, safeTotalSteps]);
 
   const findNextVisibleStep = useCallback((fromIndex: number): number => {
     const total = allSteps.length;
@@ -319,7 +381,7 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
         const context = buildContext(idx);
         return step.fields.every((field) => {
           if (!field.required) return true;
-          const group = field.conditional_logic as ConditionGroup | undefined;
+          const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
           if (!evaluateConditions(group, context)) return true;
           const value = customFieldsState.perParticipant[idx]?.[field.name];
           if (isValueEmpty(value)) {
@@ -331,11 +393,21 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
       });
     }
 
-    const context = buildContext();
+    const stepCondRaw = (step as { conditional_logic?: ConditionGroup | null }).conditional_logic;
+    const stepCond = stepCondRaw ?? undefined;
+    const globalCtx = buildContext();
+    const participantContexts = participantsData.map((_, idx) => buildContext(idx));
+    const contexts = [globalCtx, ...participantContexts];
+    const satisfiedContexts = contexts.filter((ctx) => evaluateConditions(stepCond, ctx));
+    if (!satisfiedContexts.length) {
+      return true;
+    }
+
     return step.fields.every((field) => {
       if (!field.required) return true;
-      const group = field.conditional_logic as ConditionGroup | undefined;
-      if (!evaluateConditions(group, context)) return true;
+      const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
+      const requiresValue = satisfiedContexts.some((ctx) => evaluateConditions(group, ctx));
+      if (!requiresValue) return true;
       const value = customFieldsState.global[field.name];
       if (isValueEmpty(value)) {
         toast.error(`Please fill in required field: ${field.label}`);
@@ -367,14 +439,15 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
 
     formStructure.form_structure.dynamic_steps.forEach((step) => {
       const perParticipant = (step as { per_participant?: boolean }).per_participant ?? false;
-      const stepCond = (step as unknown as { conditional_logic?: ConditionGroup }).conditional_logic;
+      const stepCondRaw = (step as { conditional_logic?: ConditionGroup | null }).conditional_logic;
+      const stepCond = stepCondRaw ?? undefined;
 
       if (perParticipant) {
         participantsData.forEach((_, idx) => {
           const ctx = buildContext(idx);
           if (!evaluateConditions(stepCond, ctx)) return;
           step.fields.forEach((field) => {
-            const group = field.conditional_logic as ConditionGroup | undefined;
+            const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
             if (!evaluateConditions(group, ctx)) return;
             if (!visiblePerParticipant.has(idx)) {
               visiblePerParticipant.set(idx, new Set<string>());
@@ -383,11 +456,13 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
           });
         });
       } else {
-        const ctx = buildContext();
-        if (!evaluateConditions(stepCond, ctx)) return;
+        const globalCtx = buildContext();
+        const participantContexts = participantsData.map((_, idx) => buildContext(idx));
+        const contexts = [globalCtx, ...participantContexts];
+        if (!contexts.some((ctx) => evaluateConditions(stepCond, ctx))) return;
         step.fields.forEach((field) => {
-          const group = field.conditional_logic as ConditionGroup | undefined;
-          if (!evaluateConditions(group, ctx)) return;
+          const group = (field.conditional_logic as ConditionGroup | null) ?? undefined;
+          if (!contexts.some((ctx) => evaluateConditions(group, ctx))) return;
           visibleGlobal.add(field.name);
         });
       }
@@ -563,40 +638,44 @@ export function RegistrationModal({ programId, isOpen, onClose }: RegistrationMo
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-2xl font-bold text-gray-900">{formStructure.program.name}</h2>
               <Badge variant="outline" className="border-blue-200 text-blue-700">
-                Step {currentStep + 1} of {allSteps.length}
+                Step {currentStepDisplay} of {safeTotalSteps}
               </Badge>
             </div>
-            <Progress value={((currentStep + 1) / allSteps.length) * 100} className="h-2 mb-4" />
+            <Progress value={(currentStepDisplay / safeTotalSteps) * 100} className="h-2 mb-4" />
 
             <div className="flex items-center space-x-4 overflow-x-auto pb-2">
-              {allSteps.map((step, index) => {
-                const isStatic = index < formStructure.form_structure.static_steps.length;
-                return (
-                  <div key={index} className="flex items-center flex-shrink-0">
-                    <div
-                      className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
-                        index < currentStep
-                          ? 'bg-green-600 text-white'
-                          : index === currentStep
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-500'
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="ml-2">
-                      <p
-                        className={`text-sm font-medium ${index === currentStep ? 'text-blue-600' : 'text-gray-500'}`}
+              {stepRenderEntries.map(({ step, index }, renderIdx) => {
+                  const isStatic = index < formStructure.form_structure.static_steps.length;
+                  const isVisible = visibleStepFlags[index];
+                  const stepPosition = stepVisiblePositions[index] || renderIdx + 1;
+                  const isCompleted = isVisible && stepPosition < currentStepDisplay;
+                  const isCurrent = isVisible && stepPosition === currentStepDisplay;
+                  const circleClass = isCompleted
+                    ? 'bg-green-600 text-white'
+                    : isCurrent
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-500';
+                  const labelClass = isCurrent ? 'text-blue-600' : 'text-gray-500';
+                  return (
+                    <div key={index} className="flex items-center flex-shrink-0">
+                      <div
+                        className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${circleClass}`}
                       >
-                        {step.title}
-                        {isStatic && <span className="ml-1 text-xs text-gray-400">(Required)</span>}
-                      </p>
-                      <p className="text-xs text-gray-400">{step.description}</p>
+                        {stepPosition}
+                      </div>
+                      <div className="ml-2">
+                        <p className={`text-sm font-medium ${labelClass}`}>
+                          {step.title}
+                          {isStatic && <span className="ml-1 text-xs text-gray-400">(Required)</span>}
+                        </p>
+                        <p className="text-xs text-gray-400">{step.description}</p>
+                      </div>
+                      {renderIdx < stepRenderEntries.length - 1 && (
+                        <ArrowRight className="w-4 h-4 ml-4 text-gray-300" />
+                      )}
                     </div>
-                    {index < allSteps.length - 1 && <ArrowRight className="w-4 h-4 text-gray-300 ml-4" />}
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
 

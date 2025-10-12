@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useFormBuilderStore } from '@/stores/formBuilderStore';
 import { programService } from '@/services/programService';
-import { programFormService } from '@/services/programFormService';
-import { normalizeFormData, createFieldFromPayload } from './utils';
+import { programFormService, type ConditionGroup } from '@/services/programFormService';
+import { createFieldFromPayload } from './utils';
 import type { FormBuilderData, ProgramOption, FormStep } from './types';
 import type { FormFieldPayload } from '@/services/formsService';
+import type { ConditionalLogic, ConditionalRule } from '@/stores/formBuilderStore';
 
 interface FormBuilderContextValue {
   // Store access
@@ -76,6 +77,46 @@ const defaultStaticSteps = [
     ],
   },
 ];
+
+const STEP_ALLOWED_OPERATORS = new Set<ConditionalRule['op']>([
+  'equals',
+  'not_equals',
+  'contains',
+  'is_empty',
+  'not_empty',
+]);
+
+const normalizeStepConditionalLogic = (
+  group?: ConditionGroup | null,
+): ConditionalLogic | undefined => {
+  if (!group || !Array.isArray(group.rules) || group.rules.length === 0) {
+    return undefined;
+  }
+
+  const mode: ConditionalLogic['mode'] = group.mode === 'any' ? 'any' : 'all';
+
+  const rules = group.rules
+    .map((rule) => {
+      if (!rule || typeof rule !== 'object') return null;
+      const field = (rule as { field?: string }).field;
+      const opCandidate = ((rule as { op?: string; operator?: string }).op ??
+        (rule as { operator?: string }).operator) as ConditionalRule['op'] | undefined;
+      if (!field || !opCandidate) return null;
+      const op = STEP_ALLOWED_OPERATORS.has(opCandidate) ? opCandidate : 'equals';
+      const value =
+        rule.value == null || typeof rule.value === 'string'
+          ? (rule.value ?? '')
+          : String(rule.value);
+      return { field, op, value };
+    })
+    .filter((entry): entry is ConditionalRule => Boolean(entry));
+
+  if (!rules.length) {
+    return undefined;
+  }
+
+  return { mode, rules };
+};
 
 export function FormBuilderProvider({ children, formId }: FormBuilderProviderProps) {
   const store = useFormBuilderStore();
@@ -252,6 +293,7 @@ export function FormBuilderProvider({ children, formId }: FormBuilderProviderPro
             fields: builderFields,
             perParticipant: step.per_participant ?? true,
             layoutColumns: step.layout?.columns ? Number(step.layout.columns) : layoutColumns,
+            conditionalLogic: normalizeStepConditionalLogic(step.conditional_logic),
           };
         });
       } else {
@@ -297,6 +339,7 @@ export function FormBuilderProvider({ children, formId }: FormBuilderProviderPro
             fields,
             perParticipant: true,
             layoutColumns,
+            conditionalLogic: undefined,
           }));
       }
 

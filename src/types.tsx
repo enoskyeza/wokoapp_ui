@@ -295,7 +295,7 @@ export interface FetchedRegistration {
                 profession: string;
                 email:string
             };
-  status: 'pending' | 'paid' | 'cancelled' | 'refunded';
+  status: 'pending' | 'partially_paid' | 'paid' | 'cancelled' | 'refunded';
   created_at: string;
   updated_at: string;
   amount_due: number;

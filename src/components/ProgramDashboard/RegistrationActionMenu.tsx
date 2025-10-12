@@ -84,8 +84,10 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
     }
   }
 
-  const hasPaid = registration.status === 'paid'
+  const isFullyPaid = registration.status === 'paid'
+  const isPartiallyPaid = registration.status === 'partially_paid'
   const hasCancelled = registration.status === 'cancelled'
+  const canMakePayment = !isFullyPaid && !hasCancelled
 
   return (
     <div className="relative inline-block text-left">
@@ -103,7 +105,7 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
       {menuOpen && (
         <div className="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-md border border-gray-200 bg-white shadow-lg">
           <div className="py-1 text-sm text-gray-700">
-            {!hasPaid && !hasCancelled && (
+            {canMakePayment && (
               <>
                 <button
                   type="button"
@@ -111,7 +113,7 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
                   onClick={handleFullPayment}
                   disabled={loading}
                 >
-                  Approve Full Payment
+                  {isPartiallyPaid ? 'Pay Remaining Balance' : 'Approve Full Payment'}
                 </button>
                 <button
                   type="button"
@@ -120,16 +122,18 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
                 >
                   Record Partial Payment
                 </button>
-                <button
-                  type="button"
-                  className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-50"
-                  onClick={() => { setDialog('cancel'); setMenuOpen(false) }}
-                >
-                  Cancel Registration
-                </button>
+                {!isPartiallyPaid && (
+                  <button
+                    type="button"
+                    className="block w-full px-4 py-2 text-left text-red-600 hover:bg-red-50"
+                    onClick={() => { setDialog('cancel'); setMenuOpen(false) }}
+                  >
+                    Cancel Registration
+                  </button>
+                )}
               </>
             )}
-            {hasPaid && registration.coupon?.qr_code && (
+            {isFullyPaid && registration.coupon?.qr_code && (
               <button
                 type="button"
                 className="block w-full px-4 py-2 text-left hover:bg-gray-100"
@@ -142,10 +146,15 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
               <button
                 type="button"
                 className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                onClick={() => window.open(`${window.location.origin}/register/receipts/${registration.receipts?.[0].id}/`, '_blank')}
+                onClick={() => window.open(`${window.location.origin}/receipts/${registration.receipts?.[0].id}/`, '_blank')}
               >
-                View Receipt
+                View Receipt{registration.receipts.length > 1 ? 's' : ''}
               </button>
+            )}
+            {isPartiallyPaid && registration.amount_due > 0 && (
+              <div className="px-4 py-2 text-xs text-gray-500 border-t">
+                Balance: UGX {registration.amount_due.toLocaleString()}
+              </div>
             )}
           </div>
         </div>
