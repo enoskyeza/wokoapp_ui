@@ -146,7 +146,7 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
               <button
                 type="button"
                 className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                onClick={() => window.open(`${window.location.origin}/register/receipts/${registration.receipts?.[0].id}/`, '_blank')}
+                onClick={() => window.open(`${window.location.origin}/receipts/${registration.receipts?.[0].id}/`, '_blank')}
               >
                 View Receipt{registration.receipts.length > 1 ? 's' : ''}
               </button>
