@@ -2,9 +2,9 @@
 
 import { use, useEffect, useState } from 'react'
 import axios from 'axios'
-import { QRCodeSVG } from 'qrcode.react'
 import { CheckCircleIcon, XCircleIcon, ArrowDownTrayIcon, ShareIcon } from '@heroicons/react/24/solid'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 const API_BASE = process.env.NODE_ENV === 'production'
   ? 'https://kyeza.pythonanywhere.com/register'
@@ -120,7 +120,6 @@ export default function TicketPage({ params }: TicketPageProps) {
 
   const isValid = ticket.status === 'paid' && ticket.registration.status === 'paid'
   const participant = ticket.registration.participant
-  const ticketUrl = typeof window !== 'undefined' ? window.location.href : ''
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8 px-4">
@@ -238,12 +237,20 @@ export default function TicketPage({ params }: TicketPageProps) {
                   Scan to Verify
                 </h2>
                 <div className="inline-block p-4 bg-white rounded-xl shadow-lg">
-                  <QRCodeSVG
-                    value={ticketUrl}
-                    size={200}
-                    level="H"
-                    includeMargin
-                  />
+                  {ticket.qr_code ? (
+                    <Image
+                      src={ticket.qr_code}
+                      alt={`Ticket QR Code for ${participant.first_name}`}
+                      width={200}
+                      height={200}
+                      className="mx-auto"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-[200px] h-[200px] bg-gray-100 flex items-center justify-center rounded-lg">
+                      <p className="text-sm text-gray-500">QR Code Unavailable</p>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-4">
                   Ticket ID: TCK-{String(ticket.id).padStart(4, '0')}
