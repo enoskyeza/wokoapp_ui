@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import DashboardLayout from '@/components/Layouts/Dashboard'
 import CategoryDistributionChart from '@/components/ProgramDashboard/CategoryDistributionChart'
 import RegistrationActionMenu from '@/components/ProgramDashboard/RegistrationActionMenu'
+import StatusBadge from '@/components/ui/StatusBadge'
 import { useProgramDashboard } from '@/hooks/useProgramDashboard'
 
 interface ProgramDashboardScreenProps {
@@ -283,7 +284,9 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
                               ? `${registration.guardian_at_registration.first_name} ${registration.guardian_at_registration.last_name}`
                               : '—'}
                           </td>
-                          <td className="px-4 py-2 capitalize">{registration.status}</td>
+                          <td className="px-4 py-2">
+                            <StatusBadge status={registration.status} />
+                          </td>
                           <td className="px-4 py-2 text-right font-semibold text-gray-900">
                             {formatCurrency(registration.amount_due)}
                           </td>

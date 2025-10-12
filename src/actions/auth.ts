@@ -1,13 +1,9 @@
 'use server'
 import axios from 'axios';
-import { cookies } from 'next/headers';
 
-// const API_URL = process.env.NODE_ENV === 'production'
-//     ? 'https://kyeza.pythonanywhere.com/login/'
-//     : 'http://127.0.0.1:8000/login/';
-
-const API_URL = 'https://kyeza.pythonanywhere.com/login/'
-// const API_URL = 'http://127.0.0.1:8000/login/'
+const API_URL = process.env.NODE_ENV === 'production'
+    ? 'https://kyeza.pythonanywhere.com/login/'
+    : 'http://127.0.0.1:8000/login/';
 
 export const loginUser = async (
     username: string,
@@ -18,24 +14,9 @@ export const loginUser = async (
 
         const { token, user } = await response.data;
 
-        const cookieStore = await cookies();
-
-        cookieStore.set('authToken', token, {
-            path: '/',
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-        });
-
-        cookieStore.set('userData', JSON.stringify(user), {
-            path: '/',
-            httpOnly: false, // Allows client-side access if needed
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-        });
-
-
-        return response.data;
+        // Return token and user data to client for client-side storage
+        // Client will store in localStorage for cross-origin compatibility
+        return { token, user };
     } catch (error: unknown) {
         return handleServerError(error);
     }
