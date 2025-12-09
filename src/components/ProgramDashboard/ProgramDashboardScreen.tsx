@@ -8,6 +8,7 @@ import RegistrationActionMenu from '@/components/ProgramDashboard/RegistrationAc
 import ParticipantDetailsModal from '@/components/DetailViews/ParticipantDetailsModal'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { useProgramDashboard } from '@/hooks/useProgramDashboard'
+import { DashboardService } from '@/services/dashboardService'
 import type { FetchedRegistration } from '@/types'
 
 interface ProgramDashboardScreenProps {
@@ -18,6 +19,15 @@ const formatCurrency = (value: string | number) => {
   const numeric = Number(value)
   if (Number.isNaN(numeric)) return String(value)
   return numeric.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+
+const escapeCsv = (value: unknown): string => {
+  if (value === null || value === undefined) return ''
+  const str = String(value)
+  if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+    return '"' + str.replace(/"/g, '""') + '"'
+  }
+  return str
 }
 
 const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ programId }) => {
@@ -33,6 +43,7 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
   const [search, setSearch] = useState<string>('')
   const [selectedRegistration, setSelectedRegistration] = useState<FetchedRegistration | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     const currentSearch = typeof params.search === 'string' ? params.search : ''
@@ -92,6 +103,94 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     updateFilter('search', search)
+  }
+
+  const handleDownloadData = async () => {
+    if (!data) return
+
+    setIsDownloading(true)
+    try {
+      const baseParams: Record<string, string | number | (string | number)[]> = { ...params }
+      delete baseParams.page
+
+      const firstPage = await DashboardService.getProgramDashboard(programId, { ...baseParams, page: 1 })
+      const registrations: FetchedRegistration[] = [...firstPage.registrations.results]
+      const totalPages = firstPage.registrations.pagination?.total_pages ?? 1
+
+      for (let page = 2; page <= totalPages; page += 1) {
+        const response = await DashboardService.getProgramDashboard(programId, { ...baseParams, page })
+        registrations.push(...response.registrations.results)
+      }
+
+      const csvLines: string[] = []
+
+      csvLines.push(`${escapeCsv('Program')},${escapeCsv(firstPage.program.name)}`)
+      csvLines.push(`${escapeCsv('Generated At')},${escapeCsv(new Date().toISOString())}`)
+
+      const filterEntries = Object.entries(data.filters.applied ?? {})
+      if (filterEntries.length > 0) {
+        csvLines.push('')
+        csvLines.push(`${escapeCsv('Filters')},`)
+        for (const [key, value] of filterEntries) {
+          const valueString = Array.isArray(value) ? value.join('; ') : value
+          csvLines.push(`${escapeCsv(key)},${escapeCsv(valueString)}`)
+        }
+      }
+
+      csvLines.push('')
+      const headers = [
+        'Registration ID',
+        'Participant First Name',
+        'Participant Last Name',
+        'Gender',
+        firstPage.program.category_label ?? 'Category',
+        'Guardian Name',
+        'Guardian Phone',
+        'Guardian Email',
+        'Status',
+        'Amount Due',
+        'Registered At',
+      ]
+      csvLines.push(headers.map(escapeCsv).join(','))
+
+      for (const registration of registrations) {
+        const guardian = registration.guardian_at_registration
+        const guardianName = guardian ? `${guardian.first_name} ${guardian.last_name}` : ''
+        const row = [
+          registration.id,
+          registration.participant.first_name,
+          registration.participant.last_name,
+          registration.participant.gender,
+          registration.category_value ?? '',
+          guardianName,
+          guardian?.phone_number ?? '',
+          guardian?.email ?? '',
+          registration.status,
+          registration.amount_due,
+          new Date(registration.created_at).toLocaleString(),
+        ]
+        csvLines.push(row.map(escapeCsv).join(','))
+      }
+
+      const csvContent = csvLines.join('\r\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+
+      const programSlug = firstPage.program.name.replace(/\s+/g, '_').toLowerCase()
+      link.download = `${programSlug}_registrations.csv`
+
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to download registrations data', err)
+      alert('Failed to download registrations data. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   const handlePageChange = (page: number) => {
@@ -251,6 +350,14 @@ const ProgramDashboardScreen: React.FC<ProgramDashboardScreenProps> = ({ program
                 }}
               >
                 Clear
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDownloadData()}
+                disabled={isDownloading}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDownloading ? 'Preparing...' : 'Download Data'}
               </button>
             </div>
           </form>
