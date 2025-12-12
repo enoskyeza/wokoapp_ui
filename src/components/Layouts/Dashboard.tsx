@@ -7,6 +7,7 @@ import {
   ScaleIcon, 
   DocumentTextIcon, 
   ChatBubbleBottomCenterTextIcon,
+  ChartBarIcon,
   Bars3Icon,
   XMarkIcon,
   ChevronLeftIcon,
@@ -79,6 +80,12 @@ const Dashboard = ({children}: {children: ReactNode}) => {
       current: pathname.startsWith("/judge_panel"),
     },
     {
+      name: "Scores",
+      href: "/scores",
+      icon: ChartBarIcon,
+      current: pathname.startsWith("/scores"),
+    },
+    {
       name: "Receipts",
       href: "/receipts",
       icon: DocumentTextIcon,
@@ -92,8 +99,39 @@ const Dashboard = ({children}: {children: ReactNode}) => {
     },
   ];
 
-  // Mobile bottom navigation (main 5 only)
-  const mobileNavigation = navigation;
+  // Mobile bottom navigation (5 items - replaces SMS with Scores for mobile)
+  const mobileNavigation = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: HomeIcon,
+      current: pathname.startsWith("/dashboard"),
+    },
+    {
+      name: "Register",
+      href: "/register",
+      icon: ClipboardDocumentListIcon,
+      current: pathname.startsWith("/register"),
+    },
+    {
+      name: "Judge Panel",
+      href: "/judge_panel",
+      icon: ScaleIcon,
+      current: pathname.startsWith("/judge_panel"),
+    },
+    {
+      name: "Scores",
+      href: "/scores",
+      icon: ChartBarIcon,
+      current: pathname.startsWith("/scores"),
+    },
+    {
+      name: "Receipts",
+      href: "/receipts",
+      icon: DocumentTextIcon,
+      current: pathname.startsWith("/receipts"),
+    },
+  ];
 
   const getSidebarWidth = () => {
     switch (sidebarState) {
