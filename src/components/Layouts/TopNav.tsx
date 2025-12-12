@@ -30,26 +30,35 @@ const TopNav = ({setSideBar, userNavigation}: TopNavProps) => {
     const router = useRouter();
 
     const handleLogout = async () => {
+        console.log('🔴 Logout initiated...');
+        
         try {
             // Clear client-side storage
+            console.log('🗑️ Clearing localStorage...');
             localStorage.removeItem('authToken');
             localStorage.removeItem('userData');
             
             // Clear cookies
-            Cookies.remove('authToken');
-            Cookies.remove('userData');
+            console.log('🍪 Clearing cookies...');
+            Cookies.remove('authToken', { path: '/' });
+            Cookies.remove('userData', { path: '/' });
+            
+            console.log('✅ Client-side cleared, calling server logout...');
             
             // Call server-side logout endpoint
             const res = await fetch('/api/logout', { method: 'POST' });
             if (res.ok) {
+                const data = await res.json();
+                console.log('✅ Server logout successful:', data);
+                console.log('🔄 Redirecting to home...');
                 router.push('/');
             } else {
-                console.error('Logout failed:', await res.json());
+                console.error('❌ Logout failed:', await res.json());
                 // Still redirect to login even if server logout fails
                 router.push('/');
             }
         } catch (error) {
-            console.error('Logout error:', error);
+            console.error('❌ Logout error:', error);
             // Still redirect to login even on error
             router.push('/');
         }

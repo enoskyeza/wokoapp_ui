@@ -10,7 +10,7 @@ interface ScoreDetailsProps {
 
 const ScoreDetails: React.FC<ScoreDetailsProps> = ({ participant }) => {
 
-  const [judge, setJudge] = useState(null);
+  const [judge, setJudge] = useState<number | null>(null);
 
   useEffect(() => {
     const userData = Cookies.get("userData");
@@ -25,18 +25,17 @@ const ScoreDetails: React.FC<ScoreDetailsProps> = ({ participant }) => {
   }, []);
 
   if (judge === null) {
-    return
+    return null
   }
 
   // Use the helper function to calculate scores
   const { scoresByCategory, totalScore, totalPossible } = calculateScores(
-    participant.scores,
+    participant.scores || [],
     judge
   );
 
   // filter comments
-
-const comments = participant.comments.filter(comment => comment.judge===judge)
+  const comments = (participant.comments || []).filter(comment => comment.judge===judge)
 
 
   return (

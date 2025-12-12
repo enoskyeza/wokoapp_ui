@@ -12,11 +12,30 @@ interface ReceiptViewProps {
     registration_details?: FetchedRegistration;
     program_name?: string;
     participant_name?: string;
+    program_logo_url?: string | null;
+    program_fee?: string;
+    amount_paid_total?: string;
+    outstanding_balance?: string;
   }
 }
 
 const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
   const [loading, setLoading] = useState<string | null>(null)
+
+  const toTitleCase = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+
+  const parseMoney = (value?: string | number | null) => {
+    if (value === null || value === undefined) return 0
+    const n = typeof value === 'number' ? value : parseFloat(String(value))
+    return Number.isFinite(n) ? n : 0
+  }
 
   const handleDownload = async () => {
     setLoading('download')
@@ -64,8 +83,9 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
         if (guardian?.phone_number) {
           // Create a data URL for the PDF
           const dataUrl = URL.createObjectURL(pdfBlob)
+          const amountPaid = parseMoney(receipt.amount_paid_total ?? receipt.amount)
           const message = encodeURIComponent(
-            `Receipt for ${receipt.participant_name || 'participant'}\nAmount: UGX ${receipt.amount.toLocaleString()}\nView receipt: ${window.location.origin}/receipts/${receipt.id}`
+            `Receipt for ${receipt.participant_name || 'participant'}\nAmount Paid: UGX ${amountPaid.toLocaleString()}\nView receipt: ${window.location.origin}/receipts/${receipt.id}`
           )
           const whatsappUrl = `https://wa.me/${guardian.phone_number.replace(/[^0-9]/g, '')}?text=${message}`
           window.open(whatsappUrl, '_blank')
@@ -86,6 +106,10 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
 
   const participant = receipt.registration_details?.participant
   const guardian = receipt.registration_details?.guardian_at_registration
+
+  const programFee = parseMoney(receipt.program_fee)
+  const amountPaidTotal = parseMoney(receipt.amount_paid_total)
+  const outstandingBalance = parseMoney(receipt.outstanding_balance ?? receipt.registration_details?.amount_due)
 
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 space-y-6">
@@ -112,8 +136,8 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
               <p className="text-xs text-gray-500">Name</p>
               <p className="text-sm font-medium text-gray-900">
                 {participant 
-                  ? `${participant.first_name} ${participant.last_name}`
-                  : receipt.participant_name || 'N/A'}
+                  ? toTitleCase(`${participant.first_name} ${participant.last_name}`)
+                  : receipt.participant_name ? toTitleCase(receipt.participant_name) : 'N/A'}
               </p>
             </div>
             {participant && (
@@ -137,7 +161,7 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
               <div>
                 <p className="text-xs text-gray-500">Name</p>
                 <p className="text-sm font-medium text-gray-900">
-                  {guardian.first_name} {guardian.last_name}
+                  {toTitleCase(`${guardian.first_name} ${guardian.last_name}`)}
                 </p>
               </div>
               <div>
@@ -166,6 +190,12 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
             </p>
           </div>
           <div>
+            <p className="text-xs text-gray-500">Program Fee</p>
+            <p className="text-sm font-semibold text-gray-900">
+              UGX {programFee.toLocaleString()}
+            </p>
+          </div>
+          <div>
             <p className="text-xs text-gray-500">Date</p>
             <p className="text-sm font-medium text-gray-900">
               {new Date(receipt.created_at).toLocaleDateString('en-UG', {
@@ -178,21 +208,19 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
           <div>
             <p className="text-xs text-gray-500">Amount Paid</p>
             <p className="text-lg font-bold text-green-600">
-              UGX {receipt.amount.toLocaleString()}
+              UGX {amountPaidTotal.toLocaleString()}
             </p>
           </div>
-          {receipt.registration_details?.amount_due !== undefined && (
-            <div>
-              <p className="text-xs text-gray-500">Outstanding Balance</p>
-              <p className={`text-lg font-bold ${
-                parseFloat(String(receipt.registration_details.amount_due)) > 0 ? 'text-red-600' : 'text-green-600'
-              }`}>
-                {parseFloat(String(receipt.registration_details.amount_due)) > 0 
-                  ? `UGX ${parseFloat(String(receipt.registration_details.amount_due)).toLocaleString()}`
-                  : 'Fully Paid ✓'}
-              </p>
-            </div>
-          )}
+          <div>
+            <p className="text-xs text-gray-500">Outstanding Balance</p>
+            <p className={`text-lg font-bold ${
+              outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'
+            }`}>
+              {outstandingBalance > 0
+                ? `UGX ${outstandingBalance.toLocaleString()}`
+                : 'Fully Paid ✓'}
+            </p>
+          </div>
         </div>
         <div className="mt-3 pt-3 border-t">
           <p className="text-xs text-gray-500">Issued By</p>

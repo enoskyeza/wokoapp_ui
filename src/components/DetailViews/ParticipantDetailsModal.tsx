@@ -6,6 +6,7 @@ import { XMarkIcon, TicketIcon, UserCircleIcon } from '@heroicons/react/24/outli
 import { FetchedRegistration } from '@/types'
 import StatusBadge from '@/components/ui/StatusBadge'
 import RegistrationActionMenu from '@/components/ProgramDashboard/RegistrationActionMenu'
+import { generateTicketPdf } from '@/lib/printTicket'
 
 interface ParticipantDetailsModalProps {
   isOpen: boolean
@@ -25,6 +26,15 @@ const ParticipantDetailsModal: React.FC<ParticipantDetailsModalProps> = ({
   const isFullyPaid = registration.status === 'paid'
   const hasTicket = isFullyPaid && registration.coupon?.qr_code
 
+  const toTitleCase = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+
   const handleViewTicket = () => {
     if (registration.coupon?.qr_code) {
       window.open(registration.coupon.qr_code, '_blank')
@@ -33,14 +43,7 @@ const ParticipantDetailsModal: React.FC<ParticipantDetailsModalProps> = ({
 
   const handleDownloadTicket = () => {
     if (registration.coupon?.qr_code) {
-      // Open in new tab to allow download
-      const link = document.createElement('a')
-      link.href = registration.coupon.qr_code
-      link.download = `ticket_${registration.id}.png`
-      link.target = '_blank'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      generateTicketPdf(registration, true)
     }
   }
 
@@ -87,7 +90,7 @@ const ParticipantDetailsModal: React.FC<ParticipantDetailsModalProps> = ({
                     <UserCircleIcon className="h-10 w-10 text-gray-400" />
                     <div>
                       <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900">
-                        {participant.first_name} {participant.last_name}
+                        {toTitleCase(`${participant.first_name} ${participant.last_name}`)}
                       </Dialog.Title>
                       <p className="text-sm text-gray-500 mt-1">
                         Registration #{registration.id}
@@ -166,7 +169,7 @@ const ParticipantDetailsModal: React.FC<ParticipantDetailsModalProps> = ({
                         <div>
                           <p className="text-xs text-gray-500">Name</p>
                           <p className="text-sm font-medium text-gray-900">
-                            {guardian.first_name} {guardian.last_name}
+                            {toTitleCase(`${guardian.first_name} ${guardian.last_name}`)}
                           </p>
                         </div>
                         <div>

@@ -302,6 +302,7 @@ export interface FetchedRegistration {
   coupon?:Coupon;
   receipts?: Receipt[];
   category_value?: string | null;
+  program_logo_url?: string | null;
 }
 
 export interface Approval {

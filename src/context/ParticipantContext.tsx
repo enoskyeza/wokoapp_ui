@@ -3,16 +3,16 @@ import {Participant, Parent} from "@/types";
 import axios, {AxiosError} from 'axios';
 // import {approvePayment} from "@/actions/approvePayment";
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://kyeza.pythonanywhere.com/register/contestants'
-  : 'http://127.0.0.1:8000/register/contestants';
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://kyeza.pythonanywhere.com'
+  : 'http://127.0.0.1:8000';
 
-const approvePayment = async (id:number) => {
-
-    const url = `${API_URL}/${id}/`
+const approvePayment = async (registrationId: number) => {
+    // Update registration status instead of old contestant endpoint
+    const url = `${API_BASE_URL}/register/registrations/${registrationId}/`
 
     const requestData = {
-        payment_status: "paid"
+        status: "paid"  // Changed from payment_status to status
     };
 
     try {

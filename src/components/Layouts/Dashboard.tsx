@@ -42,6 +42,23 @@ const Dashboard = ({children}: {children: ReactNode}) => {
     localStorage.setItem('sidebar_state', state);
   };
 
+  // Handle logout functionality
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  };
+
   const navigation = [
     {
       name: "Dashboard",
@@ -328,12 +345,20 @@ const Dashboard = ({children}: {children: ReactNode}) => {
                     </Link>
                   </MenuItem>
                   <MenuItem>
-                    <button
-                      type="button"
-                      className="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 data-[focus]:bg-gray-50"
-                    >
-                      Logout
-                    </button>
+                    {({ close }) => (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          close();
+                          handleLogout();
+                        }}
+                        className="block w-full text-left px-3 py-1 text-sm leading-6 text-gray-900 data-[focus]:bg-gray-50 cursor-pointer"
+                      >
+                        Logout
+                      </button>
+                    )}
                   </MenuItem>
                 </MenuItems>
               </Menu>
