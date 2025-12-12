@@ -56,10 +56,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  eslint: {
-    // Ignore ESLint errors during builds to avoid blocking production output
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Ignore TypeScript build errors to allow production builds
     // Use with caution; fix type errors promptly

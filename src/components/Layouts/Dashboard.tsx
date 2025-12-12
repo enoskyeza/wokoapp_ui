@@ -345,6 +345,14 @@ const Dashboard = ({children}: {children: ReactNode}) => {
                     </Link>
                   </MenuItem>
                   <MenuItem>
+                    <Link
+                      href="/settings"
+                      className="block px-3 py-1 text-sm leading-6 text-gray-900 data-[focus]:bg-gray-50"
+                    >
+                      Settings
+                    </Link>
+                  </MenuItem>
+                  <MenuItem>
                     {({ close }) => (
                       <button
                         type="button"

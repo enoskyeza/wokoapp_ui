@@ -2,8 +2,6 @@
 import React from 'react'
 import {Dialog,  DialogBody, DialogTitle} from '@/components/ui/dialog';
 import Image from "next/image";
-import participantMale from '/public/contestant_boy.jpg';
-import participantFemale from '/public/contestant_girl.jpg';
 
 import {useEnrollmentData} from "@/components/Contexts/enrollmentDataProvider";
 import RegistrationActions from "@/components/Buttons/RegistrationActions";
@@ -16,6 +14,9 @@ type InterfaceProps = {
 function RegistrationModalDialog({isOpen, setIsOpen}: InterfaceProps){
     const {selectedEnrollment} = useEnrollmentData()
     if (!selectedEnrollment) return <div>No participant found.</div>;
+
+    const participantMale = '/contestant_boy.jpg'
+    const participantFemale = '/contestant_girl.jpg'
 
 
     return (

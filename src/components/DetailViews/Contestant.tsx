@@ -1,8 +1,8 @@
 import Image from 'next/image';
-import contestantImg from '/public/contestant_boy.jpg';
 import Link from "next/link";
 
 const ContestantDetails = () => {
+    const contestantImg = '/contestant_boy.jpg';
     // Sample data for illustration
     const contestant = {
         id: 'TF23001',
