@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { FetchedRegistration } from '@/types'
 import {useEnrollmentData} from "@/components/Contexts/enrollmentDataProvider";
+import { generateTicketPdf } from '@/lib/printTicket'
 
 interface RegistrationActionsProps {
   registration: FetchedRegistration
@@ -102,7 +103,13 @@ const RegistrationActions: React.FC<RegistrationActionsProps> = ({ registration 
                 >Download Receipt</button>
                 {registration.coupon?.qr_code && (
                   <button
-                    onClick={() => window.open(registration.coupon?.qr_code, '_blank')}
+                    onClick={async () => {
+                      try {
+                        await generateTicketPdf(registration, true)
+                      } catch (e) {
+                        console.error('Ticket download error:', e)
+                      }
+                    }}
                     className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
                   >Download Ticket</button>
                 )}

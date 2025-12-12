@@ -24,6 +24,26 @@ const getBase64FromUrl = async (url: string): Promise<string> => {
   }
 };
 
+const getImageSize = (dataUrl: string): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height });
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+};
+
+const contain = (
+  srcW: number,
+  srcH: number,
+  maxW: number,
+  maxH: number
+): { w: number; h: number } => {
+  if (srcW <= 0 || srcH <= 0) return { w: maxW, h: maxH };
+  const scale = Math.min(maxW / srcW, maxH / srcH);
+  return { w: srcW * scale, h: srcH * scale };
+};
+
 const formatDateTime = (value?: string | null) => {
   if (!value) return '—';
   try {
@@ -43,6 +63,10 @@ interface ReceiptData extends Receipt {
   registration_details?: FetchedRegistration;
   program_name?: string;
   participant_name?: string;
+  program_logo_url?: string | null;
+  program_fee?: string;
+  amount_paid_total?: string;
+  outstanding_balance?: string;
 }
 
 export const generateReceiptPdf = async (receipt: ReceiptData, download = true): Promise<jsPDF> => {
@@ -53,16 +77,45 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   const pageHeight = doc.internal.pageSize.getHeight();
   const usableWidth = pageWidth - 2 * margin;
 
-  // Add header image
+  const toTitleCase = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
+  const parseMoneyValue = (value?: string | number | null) => {
+    if (value === null || value === undefined) return 0;
+    const n = typeof value === 'number' ? value : parseFloat(String(value));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // Add program logo (preferred) or fallback header image
   try {
-    const headerDataUrl = await getBase64FromUrl(HEADER_IMAGE_PATH);
-    const headerHeight = 30;
-    doc.addImage(headerDataUrl, 'PNG', margin, margin, usableWidth, headerHeight);
+    const logoPath = receipt.program_logo_url || HEADER_IMAGE_PATH;
+    const logoDataUrl = await getBase64FromUrl(logoPath);
+    const { width: srcW, height: srcH } = await getImageSize(logoDataUrl);
+
+    // Rectangular logo: center and preserve aspect ratio (no skew)
+    const maxW = usableWidth;
+    const maxH = receipt.program_logo_url ? 11 : 15;
+    const { w, h } = contain(srcW, srcH, maxW, maxH);
+    const x = margin + (usableWidth - w) / 2;
+    const y = margin - 1;
+    doc.addImage(logoDataUrl, 'PNG', x, y, w, h);
   } catch {
-    console.warn('Header image not loaded, continuing without it');
+    console.warn('Header/logo image not loaded, continuing without it');
   }
 
-  let currentY = margin + 35;
+  let currentY = margin + 28;
+
+  // Program title (under logo)
+  const programName = receipt.program_name || receipt.registration_details?.program || 'N/A';
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text(programName, pageWidth / 2, currentY - 8, { align: 'center' });
 
   // Title
   doc.setFont('helvetica', 'bold');
@@ -84,7 +137,6 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   // Receipt details
   const participant = receipt.registration_details?.participant;
   const guardian = receipt.registration_details?.guardian_at_registration;
-  const programName = receipt.program_name || receipt.registration_details?.program || 'N/A';
 
   // Participant information
   doc.setFont('helvetica', 'bold');
@@ -93,7 +145,7 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   const participantName = participant 
     ? `${participant.first_name} ${participant.last_name}`
     : receipt.participant_name || 'N/A';
-  doc.text(participantName, margin + 40, currentY);
+  doc.text(toTitleCase(participantName), margin + 40, currentY);
   currentY += 7;
 
   // Guardian information
@@ -101,7 +153,7 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
     doc.setFont('helvetica', 'bold');
     doc.text('Guardian:', margin, currentY);
     doc.setFont('helvetica', 'normal');
-    doc.text(`${guardian.first_name} ${guardian.last_name}`, margin + 40, currentY);
+    doc.text(toTitleCase(`${guardian.first_name} ${guardian.last_name}`), margin + 40, currentY);
     currentY += 7;
 
     doc.setFont('helvetica', 'bold');
@@ -127,10 +179,12 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   doc.text(formatDateTime(receipt.created_at), margin + 40, currentY);
   currentY += 15;
 
+  const amountPaidTotal = parseMoneyValue(receipt.amount_paid_total ?? receipt.amount);
+
   // Payment details table
   const tableData = [
     ['Description', 'Amount'],
-    ['Registration Payment', formatMoney(receipt.amount)]
+    ['Registration Payment', formatMoney(amountPaidTotal)]
   ];
 
   autoTable(doc, {
@@ -153,7 +207,7 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.setTextColor(0, 100, 0);
-  doc.text(`Total Amount: ${formatMoney(receipt.amount)}`, pageWidth - margin, currentY, {
+  doc.text(`Total Amount: ${formatMoney(amountPaidTotal)}`, pageWidth - margin, currentY, {
     align: 'right',
   });
   currentY += 12;
@@ -167,10 +221,9 @@ export const generateReceiptPdf = async (receipt: ReceiptData, download = true):
   currentY += 15;
 
   // Balance information if available
-  if (receipt.registration_details?.amount_due !== undefined) {
-    const balance = typeof receipt.registration_details.amount_due === 'string' 
-      ? parseFloat(receipt.registration_details.amount_due) 
-      : receipt.registration_details.amount_due;
+  const outstanding = parseMoneyValue(receipt.outstanding_balance ?? receipt.registration_details?.amount_due);
+  if (receipt.registration_details?.amount_due !== undefined || receipt.outstanding_balance !== undefined) {
+    const balance = outstanding;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     if (balance > 0) {

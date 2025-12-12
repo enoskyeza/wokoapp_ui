@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-import { submitApproval } from '@/services/registrationsService'
+import { generateTicketPdf } from '@/lib/printTicket'
 import type { FetchedRegistration } from '@/types'
+import { submitApproval } from '@/services/registrationsService'
 
 interface RegistrationActionMenuProps {
   registration: FetchedRegistration
@@ -103,7 +103,7 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
       </button>
 
       {menuOpen && (
-        <div className="absolute right-0 z-20 mt-2 w-48 origin-top-right rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute right-0 z-20 bottom-full mb-2 w-48 origin-bottom-right rounded-md border border-gray-200 bg-white shadow-lg">
           <div className="py-1 text-sm text-gray-700">
             {canMakePayment && (
               <>
@@ -137,7 +137,15 @@ const RegistrationActionMenu: React.FC<RegistrationActionMenuProps> = ({ registr
               <button
                 type="button"
                 className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                onClick={() => window.open(registration.coupon?.qr_code ?? '', '_blank')}
+                onClick={async () => {
+                  try {
+                    await generateTicketPdf(registration, true)
+                    toast.success('Ticket downloaded')
+                  } catch (e) {
+                    console.error('Ticket download error:', e)
+                    toast.error('Failed to download ticket')
+                  }
+                }}
               >
                 Download Ticket
               </button>

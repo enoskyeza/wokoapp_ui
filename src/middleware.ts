@@ -34,11 +34,11 @@ export function middleware(req: NextRequest) {
                 }
             }
 
-            // Judge panel routes: Only for judges
+            // Judge panel routes: Only for judges and admins
             if (path.startsWith('/judge_panel')) {
-                if (user.role !== 'judge') {
-                    // If admin/staff tries to access judge panel, redirect to dashboard
-                    if (user.role === 'admin' || user.role === 'staff') {
+                if (user.role !== 'judge' && user.role !== 'admin') {
+                    // If staff tries to access judge panel, redirect to dashboard
+                    if (user.role === 'staff') {
                         return NextResponse.redirect(new URL('/dashboard', req.url));
                     }
                     // Other roles go to login

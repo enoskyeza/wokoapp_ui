@@ -2,21 +2,28 @@
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-    const response = NextResponse.json({ success: true });
+    console.log('🔴 Logout API called');
+    
+    const response = NextResponse.json({ 
+        success: true,
+        message: 'Logged out successfully'
+    });
 
-    // Clear cookies
+    // Clear cookies - match the settings from login (no httpOnly)
     response.cookies.set('authToken', '', {
         path: '/',
-        httpOnly: true,
-        secure: true,
-        expires: new Date(0),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 0, // Expire immediately
     });
+    
     response.cookies.set('userData', '', {
         path: '/',
-        httpOnly: true,
-        secure: true,
-        expires: new Date(0),
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 0, // Expire immediately
     });
 
+    console.log('✅ Cookies cleared');
     return response;
 }
