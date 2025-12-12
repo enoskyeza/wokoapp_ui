@@ -113,6 +113,17 @@ const ReceiptView: React.FC<ReceiptViewProps> = ({ receipt }) => {
 
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 space-y-6">
+      {/* Program Logo */}
+      {receipt.program_logo_url && (
+        <div className="flex justify-center pb-2">
+          <img
+            src={receipt.program_logo_url}
+            alt={receipt.program_name || 'Program Logo'}
+            className="h-16 max-w-[200px] object-contain"
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
